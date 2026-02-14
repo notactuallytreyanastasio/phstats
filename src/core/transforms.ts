@@ -86,3 +86,16 @@ export function findBustouts(performances: SongPerformance[], minGapDays: number
 
   return gaps.sort((a, b) => b.currentGap - a.currentGap)
 }
+
+export function computeSongFrequency(
+  performances: SongPerformance[]
+): { songName: string; count: number }[] {
+  const counts = new Map<string, number>()
+  for (const p of performances) {
+    counts.set(p.songName, (counts.get(p.songName) ?? 0) + 1)
+  }
+
+  return [...counts.entries()]
+    .map(([songName, count]) => ({ songName, count }))
+    .sort((a, b) => b.count - a.count || a.songName.localeCompare(b.songName))
+}
