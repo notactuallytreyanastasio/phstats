@@ -113,3 +113,22 @@ export function getSetBreakdown(tracks: Track[]): Record<string, Track[]> {
   }
   return result
 }
+
+export function computeShowDurationRank(
+  tracks: Track[]
+): { showId: number; showDate: string; totalDuration: number; trackCount: number }[] {
+  const byShow = new Map<number, { showDate: string; totalDuration: number; trackCount: number }>()
+  for (const t of tracks) {
+    const existing = byShow.get(t.showId)
+    if (existing) {
+      existing.totalDuration += t.duration
+      existing.trackCount += 1
+    } else {
+      byShow.set(t.showId, { showDate: t.showDate, totalDuration: t.duration, trackCount: 1 })
+    }
+  }
+
+  return [...byShow.entries()]
+    .map(([showId, data]) => ({ showId, ...data }))
+    .sort((a, b) => b.totalDuration - a.totalDuration)
+}
