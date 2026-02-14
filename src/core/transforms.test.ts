@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatDuration, groupShowsByYear, computeYearStats, findBustouts } from './transforms'
+import { formatDuration, groupShowsByYear, computeYearStats, findBustouts, computeSongFrequency } from './transforms'
 import type { Show, Track, SongPerformance } from './types'
 
 describe('formatDuration', () => {
@@ -149,5 +149,39 @@ describe('findBustouts', () => {
     const result = findBustouts(performances, 0)
     expect(result[0].songName).toBe('Harpua') // bigger gap
     expect(result[1].songName).toBe('Destiny Unbound')
+  })
+})
+
+describe('computeSongFrequency', () => {
+  it('counts how many times each song was played', () => {
+    const performances: SongPerformance[] = [
+      makePerformance({ songName: 'Tweezer', showDate: '2023-07-01' }),
+      makePerformance({ songName: 'Tweezer', showDate: '2023-07-02' }),
+      makePerformance({ songName: 'Tweezer', showDate: '2023-08-01' }),
+      makePerformance({ songName: 'YEM', showDate: '2023-07-01' }),
+      makePerformance({ songName: 'Fluffhead', showDate: '2023-07-01' }),
+      makePerformance({ songName: 'Fluffhead', showDate: '2023-07-02' }),
+    ]
+    const result = computeSongFrequency(performances)
+    expect(result).toEqual([
+      { songName: 'Tweezer', count: 3 },
+      { songName: 'Fluffhead', count: 2 },
+      { songName: 'YEM', count: 1 },
+    ])
+  })
+
+  it('returns empty array for no performances', () => {
+    expect(computeSongFrequency([])).toEqual([])
+  })
+
+  it('sorts by count descending then alphabetically', () => {
+    const performances: SongPerformance[] = [
+      makePerformance({ songName: 'Bathtub Gin' }),
+      makePerformance({ songName: 'Antelope' }),
+    ]
+    const result = computeSongFrequency(performances)
+    // Same count (1 each), alphabetical tiebreak
+    expect(result[0].songName).toBe('Antelope')
+    expect(result[1].songName).toBe('Bathtub Gin')
   })
 })
