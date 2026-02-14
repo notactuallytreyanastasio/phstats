@@ -1,0 +1,122 @@
+[
+  {
+    "hash": "d5fed2693e96c1bc84aed3492eb34295592ae1c9",
+    "short_hash": "d5fed26",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:58:28-05:00",
+    "message": "feat: implement computeShowDurationRank (green)\n\nRanks shows by total track duration, aggregating from phish.in track data.\nReturns sorted longest-first with show metadata and track count.\nAll 22 tests now passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "8da59edcd9dd68a1e7e39b52714869534d926f44",
+    "short_hash": "8da59ed",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:57:49-05:00",
+    "message": "test: add failing tests for computeShowDurationRank (red)\n\nTests for ranking shows by total track duration:\n- aggregates track durations per show, sorts longest first\n- handles empty input\n2 new failing tests, 20 existing pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "ac765831c4a174cfddf374bb2f552cefcd47b6a8",
+    "short_hash": "ac76583",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:57:05-05:00",
+    "message": "feat: implement getSetBreakdown (green)\n\nOrganizes tracks by set name, sorted by position within each set.\nEssential for setlist visualization rendering.\nAll 20 tests now passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "de8b3fc6a44bb2d2d2fe0eebc910c738bd8d80cf",
+    "short_hash": "de8b3fc",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:56:35-05:00",
+    "message": "test: add failing tests for getSetBreakdown (red)\n\nTests for organizing tracks by set name within a show:\n- groups by set preserving insertion order, sorts by position\n- handles empty input\n3 new failing tests, 17 existing pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "6890f644b20c30d4a5af739c817fd7756298d23a",
+    "short_hash": "6890f64",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:55:57-05:00",
+    "message": "feat: implement computeSongFrequency (green)\n\nCounts song play frequency across performances.\nReturns sorted by count desc, then alphabetically for tiebreaks.\nAll 17 tests now passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "07ee45b9c465e7800df14aa60890bae3d5cec988",
+    "short_hash": "07ee45b",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:55:29-05:00",
+    "message": "test: add failing tests for computeSongFrequency (red)\n\nTests for counting song play frequency across performances:\n- counts occurrences, sorts by count desc then alphabetically\n- handles empty input\n3 new failing tests, 14 existing pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "fa82baca2fce9c1239bd5f60afa17e4bd0a95db0",
+    "short_hash": "fa82bac",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:54:04-05:00",
+    "message": "feat: implement findBustouts (green)\n\nFinds songs with gaps exceeding a day threshold between performances.\nReturns SongGap[] sorted by biggest gap first.\nAll 14 tests now passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "34cc5bf5f7c050ba762109a615c52c5122f95ab0",
+    "short_hash": "34cc5bf",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:53:25-05:00",
+    "message": "test: add failing tests for findBustouts (red)\n\nTests for finding songs with gaps exceeding a threshold:\n- finds bustouts above threshold, returns empty when none qualify\n- sorts by gap descending (biggest bustouts first)\n3 new failing tests, 11 existing pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "a90d4fe52d498a106cf34b745939873fcc0a96c7",
+    "short_hash": "a90d4fe",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:52:45-05:00",
+    "message": "feat: implement computeYearStats (green)\n\nAggregates shows + tracks into YearStats with:\nshow count, unique venues/songs, total duration, states visited.\nAll 11 tests now passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "2f3faa1f0fac6f1ca99e4f9e2d2d16c75568ba1b",
+    "short_hash": "2f3faa1",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:52:07-05:00",
+    "message": "test: add failing tests for computeYearStats (red)\n\nTests for aggregating shows + tracks into YearStats:\n- show count, unique venues/songs, total duration, states visited\n- handles empty tracks, deduplicates states\n3 new failing tests, 8 existing pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "862abe98712dd227f0a4972dc41b7e99385fff2c",
+    "short_hash": "862abe9",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:51:22-05:00",
+    "message": "feat: implement groupShowsByYear (green)\n\nGroups Show[] into Map<number, Show[]> keyed by year.\nExtracts year from YYYY-MM-DD date strings.\nAll 8 tests now passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "9b437f774fe79172dcd555ab8530cb735cfd5e6b",
+    "short_hash": "9b437f7",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:50:54-05:00",
+    "message": "test: add failing tests for groupShowsByYear (red)\n\nTests grouping Show[] into a Map<number, Show[]> keyed by year.\n3 new failing tests, 5 existing tests still pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "20e213e2880d40bd693d5cefee8d047659df9450",
+    "short_hash": "20e213e",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:50:11-05:00",
+    "message": "feat: implement formatDuration (green)\n\nConverts milliseconds to human-readable duration strings.\n- Sub-hour: mm:ss (e.g., 3:00, 1:05)\n- Hour+: h:mm:ss (e.g., 1:01:01)\nAll 5 tests now passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "66637bc644909e866256e9781b4f2ce3e34b22ad",
+    "short_hash": "66637bc",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:49:37-05:00",
+    "message": "test: add failing tests for formatDuration (red)\n\nTests for converting milliseconds to human-readable duration strings\n(mm:ss and h:mm:ss formats). Function not yet implemented.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "ebbc86d5df37a412f25dcdc8ab17936f622753ad",
+    "short_hash": "ebbc86d",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:49:02-05:00",
+    "message": "chore: scaffold Vite React-TS project with functional core/imperative shell\n\nSets up the base project structure:\n- Vite + React 19 + TypeScript + Vitest + D3.js\n- Functional core (src/core/) for pure data transforms\n- Imperative shell (src/shell/) for API, hooks, components\n- Path aliases (@core/*, @shell/*) configured\n- Test infrastructure with jsdom, testing-library, coverage\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 16
+  }
+]
