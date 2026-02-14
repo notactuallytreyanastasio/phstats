@@ -99,3 +99,17 @@ export function computeSongFrequency(
     .map(([songName, count]) => ({ songName, count }))
     .sort((a, b) => b.count - a.count || a.songName.localeCompare(b.songName))
 }
+
+export function getSetBreakdown(tracks: Track[]): Record<string, Track[]> {
+  const result: Record<string, Track[]> = {}
+  for (const track of tracks) {
+    if (!result[track.setName]) {
+      result[track.setName] = []
+    }
+    result[track.setName].push(track)
+  }
+  for (const setName of Object.keys(result)) {
+    result[setName].sort((a, b) => a.position - b.position)
+  }
+  return result
+}
