@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // vi.hoisted runs before vi.mock hoisting, so these are available in the mock factory
-const { mockPageClose, mockContent, mockGoto, mockBrowserClose } = vi.hoisted(() => ({
+const { mockPageClose, mockContent, mockGoto, mockBrowserClose, mockEvaluate } = vi.hoisted(() => ({
   mockPageClose: vi.fn(),
   mockContent: vi.fn(),
   mockGoto: vi.fn(),
   mockBrowserClose: vi.fn(),
+  mockEvaluate: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('playwright', () => ({
@@ -15,6 +16,7 @@ vi.mock('playwright', () => ({
         goto: mockGoto,
         content: mockContent,
         close: mockPageClose,
+        evaluate: mockEvaluate,
       }),
       close: mockBrowserClose,
     }),
@@ -69,6 +71,15 @@ describe('fetchUserShowsScrape', () => {
     expect(result[0].date).toBe('2024-12-31')
     expect(result[0].venue).toBe('MSG')
     expect(mockPageClose).toHaveBeenCalled()
+  })
+
+  it('expands DataTables to show all rows before scraping', async () => {
+    mockGoto.mockResolvedValue(undefined)
+    mockContent.mockResolvedValue(SHOWS_HTML)
+
+    await fetchUserShowsScrape('someguyorwhatever')
+
+    expect(mockEvaluate).toHaveBeenCalled()
   })
 })
 
