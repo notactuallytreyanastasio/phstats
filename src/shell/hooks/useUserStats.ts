@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import type { UserStats } from '../../core/types'
-import type { PhishNetConfig } from '../api/phishnet'
 import { fetchUserStats as fetchStats } from '../api/orchestrator'
 
 interface UseUserStatsResult {
@@ -9,10 +8,7 @@ interface UseUserStatsResult {
   error: string | null
 }
 
-export function useUserStats(
-  username: string,
-  config: PhishNetConfig,
-): UseUserStatsResult {
+export function useUserStats(username: string): UseUserStatsResult {
   const [stats, setStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -24,7 +20,7 @@ export function useUserStats(
     setLoading(true)
     setError(null)
 
-    fetchStats(username, config)
+    fetchStats(username)
       .then(result => {
         if (!cancelled) {
           setStats(result)
@@ -41,7 +37,7 @@ export function useUserStats(
     return () => {
       cancelled = true
     }
-  }, [username, config])
+  }, [username])
 
   return { stats, loading, error }
 }

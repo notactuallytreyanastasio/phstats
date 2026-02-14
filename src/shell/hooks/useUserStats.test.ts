@@ -11,8 +11,6 @@ import { fetchUserStats } from '../api/orchestrator'
 
 const mockFetchUserStats = vi.mocked(fetchUserStats)
 
-const config = { apiKey: 'test-key' }
-
 const mockStats: UserStats = {
   username: 'someguyorwhatever',
   totalShows: 3,
@@ -34,7 +32,7 @@ describe('useUserStats', () => {
 
   it('starts in loading state when username is provided', () => {
     mockFetchUserStats.mockReturnValue(new Promise(() => {})) // never resolves
-    const { result } = renderHook(() => useUserStats('someguyorwhatever', config))
+    const { result } = renderHook(() => useUserStats('someguyorwhatever'))
     expect(result.current.loading).toBe(true)
     expect(result.current.stats).toBeNull()
     expect(result.current.error).toBeNull()
@@ -42,7 +40,7 @@ describe('useUserStats', () => {
 
   it('returns stats after successful fetch', async () => {
     mockFetchUserStats.mockResolvedValue(mockStats)
-    const { result } = renderHook(() => useUserStats('someguyorwhatever', config))
+    const { result } = renderHook(() => useUserStats('someguyorwhatever'))
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false)
@@ -50,12 +48,12 @@ describe('useUserStats', () => {
 
     expect(result.current.stats).toEqual(mockStats)
     expect(result.current.error).toBeNull()
-    expect(mockFetchUserStats).toHaveBeenCalledWith('someguyorwhatever', config)
+    expect(mockFetchUserStats).toHaveBeenCalledWith('someguyorwhatever')
   })
 
   it('returns error on fetch failure', async () => {
     mockFetchUserStats.mockRejectedValue(new Error('API down'))
-    const { result } = renderHook(() => useUserStats('someguyorwhatever', config))
+    const { result } = renderHook(() => useUserStats('someguyorwhatever'))
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false)
@@ -66,7 +64,7 @@ describe('useUserStats', () => {
   })
 
   it('does not fetch when username is empty', () => {
-    const { result } = renderHook(() => useUserStats('', config))
+    const { result } = renderHook(() => useUserStats(''))
     expect(result.current.loading).toBe(false)
     expect(result.current.stats).toBeNull()
     expect(mockFetchUserStats).not.toHaveBeenCalled()

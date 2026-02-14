@@ -1,32 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { Show, SongPerformance, Track, UserStats } from '../../core/types'
+import type { Show, SongPerformance, Track } from '../../core/types'
 import { fetchUserStats } from './orchestrator'
 
-// Mock the API modules
-vi.mock('./phishnet', () => ({
-  fetchUserShows: vi.fn(),
-  fetchSetlist: vi.fn(),
+// Mock the scraper and API modules
+vi.mock('./phishnet-scraper', () => ({
+  fetchUserShowsScrape: vi.fn(),
+  fetchSetlistScrape: vi.fn(),
+  closeBrowser: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('./phishin', () => ({
   fetchShowTracks: vi.fn(),
 }))
 
-import { fetchUserShows, fetchSetlist } from './phishnet'
+import { fetchUserShowsScrape, fetchSetlistScrape } from './phishnet-scraper'
 import { fetchShowTracks } from './phishin'
 
-const mockFetchUserShows = vi.mocked(fetchUserShows)
-const mockFetchSetlist = vi.mocked(fetchSetlist)
+const mockFetchUserShows = vi.mocked(fetchUserShowsScrape)
+const mockFetchSetlist = vi.mocked(fetchSetlistScrape)
 const mockFetchShowTracks = vi.mocked(fetchShowTracks)
-
-const config = { apiKey: 'test-key' }
 
 describe('fetchUserStats', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('orchestrates API calls and returns computed UserStats', async () => {
+  it('orchestrates scraping + API calls and returns computed UserStats', async () => {
     const shows: Show[] = [
       { id: 1, date: '2023-07-01', venue: 'MSG', city: 'New York', state: 'NY', setlistNotes: null },
       { id: 2, date: '2023-08-15', venue: 'Dicks', city: 'Commerce City', state: 'CO', setlistNotes: null },
@@ -62,7 +61,7 @@ describe('fetchUserStats', () => {
       return []
     })
 
-    const result = await fetchUserStats('someguyorwhatever', config)
+    const result = await fetchUserStats('someguyorwhatever')
 
     expect(result.username).toBe('someguyorwhatever')
     expect(result.totalShows).toBe(2)
@@ -75,8 +74,8 @@ describe('fetchUserStats', () => {
     expect(result.firstShow).toBe('2023-07-01')
     expect(result.lastShow).toBe('2023-08-15')
 
-    // Verify API calls were made correctly
-    expect(mockFetchUserShows).toHaveBeenCalledWith('someguyorwhatever', config)
+    // Verify scraping calls were made correctly
+    expect(mockFetchUserShows).toHaveBeenCalledWith('someguyorwhatever')
     expect(mockFetchSetlist).toHaveBeenCalledTimes(2)
     expect(mockFetchShowTracks).toHaveBeenCalledTimes(2)
   })
@@ -84,7 +83,7 @@ describe('fetchUserStats', () => {
   it('handles user with no shows', async () => {
     mockFetchUserShows.mockResolvedValue([])
 
-    const result = await fetchUserStats('nobody', config)
+    const result = await fetchUserStats('nobody')
 
     expect(result.totalShows).toBe(0)
     expect(result.totalSongs).toBe(0)
@@ -104,12 +103,12 @@ describe('fetchUserStats', () => {
 
     mockFetchUserShows.mockResolvedValue(shows)
     mockFetchSetlist.mockResolvedValue(setlist)
-    mockFetchShowTracks.mockResolvedValue([]) // phish.in doesn't have this show
+    mockFetchShowTracks.mockResolvedValue([])
 
-    const result = await fetchUserStats('someguyorwhatever', config)
+    const result = await fetchUserStats('someguyorwhatever')
 
     expect(result.totalShows).toBe(1)
     expect(result.totalSongs).toBe(1)
-    expect(result.totalDuration).toBe(0) // no tracks = no duration
+    expect(result.totalDuration).toBe(0)
   })
 })
