@@ -153,7 +153,7 @@ describe('findBustouts', () => {
 })
 
 describe('computeSongFrequency', () => {
-  it('counts how many times each song was played', () => {
+  it('counts how many shows each song was played at (not raw performances)', () => {
     const performances: SongPerformance[] = [
       makePerformance({ songName: 'Tweezer', showDate: '2023-07-01' }),
       makePerformance({ songName: 'Tweezer', showDate: '2023-07-02' }),
@@ -167,6 +167,25 @@ describe('computeSongFrequency', () => {
       { songName: 'Tweezer', count: 3 },
       { songName: 'Fluffhead', count: 2 },
       { songName: 'YEM', count: 1 },
+    ])
+  })
+
+  it('deduplicates songs played multiple times in the same show', () => {
+    const performances: SongPerformance[] = [
+      // Tweezer Reprise played 6 times at SPAC 2025-07-27
+      makePerformance({ songName: 'Tweezer Reprise', showDate: '2025-07-27', set: 'Set 1', position: 2 }),
+      makePerformance({ songName: 'Tweezer Reprise', showDate: '2025-07-27', set: 'Set 1', position: 4 }),
+      makePerformance({ songName: 'Tweezer Reprise', showDate: '2025-07-27', set: 'Set 1', position: 7 }),
+      makePerformance({ songName: 'Tweezer Reprise', showDate: '2025-07-27', set: 'Set 1', position: 8 }),
+      makePerformance({ songName: 'Tweezer Reprise', showDate: '2025-07-27', set: 'Set 1', position: 11 }),
+      makePerformance({ songName: 'Tweezer Reprise', showDate: '2025-07-27', set: 'Set 2', position: 5 }),
+      // Plus one at a different show
+      makePerformance({ songName: 'Tweezer Reprise', showDate: '2025-09-21', set: 'Encore', position: 3 }),
+    ]
+    const result = computeSongFrequency(performances)
+    // Should count 2 shows, not 7 performances
+    expect(result).toEqual([
+      { songName: 'Tweezer Reprise', count: 2 },
     ])
   })
 
