@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { scrapeUserShows, scrapeSetlist } from './scrapers'
 
-// Fixture HTML mimicking phish.net /user/{name}/shows table structure
+// Fixture HTML matching actual phish.net /user/{name}/shows table structure
+// Real data uses YYYY-MM-DD dates and "City, ST" location (no country)
 const SHOWS_HTML = `
 <html><body>
 <table id="phish-shows">
@@ -10,27 +11,27 @@ const SHOWS_HTML = `
   </thead>
   <tbody>
     <tr>
-      <td><a href="/setlists/phish-december-31-2024-madison-square-garden-new-york-ny-usa.html">12/31/2024</a></td>
-      <td></td>
+      <td><a href="/setlists/phish-december-31-2024-madison-square-garden-new-york-ny-usa.html">2024-12-31</a></td>
+      <td><a href="/venue/157/Madison_Square_Garden">Madison Square GardenNew York, NY</a></td>
       <td>2024</td>
-      <td>Madison Square Garden</td>
-      <td>New York, NY, USA</td>
+      <td><a href="/venue/157/Madison_Square_Garden">Madison Square Garden</a></td>
+      <td><a href="/setlists/city/New_York/NY/USA">New York, NY</a></td>
       <td>4.536</td>
     </tr>
     <tr>
-      <td><a href="/setlists/phish-august-31-2024-dicks-sporting-goods-park-commerce-city-co-usa.html">08/31/2024</a></td>
-      <td></td>
+      <td><a href="/setlists/phish-august-31-2024-dicks-sporting-goods-park-commerce-city-co-usa.html">2024-08-31</a></td>
+      <td><a href="/venue/763/Dicks_Sporting_Goods_Park">Dick's Sporting Goods ParkCommerce City, CO</a></td>
       <td>2024</td>
-      <td>Dick's Sporting Goods Park</td>
-      <td>Commerce City, CO, USA</td>
+      <td><a href="/venue/763/Dicks_Sporting_Goods_Park">Dick's Sporting Goods Park</a></td>
+      <td><a href="/setlists/city/Commerce_City/CO/USA">Commerce City, CO</a></td>
       <td>4.590</td>
     </tr>
     <tr>
-      <td><a href="/setlists/phish-july-27-2014-merriweather-post-pavilion-columbia-md-usa.html">07/27/2014</a></td>
-      <td></td>
+      <td><a href="/setlists/phish-july-27-2014-merriweather-post-pavilion-columbia-md-usa.html">2014-07-27</a></td>
+      <td><a href="/venue/43/Merriweather_Post_Pavilion">Merriweather Post PavilionColumbia, MD</a></td>
       <td>2014</td>
-      <td>Merriweather Post Pavilion</td>
-      <td>Columbia, MD, USA</td>
+      <td><a href="/venue/43/Merriweather_Post_Pavilion">Merriweather Post Pavilion</a></td>
+      <td><a href="/setlists/city/Columbia/MD/USA">Columbia, MD</a></td>
       <td>4.574</td>
     </tr>
   </tbody>
@@ -72,23 +73,23 @@ describe('scrapeUserShows', () => {
       venue: 'Madison Square Garden',
       city: 'New York',
       state: 'NY',
-      country: 'USA',
       setlistNotes: null,
     })
   })
 
-  it('parses date from MM/DD/YYYY to YYYY-MM-DD', () => {
+  it('preserves YYYY-MM-DD date format from page', () => {
     const result = scrapeUserShows(SHOWS_HTML)
     expect(result[0].date).toBe('2024-12-31')
     expect(result[1].date).toBe('2024-08-31')
     expect(result[2].date).toBe('2014-07-27')
   })
 
-  it('splits location into city, state, country', () => {
+  it('splits location into city and state', () => {
     const result = scrapeUserShows(SHOWS_HTML)
     expect(result[0].city).toBe('New York')
     expect(result[0].state).toBe('NY')
-    expect(result[0].country).toBe('USA')
+    expect(result[1].city).toBe('Commerce City')
+    expect(result[1].state).toBe('CO')
   })
 
   it('returns empty array for empty table', () => {

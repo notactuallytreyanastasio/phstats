@@ -2,22 +2,13 @@ import * as cheerio from 'cheerio'
 import type { Show, SongPerformance } from './types'
 
 /**
- * Parse MM/DD/YYYY to YYYY-MM-DD.
+ * Parse "City, ST" into { city, state }.
  */
-function parseUSDate(dateStr: string): string {
-  const [month, day, year] = dateStr.split('/')
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
-}
-
-/**
- * Parse "City, ST, Country" into { city, state, country }.
- */
-function parseLocation(location: string): { city: string; state: string; country: string } {
+function parseLocation(location: string): { city: string; state: string } {
   const parts = location.split(',').map(s => s.trim())
   return {
     city: parts[0] ?? '',
     state: parts[1] ?? '',
-    country: parts[2] ?? '',
   }
 }
 
@@ -40,15 +31,14 @@ export function scrapeUserShows(html: string): Show[] {
     const dateText = $(cells[0]).text().trim()
     const venue = $(cells[3]).text().trim()
     const locationText = $(cells[4]).text().trim()
-    const { city, state, country } = parseLocation(locationText)
+    const { city, state } = parseLocation(locationText)
 
     shows.push({
       id: idCounter++,
-      date: parseUSDate(dateText),
+      date: dateText,
       venue,
       city,
       state,
-      country,
       setlistNotes: null,
     })
   })

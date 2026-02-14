@@ -29,11 +29,11 @@ const SHOWS_HTML = `
   <thead><tr><th>Date</th><th>Info</th><th>Year</th><th>Venue</th><th>Location</th><th>Rating</th></tr></thead>
   <tbody>
     <tr>
-      <td><a href="/setlists/phish-december-31-2024-msg-new-york-ny-usa.html">12/31/2024</a></td>
-      <td></td>
+      <td><a href="/setlists/phish-december-31-2024-msg-new-york-ny-usa.html">2024-12-31</a></td>
+      <td><a href="/venue/157/MSG">MSGNew York, NY</a></td>
       <td>2024</td>
-      <td>MSG</td>
-      <td>New York, NY, USA</td>
+      <td><a href="/venue/157/MSG">MSG</a></td>
+      <td><a href="/setlists/city/New_York/NY/USA">New York, NY</a></td>
       <td>4.5</td>
     </tr>
   </tbody>
