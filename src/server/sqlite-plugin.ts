@@ -100,11 +100,15 @@ function queryShows(db: Database.Database, username: string) {
 
 function queryTopSongs(db: Database.Database, username: string) {
   return db.prepare(`
-    SELECT p.song_name, COUNT(*) as count,
-      SUM(p.is_jamchart) as jamchart_count
-    FROM performances p
-    INNER JOIN shows s ON s.date = p.show_date AND s.username = ?
-    GROUP BY p.song_name ORDER BY count DESC LIMIT 50
+    SELECT song_name, COUNT(*) as count,
+      SUM(has_jamchart) as jamchart_count
+    FROM (
+      SELECT p.song_name, p.show_date, MAX(p.is_jamchart) as has_jamchart
+      FROM performances p
+      INNER JOIN shows s ON s.date = p.show_date AND s.username = ?
+      GROUP BY p.song_name, p.show_date
+    )
+    GROUP BY song_name ORDER BY count DESC LIMIT 50
   `).all(username)
 }
 

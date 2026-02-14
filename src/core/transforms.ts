@@ -90,13 +90,20 @@ export function findBustouts(performances: SongPerformance[], minGapDays: number
 export function computeSongFrequency(
   performances: SongPerformance[]
 ): { songName: string; count: number }[] {
-  const counts = new Map<string, number>()
+  // Count distinct shows per song, not raw performance rows.
+  // A song played multiple times in one show counts as 1.
+  const showsPerSong = new Map<string, Set<string>>()
   for (const p of performances) {
-    counts.set(p.songName, (counts.get(p.songName) ?? 0) + 1)
+    let dates = showsPerSong.get(p.songName)
+    if (!dates) {
+      dates = new Set()
+      showsPerSong.set(p.songName, dates)
+    }
+    dates.add(p.showDate)
   }
 
-  return [...counts.entries()]
-    .map(([songName, count]) => ({ songName, count }))
+  return [...showsPerSong.entries()]
+    .map(([songName, dates]) => ({ songName, count: dates.size }))
     .sort((a, b) => b.count - a.count || a.songName.localeCompare(b.songName))
 }
 
