@@ -34,7 +34,21 @@ export function sqliteApiPlugin(): Plugin {
           const url = new URL(req.url, 'http://localhost')
           const username = url.searchParams.get('username') || 'someguyorwhatever'
 
-          if (req.url.startsWith('/api/stats')) {
+          if (req.url.startsWith('/api/users')) {
+            const users = queryUsers(db)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(users))
+          } else if (req.url.startsWith('/api/compare-songs')) {
+            const usernames = url.searchParams.getAll('user')
+            if (usernames.length < 2) {
+              res.writeHead(400, { 'Content-Type': 'application/json' })
+              res.end(JSON.stringify({ error: 'Need at least 2 user params' }))
+              return
+            }
+            const data = queryCompareSongs(db, usernames)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/stats')) {
             const stats = queryStats(db, username)
             res.writeHead(200, { 'Content-Type': 'application/json' })
             res.end(JSON.stringify(stats))
@@ -124,4 +138,55 @@ function queryYearStats(db: Database.Database, username: string) {
     WHERE s.username = ?
     GROUP BY year ORDER BY year
   `).all(username)
+}
+
+function queryUsers(db: Database.Database) {
+  return db.prepare(`
+    SELECT username, COUNT(*) as show_count FROM shows
+    GROUP BY username ORDER BY username
+  `).all()
+}
+
+function queryCompareSongs(db: Database.Database, usernames: string[]) {
+  // For each user, get the set of songs they've seen (deduplicated per show)
+  const userSongs = new Map<string, Map<string, number>>()
+
+  for (const username of usernames) {
+    const rows = db.prepare(`
+      SELECT song_name, COUNT(DISTINCT show_date) as count
+      FROM (
+        SELECT p.song_name, p.show_date
+        FROM performances p
+        INNER JOIN shows s ON s.date = p.show_date AND s.username = ?
+        GROUP BY p.song_name, p.show_date
+      )
+      GROUP BY song_name
+    `).all(username) as { song_name: string; count: number }[]
+
+    const songMap = new Map<string, number>()
+    for (const row of rows) {
+      songMap.set(row.song_name, row.count)
+    }
+    userSongs.set(username, songMap)
+  }
+
+  // Build a sorted list of all songs across all users
+  const allSongs = new Set<string>()
+  for (const songMap of userSongs.values()) {
+    for (const song of songMap.keys()) {
+      allSongs.add(song)
+    }
+  }
+  const songs = [...allSongs].sort()
+
+  // Build matrix: for each song, count per user
+  const matrix = songs.map(song => {
+    const counts: Record<string, number> = {}
+    for (const username of usernames) {
+      counts[username] = userSongs.get(username)?.get(song) ?? 0
+    }
+    return { song, ...counts }
+  })
+
+  return { usernames, songs, matrix }
 }

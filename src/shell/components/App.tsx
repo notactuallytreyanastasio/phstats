@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import SongHeatmap from './SongHeatmap'
 
 interface Stats {
   username: string
@@ -24,18 +25,46 @@ interface YearStat {
   unique_songs: number
 }
 
+interface User {
+  username: string
+  show_count: number
+}
+
+interface HeatmapRow {
+  song: string
+  [username: string]: string | number
+}
+
+interface CompareData {
+  usernames: string[]
+  songs: string[]
+  matrix: HeatmapRow[]
+}
+
 function App() {
+  const [activeUser, setActiveUser] = useState('someguyorwhatever')
+  const [users, setUsers] = useState<User[]>([])
   const [stats, setStats] = useState<Stats | null>(null)
   const [topSongs, setTopSongs] = useState<TopSong[]>([])
   const [yearStats, setYearStats] = useState<YearStat[]>([])
+  const [compareData, setCompareData] = useState<CompareData | null>(null)
   const [error, setError] = useState<string | null>(null)
 
+  // Fetch user list
+  useEffect(() => {
+    fetch('/api/users')
+      .then(r => r.ok ? r.json() : [])
+      .then(setUsers)
+      .catch(() => {})
+  }, [])
+
+  // Fetch stats for active user
   const fetchData = useCallback(async () => {
     try {
       const [statsRes, songsRes, yearsRes] = await Promise.all([
-        fetch('/api/stats'),
-        fetch('/api/top-songs'),
-        fetch('/api/year-stats'),
+        fetch(`/api/stats?username=${activeUser}`),
+        fetch(`/api/top-songs?username=${activeUser}`),
+        fetch(`/api/year-stats?username=${activeUser}`),
       ])
 
       if (statsRes.status === 503) {
@@ -51,11 +80,21 @@ function App() {
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load data')
     }
-  }, [])
+  }, [activeUser])
 
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  // Fetch comparison heatmap when we have 2+ users
+  useEffect(() => {
+    if (users.length < 2) return
+    const params = users.map(u => `user=${encodeURIComponent(u.username)}`).join('&')
+    fetch(`/api/compare-songs?${params}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(setCompareData)
+      .catch(() => {})
+  }, [users])
 
   if (error) {
     return (
@@ -76,13 +115,30 @@ function App() {
   }
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: '1200px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-        <h1>Phish Stats — {stats.username}</h1>
-        <button onClick={fetchData} style={{ padding: '0.4rem 1rem', cursor: 'pointer' }}>Refresh</button>
+    <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: '1400px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
+        <h1 style={{ margin: 0 }}>Phish Stats</h1>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          {users.length > 1 && (
+            <select
+              value={activeUser}
+              onChange={e => setActiveUser(e.target.value)}
+              style={{ padding: '0.4rem', fontSize: '0.9rem' }}
+            >
+              {users.map(u => (
+                <option key={u.username} value={u.username}>
+                  {u.username} ({u.show_count} shows)
+                </option>
+              ))}
+            </select>
+          )}
+          <button onClick={fetchData} style={{ padding: '0.4rem 1rem', cursor: 'pointer' }}>Refresh</button>
+        </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+      <h2 style={{ color: '#444', marginTop: 0 }}>{stats.username}</h2>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         <StatCard label="Shows" value={stats.totalShows} />
         <StatCard label="Songs Heard" value={stats.totalPerformances} />
         <StatCard label="Unique Songs" value={stats.uniqueSongs} />
@@ -92,7 +148,7 @@ function App() {
         <StatCard label="Last Show" value={stats.lastShow ?? '—'} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
         <div>
           <h2>Top Songs</h2>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -100,7 +156,7 @@ function App() {
               <tr>
                 <th style={thStyle}>#</th>
                 <th style={{ ...thStyle, textAlign: 'left' }}>Song</th>
-                <th style={thStyle}>Times</th>
+                <th style={thStyle}>Shows</th>
               </tr>
             </thead>
             <tbody>
@@ -149,6 +205,18 @@ function App() {
           </ul>
         </div>
       </div>
+
+      {compareData && compareData.usernames.length >= 2 && (
+        <div>
+          <h2>Song Comparison Heatmap</h2>
+          <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '1rem' }}>
+            Shows each song was seen by each user. Hover cells for details.
+          </p>
+          <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '80vh' }}>
+            <SongHeatmap usernames={compareData.usernames} matrix={compareData.matrix} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
