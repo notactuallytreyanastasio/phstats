@@ -1607,6 +1607,39 @@
       "weight": 1.0,
       "rationale": "groupShowsByYear is foundation for yearly tour summary",
       "created_at": "2026-02-14T11:59:58.968984-05:00"
+    },
+    {
+      "id": 80,
+      "from_node_id": 11,
+      "to_node_id": 62,
+      "from_change_id": "20561daa-1278-497c-900c-2f94e715428e",
+      "to_change_id": "e00ab08d-139e-4a9c-b0f5-6a2bb531fef0",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "computeShowDurationRank implements show ranking by duration for the song duration visualization feature",
+      "created_at": "2026-02-14T12:00:25.450214-05:00"
+    },
+    {
+      "id": 81,
+      "from_node_id": 53,
+      "to_node_id": 63,
+      "from_change_id": "2e8fbbc2-1dc5-498c-955f-bbffdcb28329",
+      "to_change_id": "85825f66-7503-4815-b2da-c420733357c5",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Research sub-goal for the lyrics SQLite database feature",
+      "created_at": "2026-02-14T12:00:26.044649-05:00"
+    },
+    {
+      "id": 82,
+      "from_node_id": 64,
+      "to_node_id": 53,
+      "from_change_id": "bfdeb262-2b4f-4a1a-9f89-06896034569a",
+      "to_change_id": "2e8fbbc2-1dc5-498c-955f-bbffdcb28329",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Lyrics available via API confirms feasibility of the lyrics database goal",
+      "created_at": "2026-02-14T12:00:27.146074-05:00"
     }
   ]
 }
