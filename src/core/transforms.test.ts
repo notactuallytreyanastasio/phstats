@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatDuration, groupShowsByYear, computeYearStats, findBustouts, computeSongFrequency } from './transforms'
+import { formatDuration, groupShowsByYear, computeYearStats, findBustouts, computeSongFrequency, getSetBreakdown } from './transforms'
 import type { Show, Track, SongPerformance } from './types'
 
 describe('formatDuration', () => {
@@ -183,5 +183,35 @@ describe('computeSongFrequency', () => {
     // Same count (1 each), alphabetical tiebreak
     expect(result[0].songName).toBe('Antelope')
     expect(result[1].songName).toBe('Bathtub Gin')
+  })
+})
+
+describe('getSetBreakdown', () => {
+  it('groups tracks by set name preserving position order', () => {
+    const tracks: Track[] = [
+      makeTrack({ title: 'Tweezer', setName: 'Set 1', position: 1 }),
+      makeTrack({ title: 'Fluffhead', setName: 'Set 1', position: 2 }),
+      makeTrack({ title: 'YEM', setName: 'Set 2', position: 1 }),
+      makeTrack({ title: 'Harry Hood', setName: 'Encore', position: 1 }),
+    ]
+    const result = getSetBreakdown(tracks)
+    expect(Object.keys(result)).toEqual(['Set 1', 'Set 2', 'Encore'])
+    expect(result['Set 1'].map(t => t.title)).toEqual(['Tweezer', 'Fluffhead'])
+    expect(result['Set 2'].map(t => t.title)).toEqual(['YEM'])
+    expect(result['Encore'].map(t => t.title)).toEqual(['Harry Hood'])
+  })
+
+  it('returns empty object for no tracks', () => {
+    expect(getSetBreakdown([])).toEqual({})
+  })
+
+  it('sorts tracks within each set by position', () => {
+    const tracks: Track[] = [
+      makeTrack({ title: 'B', setName: 'Set 1', position: 3 }),
+      makeTrack({ title: 'A', setName: 'Set 1', position: 1 }),
+      makeTrack({ title: 'C', setName: 'Set 1', position: 2 }),
+    ]
+    const result = getSetBreakdown(tracks)
+    expect(result['Set 1'].map(t => t.title)).toEqual(['A', 'C', 'B'])
   })
 })
