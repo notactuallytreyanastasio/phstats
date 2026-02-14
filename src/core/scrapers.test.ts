@@ -104,7 +104,7 @@ describe('scrapeUserShows', () => {
 describe('scrapeSetlist', () => {
   it('extracts songs grouped by set', () => {
     const result = scrapeSetlist(SETLIST_HTML, '2024-12-31')
-    expect(result.length).toBe(6)
+    expect(result.length).toBe(7)
   })
 
   it('assigns correct set labels', () => {
@@ -113,7 +113,7 @@ describe('scrapeSetlist', () => {
     const set2 = result.filter(s => s.set === 'Set 2')
     const encore = result.filter(s => s.set === 'Encore')
     expect(set1).toHaveLength(3)
-    expect(set2).toHaveLength(2)
+    expect(set2).toHaveLength(3)
     expect(encore).toHaveLength(1)
   })
 
@@ -121,7 +121,7 @@ describe('scrapeSetlist', () => {
     const result = scrapeSetlist(SETLIST_HTML, '2024-12-31')
     expect(result[0].songName).toBe("Mike's Song")
     expect(result[1].songName).toBe('Bouncing Around the Room')
-    expect(result[5].songName).toBe('Tweezer Reprise')
+    expect(result[6].songName).toBe('Tweezer Reprise')
   })
 
   it('assigns sequential positions within each set', () => {
