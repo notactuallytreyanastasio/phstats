@@ -65,23 +65,25 @@ export function scrapeSetlist(html: string, showDate: string): SongPerformance[]
   const $ = cheerio.load(html)
   const performances: SongPerformance[] = []
 
-  // Look for set groups - paragraphs containing bold set labels and song links
+  // Real phish.net uses <span class="set-label">SET 1</span> inside <p> tags
   $('p').each((_i, p) => {
-    const bold = $(p).find('b').first()
-    if (!bold.length) return
+    const label = $(p).find('span.set-label').first()
+    if (!label.length) return
 
-    const labelText = bold.text().trim()
+    const labelText = label.text().trim()
     if (!labelText.match(/^(SET \d|ENCORE)/i)) return
 
     const setLabel = normalizeSetLabel(labelText)
     let position = 1
 
     $(p).find('a[href^="/song/"]').each((_j, link) => {
+      const hasJamchartNote = !!$(link).attr('data-original-title')
       performances.push({
         songName: $(link).text().trim(),
         showDate,
         set: setLabel,
         position: position++,
+        isJamchart: hasJamchartNote,
       })
     })
   })
