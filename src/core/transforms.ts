@@ -1,4 +1,4 @@
-import type { Show } from './types'
+import type { Show, Track, YearStats } from './types'
 
 export function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
@@ -28,4 +28,20 @@ export function groupShowsByYear(shows: Show[]): Map<number, Show[]> {
     }
   }
   return map
+}
+
+export function computeYearStats(year: number, shows: Show[], tracks: Track[]): YearStats {
+  const uniqueVenues = new Set(shows.map(s => s.venue))
+  const uniqueSongs = new Set(tracks.map(t => t.title))
+  const totalDuration = tracks.reduce((sum, t) => sum + t.duration, 0)
+  const statesVisited = [...new Set(shows.map(s => s.state))]
+
+  return {
+    year,
+    showCount: shows.length,
+    uniqueVenues: uniqueVenues.size,
+    uniqueSongs: uniqueSongs.size,
+    totalDuration,
+    statesVisited,
+  }
 }
