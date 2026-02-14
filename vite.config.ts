@@ -2,9 +2,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { sqliteApiPlugin } from './src/server/sqlite-plugin'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), sqliteApiPlugin()],
   resolve: {
     alias: {
       '@core': path.resolve(__dirname, './src/core'),

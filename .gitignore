@@ -8,6 +8,14 @@ node_modules
 dist
 dist-ssr
 
+# SQLite database
+data/*.db
+data/*.db-wal
+data/*.db-shm
+
+# Generated data exports
+public/data/
+
 # Environment
 .env
 .env.local
