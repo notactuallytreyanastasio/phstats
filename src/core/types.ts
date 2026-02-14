@@ -66,3 +66,18 @@ export interface SongPerformance {
   duration?: number
   isJamchart?: boolean
 }
+
+/** Complete stats for a user */
+export interface UserStats {
+  username: string
+  totalShows: number
+  totalSongs: number
+  uniqueSongs: number
+  totalDuration: number // milliseconds
+  yearStats: YearStats[]
+  topSongs: { songName: string; count: number }[]
+  statesVisited: string[]
+  venuesVisited: string[]
+  firstShow: string | null
+  lastShow: string | null
+}

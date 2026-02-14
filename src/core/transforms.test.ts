@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatDuration, groupShowsByYear, computeYearStats, findBustouts, computeSongFrequency, getSetBreakdown, computeShowDurationRank } from './transforms'
+import { formatDuration, groupShowsByYear, computeYearStats, findBustouts, computeSongFrequency, getSetBreakdown, computeShowDurationRank, computeUserStats } from './transforms'
 import type { Show, Track, SongPerformance } from './types'
 
 describe('formatDuration', () => {
@@ -235,5 +235,59 @@ describe('computeShowDurationRank', () => {
 
   it('returns empty array for no tracks', () => {
     expect(computeShowDurationRank([])).toEqual([])
+  })
+})
+
+describe('computeUserStats', () => {
+  it('computes comprehensive stats from shows, performances, and tracks', () => {
+    const shows: Show[] = [
+      makeShow({ id: 1, date: '2023-07-01', venue: 'MSG', city: 'New York', state: 'NY' }),
+      makeShow({ id: 2, date: '2023-08-15', venue: 'Dicks', city: 'Commerce City', state: 'CO' }),
+      makeShow({ id: 3, date: '2024-06-20', venue: 'MSG', city: 'New York', state: 'NY' }),
+    ]
+    const performances: SongPerformance[] = [
+      makePerformance({ songName: 'Tweezer', showDate: '2023-07-01' }),
+      makePerformance({ songName: 'Fluffhead', showDate: '2023-07-01' }),
+      makePerformance({ songName: 'Tweezer', showDate: '2023-08-15' }),
+      makePerformance({ songName: 'YEM', showDate: '2023-08-15' }),
+      makePerformance({ songName: 'Tweezer', showDate: '2024-06-20' }),
+    ]
+    const tracks: Track[] = [
+      makeTrack({ showId: 1, showDate: '2023-07-01', title: 'Tweezer', duration: 900000 }),
+      makeTrack({ showId: 1, showDate: '2023-07-01', title: 'Fluffhead', duration: 600000 }),
+      makeTrack({ showId: 2, showDate: '2023-08-15', title: 'Tweezer', duration: 1200000 }),
+      makeTrack({ showId: 2, showDate: '2023-08-15', title: 'YEM', duration: 800000 }),
+      makeTrack({ showId: 3, showDate: '2024-06-20', title: 'Tweezer', duration: 1000000 }),
+    ]
+
+    const result = computeUserStats('someguyorwhatever', shows, performances, tracks)
+
+    expect(result.username).toBe('someguyorwhatever')
+    expect(result.totalShows).toBe(3)
+    expect(result.totalSongs).toBe(5)
+    expect(result.uniqueSongs).toBe(3) // Tweezer, Fluffhead, YEM
+    expect(result.totalDuration).toBe(4500000)
+    expect(result.yearStats).toHaveLength(2) // 2023 and 2024
+    expect(result.yearStats[0].year).toBe(2023)
+    expect(result.yearStats[0].showCount).toBe(2)
+    expect(result.yearStats[1].year).toBe(2024)
+    expect(result.yearStats[1].showCount).toBe(1)
+    expect(result.topSongs[0]).toEqual({ songName: 'Tweezer', count: 3 })
+    expect(result.statesVisited).toEqual(expect.arrayContaining(['NY', 'CO']))
+    expect(result.venuesVisited).toEqual(expect.arrayContaining(['MSG', 'Dicks']))
+    expect(result.firstShow).toBe('2023-07-01')
+    expect(result.lastShow).toBe('2024-06-20')
+  })
+
+  it('handles empty data', () => {
+    const result = computeUserStats('nobody', [], [], [])
+    expect(result.totalShows).toBe(0)
+    expect(result.totalSongs).toBe(0)
+    expect(result.uniqueSongs).toBe(0)
+    expect(result.totalDuration).toBe(0)
+    expect(result.yearStats).toEqual([])
+    expect(result.topSongs).toEqual([])
+    expect(result.firstShow).toBeNull()
+    expect(result.lastShow).toBeNull()
   })
 })
