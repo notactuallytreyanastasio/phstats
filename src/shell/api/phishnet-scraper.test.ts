@@ -43,8 +43,10 @@ const SHOWS_HTML = `
 
 const SETLIST_HTML = `
 <html><body>
-<p><b>SET 1:</b> <a href="/song/tweezer">Tweezer</a></p>
-<p><b>ENCORE:</b> <a href="/song/tweeprise">Tweezer Reprise</a></p>
+<div class="setlist-body">
+  <p><span class="set-label">SET 1</span>: <a href="/song/tweezer" class="setlist-song">Tweezer</a></p>
+  <p><span class="set-label">ENCORE</span>: <a href="/song/tweeprise" class="setlist-song">Tweezer Reprise</a></p>
+</div>
 </body></html>
 `
 

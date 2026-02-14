@@ -39,25 +39,27 @@ const SHOWS_HTML = `
 </body></html>
 `
 
-// Fixture HTML mimicking phish.net setlist page structure
+// Fixture HTML matching actual phish.net setlist page structure
+// Real page uses <span class="set-label"> not <b>, and class="setlist-song" on links
+// Jamchart songs have data-original-title attribute with jam description
 const SETLIST_HTML = `
 <html><body>
 <div class="setlist-body">
-  <p class="setlist-song-group">
-    <b>SET 1:</b>
-    <a href="/song/mikes-song">Mike's Song</a> &gt;
-    <a href="/song/bouncing-around-the-room">Bouncing Around the Room</a>,
-    <a href="/song/weekapaug-groove">Weekapaug Groove</a>
+  <p>
+    <span class="set-label">SET 1</span>:
+    <a href="/song/mikes-song" class="setlist-song" title="Mike's Song">Mike's Song</a> &gt;
+    <a href="/song/bouncing-around-the-room" class="setlist-song" title="Bouncing Around the Room">Bouncing Around the Room</a>,
+    <a href="/song/weekapaug-groove" class="setlist-song" title="Weekapaug Groove">Weekapaug Groove</a>
   </p>
-  <p class="setlist-song-group">
-    <b>SET 2:</b>
-    <a href="/song/tweezer">Tweezer</a> -&gt;
-    <a href="/song/also-sprach-zarathustra">Also Sprach Zarathustra</a>,
-    <a href="/song/you-enjoy-myself">You Enjoy Myself</a>
+  <p>
+    <span class="set-label">SET 2</span>:
+    <a href="/song/tweezer" class="setlist-song" title="Tweezer">Tweezer</a> -&gt;
+    <a data-toggle="tooltip" data-placement="top" href="/song/also-sprach-zarathustra" class="setlist-song" title="" data-original-title="Great jam with extended funk section.">Also Sprach Zarathustra</a>,
+    <a href="/song/you-enjoy-myself" class="setlist-song" title="You Enjoy Myself">You Enjoy Myself</a>
   </p>
-  <p class="setlist-song-group">
-    <b>ENCORE:</b>
-    <a href="/song/tweeprise">Tweezer Reprise</a>
+  <p>
+    <span class="set-label">ENCORE</span>:
+    <a href="/song/tweeprise" class="setlist-song" title="Tweezer Reprise">Tweezer Reprise</a>
   </p>
 </div>
 </body></html>
@@ -136,6 +138,15 @@ describe('scrapeSetlist', () => {
   it('uses the provided show date', () => {
     const result = scrapeSetlist(SETLIST_HTML, '2024-12-31')
     expect(result.every(s => s.showDate === '2024-12-31')).toBe(true)
+  })
+
+  it('detects jamchart songs via data-original-title attribute', () => {
+    const result = scrapeSetlist(SETLIST_HTML, '2024-12-31')
+    const alsoSprach = result.find(s => s.songName === 'Also Sprach Zarathustra')
+    expect(alsoSprach?.isJamchart).toBe(true)
+    // Non-jamchart songs should be false
+    const mikes = result.find(s => s.songName === "Mike's Song")
+    expect(mikes?.isJamchart).toBe(false)
   })
 
   it('returns empty array for page with no setlist', () => {
