@@ -1,4 +1,4 @@
-import type { Show, Track, YearStats, SongGap, SongPerformance } from './types'
+import type { Show, Track, YearStats, SongGap, SongPerformance, UserStats } from './types'
 
 export function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
@@ -131,4 +131,43 @@ export function computeShowDurationRank(
   return [...byShow.entries()]
     .map(([showId, data]) => ({ showId, ...data }))
     .sort((a, b) => b.totalDuration - a.totalDuration)
+}
+
+export function computeUserStats(
+  username: string,
+  shows: Show[],
+  performances: SongPerformance[],
+  tracks: Track[],
+): UserStats {
+  const byYear = groupShowsByYear(shows)
+  const sortedYears = [...byYear.keys()].sort((a, b) => a - b)
+
+  const yearStats: YearStats[] = sortedYears.map(year => {
+    const yearShows = byYear.get(year)!
+    const yearShowIds = new Set(yearShows.map(s => s.id))
+    const yearTracks = tracks.filter(t => yearShowIds.has(t.showId))
+    return computeYearStats(year, yearShows, yearTracks)
+  })
+
+  const topSongs = computeSongFrequency(performances)
+  const totalDuration = tracks.reduce((sum, t) => sum + t.duration, 0)
+  const uniqueSongs = new Set(performances.map(p => p.songName)).size
+  const statesVisited = [...new Set(shows.map(s => s.state))]
+  const venuesVisited = [...new Set(shows.map(s => s.venue))]
+
+  const sortedDates = shows.map(s => s.date).sort()
+
+  return {
+    username,
+    totalShows: shows.length,
+    totalSongs: performances.length,
+    uniqueSongs,
+    totalDuration,
+    yearStats,
+    topSongs,
+    statesVisited,
+    venuesVisited,
+    firstShow: sortedDates.length > 0 ? sortedDates[0] : null,
+    lastShow: sortedDates.length > 0 ? sortedDates[sortedDates.length - 1] : null,
+  }
 }
