@@ -1,4 +1,4 @@
-import type { Show, Track, YearStats } from './types'
+import type { Show, Track, YearStats, SongGap, SongPerformance } from './types'
 
 export function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
@@ -44,4 +44,45 @@ export function computeYearStats(year: number, shows: Show[], tracks: Track[]): 
     totalDuration,
     statesVisited,
   }
+}
+
+export function findBustouts(performances: SongPerformance[], minGapDays: number): SongGap[] {
+  const bySong = new Map<string, string[]>()
+  for (const p of performances) {
+    const dates = bySong.get(p.songName)
+    if (dates) {
+      dates.push(p.showDate)
+    } else {
+      bySong.set(p.songName, [p.showDate])
+    }
+  }
+
+  const gaps: SongGap[] = []
+  for (const [songName, dates] of bySong) {
+    const sorted = dates.sort()
+    if (sorted.length < 2) continue
+
+    let maxGap = 0
+    let totalGap = 0
+    for (let i = 1; i < sorted.length; i++) {
+      const daysDiff = Math.floor(
+        (new Date(sorted[i]).getTime() - new Date(sorted[i - 1]).getTime()) / (1000 * 60 * 60 * 24)
+      )
+      if (daysDiff > maxGap) maxGap = daysDiff
+      totalGap += daysDiff
+    }
+
+    const averageGap = Math.round(totalGap / (sorted.length - 1))
+
+    if (maxGap >= minGapDays) {
+      gaps.push({
+        songName,
+        currentGap: maxGap,
+        lastPlayed: sorted[sorted.length - 1],
+        averageGap,
+      })
+    }
+  }
+
+  return gaps.sort((a, b) => b.currentGap - a.currentGap)
 }
