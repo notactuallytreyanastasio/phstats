@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatDuration, groupShowsByYear, computeYearStats, findBustouts, computeSongFrequency, getSetBreakdown } from './transforms'
+import { formatDuration, groupShowsByYear, computeYearStats, findBustouts, computeSongFrequency, getSetBreakdown, computeShowDurationRank } from './transforms'
 import type { Show, Track, SongPerformance } from './types'
 
 describe('formatDuration', () => {
@@ -213,5 +213,27 @@ describe('getSetBreakdown', () => {
     ]
     const result = getSetBreakdown(tracks)
     expect(result['Set 1'].map(t => t.title)).toEqual(['A', 'C', 'B'])
+  })
+})
+
+describe('computeShowDurationRank', () => {
+  it('ranks shows by total track duration descending', () => {
+    const tracks: Track[] = [
+      makeTrack({ showId: 1, showDate: '2023-07-01', duration: 500000 }),
+      makeTrack({ showId: 1, showDate: '2023-07-01', duration: 300000 }),
+      makeTrack({ showId: 2, showDate: '2023-08-15', duration: 1200000 }),
+      makeTrack({ showId: 3, showDate: '2023-09-01', duration: 400000 }),
+      makeTrack({ showId: 3, showDate: '2023-09-01', duration: 600000 }),
+    ]
+    const result = computeShowDurationRank(tracks)
+    expect(result).toEqual([
+      { showId: 2, showDate: '2023-08-15', totalDuration: 1200000, trackCount: 1 },
+      { showId: 3, showDate: '2023-09-01', totalDuration: 1000000, trackCount: 2 },
+      { showId: 1, showDate: '2023-07-01', totalDuration: 800000, trackCount: 2 },
+    ])
+  })
+
+  it('returns empty array for no tracks', () => {
+    expect(computeShowDurationRank([])).toEqual([])
   })
 })
