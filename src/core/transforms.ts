@@ -1,3 +1,5 @@
+import type { Show } from './types'
+
 export function formatDuration(ms: number): string {
   const totalSeconds = Math.floor(ms / 1000)
   const hours = Math.floor(totalSeconds / 3600)
@@ -12,4 +14,18 @@ export function formatDuration(ms: number): string {
   }
 
   return `${minutes}:${paddedSeconds}`
+}
+
+export function groupShowsByYear(shows: Show[]): Map<number, Show[]> {
+  const map = new Map<number, Show[]>()
+  for (const show of shows) {
+    const year = parseInt(show.date.slice(0, 4), 10)
+    const existing = map.get(year)
+    if (existing) {
+      existing.push(show)
+    } else {
+      map.set(year, [show])
+    }
+  }
+  return map
 }
