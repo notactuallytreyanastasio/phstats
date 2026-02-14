@@ -44,12 +44,25 @@ async function fetchRenderedHTML(url: string): Promise<string> {
 
 /**
  * Fetch and scrape user attendance from phish.net using Playwright.
- * Renders the page fully so DataTables JS populates the table.
+ * Expands DataTables to show all rows (default is 100) before scraping.
  */
 export async function fetchUserShowsScrape(username: string): Promise<Show[]> {
   const url = `${PHISHNET_BASE}/user/${encodeURIComponent(username)}/shows`
-  const html = await fetchRenderedHTML(url)
-  return scrapeUserShows(html)
+  const browser = await getBrowser()
+  const page = await browser.newPage()
+  try {
+    await page.goto(url, { waitUntil: 'networkidle' })
+    await page.evaluate(() => {
+      const jq = (window as any).jQuery
+      if (jq && jq('#phish-shows').DataTable) {
+        jq('#phish-shows').DataTable().page.len(-1).draw()
+      }
+    })
+    const html = await page.content()
+    return scrapeUserShows(html)
+  } finally {
+    await page.close()
+  }
 }
 
 /**
