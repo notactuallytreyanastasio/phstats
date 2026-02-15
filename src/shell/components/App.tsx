@@ -15,6 +15,7 @@ import VenueRankings from './VenueRankings'
 import JamEvolution from './JamEvolution'
 import SongPairings from './SongPairings'
 import SongDeepDive from './SongDeepDive'
+import SongDeepDiveMobile from './SongDeepDiveMobile'
 import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
 
@@ -130,6 +131,13 @@ function App() {
   const [jamYears, setJamYears] = useState<number[]>([])
   const [error, setError] = useState<string | null>(null)
   const [runTour, setRunTour] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
 
   // Sync App-level state to URL params, clean up child params on tab change
   const prevTabRef = useRef(activeJam)
@@ -591,7 +599,9 @@ function App() {
               <JamchartRankings songs={jamSongs} />
             )}
             {activeJam === 'deep-dive' && (
-              <SongDeepDive year={jamYear} />
+              isMobile
+                ? <SongDeepDiveMobile year={jamYear} />
+                : <SongDeepDive year={jamYear} />
             )}
           </div>
         </div>
