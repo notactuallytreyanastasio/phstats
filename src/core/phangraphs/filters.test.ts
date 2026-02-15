@@ -196,6 +196,146 @@ describe('filterTracks', () => {
   it('returns empty for empty input', () => {
     expect(filterTracks([], DEFAULT_FILTER)).toEqual([])
   })
+
+  it('filters by venue', () => {
+    const tracks = [
+      makeTrack({ venue: 'MSG' }),
+      makeTrack({ venue: 'Red Rocks' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, venue: 'MSG' }
+    const result = filterTracks(tracks, filter)
+    expect(result).toHaveLength(1)
+    expect(result[0].venue).toBe('MSG')
+  })
+
+  it('venue null passes all through', () => {
+    const tracks = [
+      makeTrack({ venue: 'MSG' }),
+      makeTrack({ venue: 'Red Rocks' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, venue: null }
+    expect(filterTracks(tracks, filter)).toHaveLength(2)
+  })
+
+  it('filters by state', () => {
+    const tracks = [
+      makeTrack({ location: 'New York, NY' }),
+      makeTrack({ location: 'Morrison, CO' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, state: 'CO' }
+    const result = filterTracks(tracks, filter)
+    expect(result).toHaveLength(1)
+    expect(result[0].location).toBe('Morrison, CO')
+  })
+
+  it('state null passes all through', () => {
+    const tracks = [
+      makeTrack({ location: 'New York, NY' }),
+      makeTrack({ location: 'Morrison, CO' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, state: null }
+    expect(filterTracks(tracks, filter)).toHaveLength(2)
+  })
+
+  it('filters country us', () => {
+    const tracks = [
+      makeTrack({ location: 'New York, NY' }),
+      makeTrack({ location: 'Toronto, Ontario, Canada' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, country: 'us' }
+    const result = filterTracks(tracks, filter)
+    expect(result).toHaveLength(1)
+    expect(result[0].location).toBe('New York, NY')
+  })
+
+  it('filters country international', () => {
+    const tracks = [
+      makeTrack({ location: 'New York, NY' }),
+      makeTrack({ location: 'Toronto, Ontario, Canada' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, country: 'international' }
+    const result = filterTracks(tracks, filter)
+    expect(result).toHaveLength(1)
+    expect(result[0].location).toBe('Toronto, Ontario, Canada')
+  })
+
+  it('country all passes all through', () => {
+    const tracks = [
+      makeTrack({ location: 'New York, NY' }),
+      makeTrack({ location: 'Toronto, Ontario, Canada' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, country: 'all' }
+    expect(filterTracks(tracks, filter)).toHaveLength(2)
+  })
+
+  it('filters by run position n1', () => {
+    const tracks = [
+      makeTrack({ show_date: '2023-12-29', venue: 'MSG' }),
+      makeTrack({ show_date: '2023-12-30', venue: 'MSG' }),
+      makeTrack({ show_date: '2023-12-31', venue: 'MSG' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, runPosition: 'n1' }
+    const result = filterTracks(tracks, filter)
+    expect(result).toHaveLength(1)
+    expect(result[0].show_date).toBe('2023-12-29')
+  })
+
+  it('filters by run position n2', () => {
+    const tracks = [
+      makeTrack({ show_date: '2023-12-29', venue: 'MSG' }),
+      makeTrack({ show_date: '2023-12-30', venue: 'MSG' }),
+      makeTrack({ show_date: '2023-12-31', venue: 'MSG' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, runPosition: 'n2' }
+    const result = filterTracks(tracks, filter)
+    expect(result).toHaveLength(1)
+    expect(result[0].show_date).toBe('2023-12-30')
+  })
+
+  it('filters by run position closer', () => {
+    const tracks = [
+      makeTrack({ show_date: '2023-12-29', venue: 'MSG' }),
+      makeTrack({ show_date: '2023-12-30', venue: 'MSG' }),
+      makeTrack({ show_date: '2023-12-31', venue: 'MSG' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, runPosition: 'closer' }
+    const result = filterTracks(tracks, filter)
+    expect(result).toHaveLength(1)
+    expect(result[0].show_date).toBe('2023-12-31')
+  })
+
+  it('filters by run position opener', () => {
+    const tracks = [
+      makeTrack({ show_date: '2023-12-29', venue: 'MSG' }),
+      makeTrack({ show_date: '2023-12-30', venue: 'MSG' }),
+      makeTrack({ show_date: '2023-12-31', venue: 'MSG' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, runPosition: 'opener' }
+    const result = filterTracks(tracks, filter)
+    expect(result).toHaveLength(1)
+    expect(result[0].show_date).toBe('2023-12-29')
+  })
+
+  it('run position all passes all through', () => {
+    const tracks = [
+      makeTrack({ show_date: '2023-12-29', venue: 'MSG' }),
+      makeTrack({ show_date: '2023-12-30', venue: 'MSG' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, runPosition: 'all' }
+    expect(filterTracks(tracks, filter)).toHaveLength(2)
+  })
+
+  it('combines venue + state + run position', () => {
+    const tracks = [
+      makeTrack({ show_date: '2023-12-29', venue: 'MSG', location: 'New York, NY' }),
+      makeTrack({ show_date: '2023-12-30', venue: 'MSG', location: 'New York, NY' }),
+      makeTrack({ show_date: '2023-07-15', venue: 'Red Rocks', location: 'Morrison, CO' }),
+    ]
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, venue: 'MSG', state: 'NY', runPosition: 'closer' }
+    const result = filterTracks(tracks, filter)
+    expect(result).toHaveLength(1)
+    expect(result[0].show_date).toBe('2023-12-30')
+  })
 })
 
 describe('applyQualifications', () => {

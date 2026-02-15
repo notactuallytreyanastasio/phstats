@@ -7,6 +7,8 @@
 
 import type { TrackRow } from '../track-queries'
 import type { PhanGraphsFilter, LeaderboardEntry } from './types'
+import { parseState, isUSLocation } from './location-utils'
+import { classifyVenueRuns } from './venue-runs'
 
 export function filterTracks(tracks: TrackRow[], filter: PhanGraphsFilter): TrackRow[] {
   let result = tracks
@@ -40,6 +42,37 @@ export function filterTracks(tracks: TrackRow[], filter: PhanGraphsFilter): Trac
       if (!bounds) return false
       if (filter.setSplit === 'opener') return t.position === bounds.min
       return t.position === bounds.max
+    })
+  }
+
+  // Venue filter
+  if (filter.venue) {
+    result = result.filter(t => t.venue === filter.venue)
+  }
+
+  // State filter
+  if (filter.state) {
+    result = result.filter(t => parseState(t.location) === filter.state)
+  }
+
+  // Country filter
+  if (filter.country !== 'all') {
+    result = result.filter(t => {
+      const us = isUSLocation(t.location)
+      return filter.country === 'us' ? us : !us
+    })
+  }
+
+  // Run position filter
+  if (filter.runPosition !== 'all') {
+    const runMap = classifyVenueRuns(result)
+    result = result.filter(t => {
+      const run = runMap.get(t.show_date)
+      if (!run) return false
+      if (filter.runPosition === 'opener') return run.isOpener
+      if (filter.runPosition === 'closer') return run.isCloser
+      const n = parseInt(filter.runPosition.substring(1)) // "n1" → 1
+      return run.positionInRun === n
     })
   }
 
