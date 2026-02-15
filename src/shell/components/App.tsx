@@ -235,7 +235,7 @@ function App() {
     {
       target: '[data-tour="deep-dive-chart"]',
       title: 'The Chart',
-      content: 'Duration timeline for the selected song. Hover any dot for venue, date, set position, likes, and jam notes. The red starred dots are the jamchart selections. Doink around!',
+      content: 'Duration timeline for the selected song. Hover any dot for details. Click any dot to open it up — if there\'s a jam clip available, you can play it right there. The red starred dots are jamchart selections.',
       placement: 'top',
     },
   ]
