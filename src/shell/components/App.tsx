@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Joyride, { STATUS, ACTIONS, EVENTS } from 'react-joyride'
 import type { CallBackProps, Step } from 'react-joyride'
 import SongHeatmap from './SongHeatmap'
@@ -132,23 +132,24 @@ function App() {
   const [runTour, setRunTour] = useState(false)
 
   // Sync App-level state to URL params, clean up child params on tab change
+  const prevTabRef = useRef(activeJam)
   useEffect(() => {
     const updates: Record<string, string | null> = {
       tab: activeJam === 'deep-dive' ? null : activeJam,
       year: jamYear === 'all' ? null : jamYear,
     }
-    // Clear deep-dive params when not on that tab
-    if (activeJam !== 'deep-dive') {
+    const prevTab = prevTabRef.current
+    prevTabRef.current = activeJam
+    // Only clear child params when actually navigating AWAY from a tab (not on initial mount)
+    if (prevTab === 'deep-dive' && activeJam !== 'deep-dive') {
       updates.song = null
       updates.sort = null
       updates.min = null
     }
-    // Clear heat-calendar params when not on that tab
-    if (activeJam !== 'heat-calendar') {
+    if (prevTab === 'heat-calendar' && activeJam !== 'heat-calendar') {
       updates.color = null
     }
-    // Clear song-pairings params when not on that tab
-    if (activeJam !== 'song-pairings') {
+    if (prevTab === 'song-pairings' && activeJam !== 'song-pairings') {
       updates.pmin = null
     }
     setParams(updates)

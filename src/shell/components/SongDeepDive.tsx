@@ -47,6 +47,7 @@ export default function SongDeepDive({ year }: { year: string }) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [songList, setSongList] = useState<SongOption[]>([])
   const [selectedSong, setSelectedSong] = useState(() => getParam('song') || '')
+  const [songListLoaded, setSongListLoaded] = useState(false)
   const [data, setData] = useState<SongHistory | null>(null)
   const [filter, setFilter] = useState('')
   const [modalTrack, setModalTrack] = useState<Track | null>(null)
@@ -84,14 +85,15 @@ export default function SongDeepDive({ year }: { year: string }) {
     setNowPlaying(null)
   }, [])
 
-  // Sync deep-dive state to URL params
+  // Sync deep-dive state to URL params (only after song list loads to avoid clobbering shared link params)
   useEffect(() => {
+    if (!songListLoaded) return
     setParams({
       song: selectedSong || null,
       sort: sortBy === 'avg' ? null : sortBy,
       min: minPlayed === 5 ? null : String(minPlayed),
     })
-  }, [selectedSong, sortBy, minPlayed])
+  }, [selectedSong, sortBy, minPlayed, songListLoaded])
 
   // Reload song list when year changes
   useEffect(() => {
@@ -99,11 +101,24 @@ export default function SongDeepDive({ year }: { year: string }) {
       .then((list: SongOption[]) => {
         setSongList(list)
         if (list.length > 0) {
-          const exists = list.some((s: SongOption) => s.song_name === selectedSong)
-          if (!exists) setSelectedSong(selectedSong || list[0].song_name)
+          const urlSong = selectedSong
+          const match = list.find((s: SongOption) => s.song_name === urlSong)
+          if (match) {
+            // Song from URL exists — if it would be hidden by minPlayed filter, lower the threshold
+            if (match.times_played < minPlayed) {
+              setMinPlayed(Math.max(1, match.times_played))
+            }
+          } else if (!urlSong) {
+            // No song in URL — pick the first by default sort
+            setSelectedSong(list[0].song_name)
+          } else {
+            // URL song doesn't exist in this year's data — fall back to first
+            setSelectedSong(list[0].song_name)
+          }
         }
+        setSongListLoaded(true)
       })
-      .catch(() => {})
+      .catch(() => { setSongListLoaded(true) })
   }, [year]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch history when selection or year changes
@@ -348,8 +363,8 @@ export default function SongDeepDive({ year }: { year: string }) {
   }
 
   const filtered = songList
-    .filter(s => s.times_played >= minPlayed)
-    .filter(s => !filter || s.song_name.toLowerCase().includes(filter.toLowerCase()))
+    .filter(s => s.times_played >= minPlayed || s.song_name === selectedSong)
+    .filter(s => !filter || s.song_name.toLowerCase().includes(filter.toLowerCase()) || s.song_name === selectedSong)
 
   const sortedSongs = [...filtered].sort((a, b) => {
     if (sortBy === 'avg') return battingAvg(b) - battingAvg(a) || b.jamchart_count - a.jamchart_count
