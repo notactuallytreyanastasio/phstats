@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { computeLeaderboard } from './leaderboard'
+import { computeLeaderboard, computeLeaderboardFromTracks, computeAggregatedLeaderboard } from './leaderboard'
+import { filterTracks } from './filters'
 import type { TrackRow } from '../track-queries'
 import type { PhanGraphsFilter } from './types'
 import { DEFAULT_FILTER } from './types'
@@ -159,5 +160,203 @@ describe('computeLeaderboard', () => {
       expect(entry.jis.peakJIS).toBeGreaterThanOrEqual(0)
       expect(entry.jis.peakJIS).toBeLessThanOrEqual(10)
     }
+  })
+})
+
+describe('computeLeaderboardFromTracks', () => {
+  it('produces same result as computeLeaderboard when given filtered tracks', () => {
+    const tracks = buildTestDataset()
+    const filter: PhanGraphsFilter = { ...DEFAULT_FILTER, minTimesPlayed: 0, minShowsAppeared: 0 }
+    const fromLeaderboard = computeLeaderboard(tracks, filter)
+    const filtered = filterTracks(tracks, filter)
+    const fromTracks = computeLeaderboardFromTracks(filtered, filter)
+    expect(fromTracks).toEqual(fromLeaderboard)
+  })
+
+  it('returns empty for empty tracks', () => {
+    expect(computeLeaderboardFromTracks([], DEFAULT_FILTER)).toEqual([])
+  })
+})
+
+// Multi-year dataset for aggregation tests
+function buildMultiYearDataset(): TrackRow[] {
+  const tracks: TrackRow[] = []
+
+  // Song A: played in both 2022 and 2023
+  // 2022: 3 plays, 1 jamchart
+  tracks.push(makeTrack({ song_name: 'A', show_date: '2022-07-01', set_name: 'Set 1', position: 1, duration_ms: 800000, is_jamchart: 1 }))
+  tracks.push(makeTrack({ song_name: 'A', show_date: '2022-07-02', set_name: 'Set 1', position: 1, duration_ms: 600000 }))
+  tracks.push(makeTrack({ song_name: 'A', show_date: '2022-07-03', set_name: 'Set 1', position: 1, duration_ms: 700000 }))
+
+  // 2023: 2 plays, 0 jamcharts, shorter durations
+  tracks.push(makeTrack({ song_name: 'A', show_date: '2023-01-01', set_name: 'Set 1', position: 1, duration_ms: 400000 }))
+  tracks.push(makeTrack({ song_name: 'A', show_date: '2023-01-02', set_name: 'Set 1', position: 1, duration_ms: 350000 }))
+
+  // Song B: only in 2022
+  tracks.push(makeTrack({ song_name: 'B', show_date: '2022-07-01', set_name: 'Set 1', position: 2, duration_ms: 300000 }))
+  tracks.push(makeTrack({ song_name: 'B', show_date: '2022-07-02', set_name: 'Set 1', position: 2, duration_ms: 300000 }))
+  tracks.push(makeTrack({ song_name: 'B', show_date: '2022-07-03', set_name: 'Set 1', position: 2, duration_ms: 300000 }))
+
+  // Song C: only in 2023
+  tracks.push(makeTrack({ song_name: 'C', show_date: '2023-01-01', set_name: 'Set 1', position: 2, duration_ms: 500000 }))
+  tracks.push(makeTrack({ song_name: 'C', show_date: '2023-01-02', set_name: 'Set 1', position: 2, duration_ms: 500000 }))
+
+  // Filler to give each show enough tracks
+  tracks.push(makeTrack({ song_name: 'Filler', show_date: '2022-07-01', set_name: 'Set 1', position: 10, duration_ms: 200000 }))
+  tracks.push(makeTrack({ song_name: 'Filler', show_date: '2022-07-02', set_name: 'Set 1', position: 10, duration_ms: 200000 }))
+  tracks.push(makeTrack({ song_name: 'Filler', show_date: '2022-07-03', set_name: 'Set 1', position: 10, duration_ms: 200000 }))
+  tracks.push(makeTrack({ song_name: 'Filler', show_date: '2023-01-01', set_name: 'Set 1', position: 10, duration_ms: 200000 }))
+  tracks.push(makeTrack({ song_name: 'Filler', show_date: '2023-01-02', set_name: 'Set 1', position: 10, duration_ms: 200000 }))
+
+  return tracks
+}
+
+describe('computeAggregatedLeaderboard', () => {
+  const noQualFilter: PhanGraphsFilter = {
+    ...DEFAULT_FILTER,
+    yearStart: 2009,
+    yearEnd: 2030,
+    minTimesPlayed: 0,
+    minShowsAppeared: 0,
+    minJamchartCount: 0,
+    minTotalMinutes: 0,
+  }
+
+  it('career mode returns entries with career aggregation key', () => {
+    const tracks = buildMultiYearDataset()
+    const filter: PhanGraphsFilter = { ...noQualFilter, aggregation: 'career' }
+    const result = computeAggregatedLeaderboard(tracks, filter)
+
+    expect(result.length).toBeGreaterThan(0)
+    for (const entry of result) {
+      expect(entry.aggregationKey.songName).toBe(entry.songName)
+      expect(entry.aggregationKey.year).toBeUndefined()
+      expect(entry.aggregationKey.tourId).toBeUndefined()
+    }
+  })
+
+  it('career mode matches computeLeaderboard output', () => {
+    const tracks = buildMultiYearDataset()
+    const filter: PhanGraphsFilter = { ...noQualFilter, aggregation: 'career' }
+    const aggregated = computeAggregatedLeaderboard(tracks, filter)
+    const classic = computeLeaderboard(tracks, filter)
+
+    expect(aggregated.map(e => e.songName).sort()).toEqual(classic.map(e => e.songName).sort())
+    for (const agg of aggregated) {
+      const match = classic.find(c => c.songName === agg.songName)!
+      expect(match).toBeDefined()
+      expect(agg.counting).toEqual(match.counting)
+      expect(agg.rates).toEqual(match.rates)
+      expect(agg.war).toEqual(match.war)
+      expect(agg.jis).toEqual(match.jis)
+    }
+  })
+
+  it('byYear splits entries by year', () => {
+    const tracks = buildMultiYearDataset()
+    const filter: PhanGraphsFilter = { ...noQualFilter, aggregation: 'byYear' }
+    const result = computeAggregatedLeaderboard(tracks, filter)
+
+    // Song A appears in both 2022 and 2023 → 2 entries
+    const songAEntries = result.filter(e => e.songName === 'A')
+    expect(songAEntries).toHaveLength(2)
+    const years = songAEntries.map(e => e.aggregationKey.year).sort()
+    expect(years).toEqual([2022, 2023])
+
+    // Song B only in 2022 → 1 entry
+    const songBEntries = result.filter(e => e.songName === 'B')
+    expect(songBEntries).toHaveLength(1)
+    expect(songBEntries[0].aggregationKey.year).toBe(2022)
+
+    // Song C only in 2023 → 1 entry
+    const songCEntries = result.filter(e => e.songName === 'C')
+    expect(songCEntries).toHaveLength(1)
+    expect(songCEntries[0].aggregationKey.year).toBe(2023)
+  })
+
+  it('byYear computes year-scoped counting stats', () => {
+    const tracks = buildMultiYearDataset()
+    const filter: PhanGraphsFilter = { ...noQualFilter, aggregation: 'byYear' }
+    const result = computeAggregatedLeaderboard(tracks, filter)
+
+    // Song A in 2022: 3 plays, 1 jamchart
+    const a2022 = result.find(e => e.songName === 'A' && e.aggregationKey.year === 2022)!
+    expect(a2022).toBeDefined()
+    expect(a2022.counting.timesPlayed).toBe(3)
+    expect(a2022.counting.jamchartCount).toBe(1)
+
+    // Song A in 2023: 2 plays, 0 jamcharts
+    const a2023 = result.find(e => e.songName === 'A' && e.aggregationKey.year === 2023)!
+    expect(a2023).toBeDefined()
+    expect(a2023.counting.timesPlayed).toBe(2)
+    expect(a2023.counting.jamchartCount).toBe(0)
+  })
+
+  it('byYear computes year-scoped rate stats', () => {
+    const tracks = buildMultiYearDataset()
+    const filter: PhanGraphsFilter = { ...noQualFilter, aggregation: 'byYear' }
+    const result = computeAggregatedLeaderboard(tracks, filter)
+
+    const a2022 = result.find(e => e.songName === 'A' && e.aggregationKey.year === 2022)!
+    const a2023 = result.find(e => e.songName === 'A' && e.aggregationKey.year === 2023)!
+
+    // 2022 has 1/3 jamchart = 33.3%, 2023 has 0/2 = 0%
+    expect(a2022.rates.jamRate).toBeCloseTo(1 / 3, 2)
+    expect(a2023.rates.jamRate).toBe(0)
+
+    // avgLength should differ: 2022 has longer durations
+    expect(a2022.rates.avgLengthMs).toBeGreaterThan(a2023.rates.avgLengthMs)
+  })
+
+  it('byTour splits entries by tour', () => {
+    const tracks = buildMultiYearDataset()
+    const filter: PhanGraphsFilter = { ...noQualFilter, aggregation: 'byTour' }
+    const result = computeAggregatedLeaderboard(tracks, filter)
+
+    // 2022-07-01/02/03 form one tour, 2023-01-01/02 form another (gap > 5 days)
+    const songAEntries = result.filter(e => e.songName === 'A')
+    expect(songAEntries).toHaveLength(2)
+    expect(songAEntries.every(e => e.aggregationKey.tourId !== undefined)).toBe(true)
+    expect(songAEntries.every(e => e.aggregationKey.tourLabel !== undefined)).toBe(true)
+  })
+
+  it('byTour has tour-scoped counting stats', () => {
+    const tracks = buildMultiYearDataset()
+    const filter: PhanGraphsFilter = { ...noQualFilter, aggregation: 'byTour' }
+    const result = computeAggregatedLeaderboard(tracks, filter)
+
+    // Song B only in summer 2022 tour → 1 entry with 3 plays
+    const songBEntries = result.filter(e => e.songName === 'B')
+    expect(songBEntries).toHaveLength(1)
+    expect(songBEntries[0].counting.timesPlayed).toBe(3)
+    expect(songBEntries[0].aggregationKey.tourLabel).toContain('Summer 2022')
+  })
+
+  it('returns empty for no tracks', () => {
+    const filter: PhanGraphsFilter = { ...noQualFilter, aggregation: 'byYear' }
+    expect(computeAggregatedLeaderboard([], filter)).toEqual([])
+  })
+
+  it('empty year bucket produces no entries', () => {
+    const tracks = buildMultiYearDataset()
+    // Filter to only 2024 — no data there
+    const filter: PhanGraphsFilter = { ...noQualFilter, yearStart: 2024, yearEnd: 2024, aggregation: 'byYear' }
+    expect(computeAggregatedLeaderboard(tracks, filter)).toEqual([])
+  })
+
+  it('applies qualifications per bucket', () => {
+    const tracks = buildMultiYearDataset()
+    const filter: PhanGraphsFilter = {
+      ...noQualFilter,
+      aggregation: 'byYear',
+      minTimesPlayed: 3, // Song A in 2023 only has 2 plays, should be filtered
+    }
+    const result = computeAggregatedLeaderboard(tracks, filter)
+    const a2023 = result.find(e => e.songName === 'A' && e.aggregationKey.year === 2023)
+    expect(a2023).toBeUndefined()
+
+    // Song A in 2022 has 3 plays, should remain
+    const a2022 = result.find(e => e.songName === 'A' && e.aggregationKey.year === 2022)
+    expect(a2022).toBeDefined()
   })
 })
