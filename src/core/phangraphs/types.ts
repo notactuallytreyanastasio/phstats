@@ -39,6 +39,15 @@ export const BUSTOUT_BONUS: Record<BustoutTier, number> = {
   historic: 2.5,
 }
 
+/** Position within a multi-night venue run */
+export interface VenueRunInfo {
+  venue: string
+  runLength: number
+  positionInRun: number
+  isOpener: boolean
+  isCloser: boolean
+}
+
 /** Set position classification */
 export type SetPosition = 'opener' | 'closer' | 'middle'
 
