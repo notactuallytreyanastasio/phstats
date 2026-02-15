@@ -13,6 +13,7 @@ import JamchartRankings from './JamchartRankings'
 import ShowHeatCalendar from './ShowHeatCalendar'
 import SongDeepDive from './SongDeepDive'
 import * as dataSource from '../api/data-source'
+import { getParam, setParams } from '../url-params'
 
 const isPublic = import.meta.env.VITE_PUBLIC_MODE === 'true'
 const TOUR_KEY = 'phstats-tour-seen'
@@ -99,6 +100,13 @@ const JAM_TABS: { key: JamTab; label: string }[] = [
   { key: 'deep-dive', label: 'Song Deep Dive' },
 ]
 
+const VALID_JAM_TABS = new Set<JamTab>(['vehicles', 'heat-calendar', 'positions', 'rankings', 'deep-dive'])
+
+function initTab(): JamTab {
+  const t = getParam('tab')
+  return t && VALID_JAM_TABS.has(t as JamTab) ? t as JamTab : 'vehicles'
+}
+
 function App() {
   const [activeUser, setActiveUser] = useState('someguyorwhatever')
   const [users, setUsers] = useState<User[]>([])
@@ -109,19 +117,39 @@ function App() {
   const [allShows, setAllShows] = useState<ShowRecord[]>([])
   const [allStats, setAllStats] = useState<Stats[]>([])
   const [activeViz, setActiveViz] = useState<VizTab>('heatmap')
-  const [activeJam, setActiveJam] = useState<JamTab>('vehicles')
+  const [activeJam, setActiveJam] = useState<JamTab>(initTab)
   const [jamSongs, setJamSongs] = useState<JamSong[]>([])
   const [jamPositions, setJamPositions] = useState<JamPosition[]>([])
-  const [jamYear, setJamYear] = useState('all')
+  const [jamYear, setJamYear] = useState(() => getParam('year') || 'all')
   const [jamYears, setJamYears] = useState<number[]>([])
   const [error, setError] = useState<string | null>(null)
   const [runTour, setRunTour] = useState(false)
 
+  // Sync App-level state to URL params, clean up child params on tab change
+  useEffect(() => {
+    const updates: Record<string, string | null> = {
+      tab: activeJam === 'vehicles' ? null : activeJam,
+      year: jamYear === 'all' ? null : jamYear,
+    }
+    // Clear deep-dive params when not on that tab
+    if (activeJam !== 'deep-dive') {
+      updates.song = null
+      updates.sort = null
+      updates.min = null
+    }
+    // Clear heat-calendar params when not on that tab
+    if (activeJam !== 'heat-calendar') {
+      updates.color = null
+    }
+    setParams(updates)
+  }, [activeJam, jamYear])
+
   // Start tour for first-time visitors once jamchart data loads
+  // Skip if they arrived via a shared link (has URL params)
   useEffect(() => {
     if (jamSongs.length === 0) return
     if (localStorage.getItem(TOUR_KEY)) return
-    // Small delay so the page renders before the tour starts
+    if (window.location.search) return // arrived via shared link, skip tour
     const t = setTimeout(() => setRunTour(true), 800)
     return () => clearTimeout(t)
   }, [jamSongs.length])

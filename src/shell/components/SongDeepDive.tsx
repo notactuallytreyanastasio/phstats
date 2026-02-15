@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import * as d3 from 'd3'
 import * as dataSource from '../api/data-source'
+import { getParam, setParams } from '../url-params'
 
 interface Track {
   song_name: string
@@ -43,11 +44,26 @@ export default function SongDeepDive({ year }: { year: string }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
   const [songList, setSongList] = useState<SongOption[]>([])
-  const [selectedSong, setSelectedSong] = useState('')
+  const [selectedSong, setSelectedSong] = useState(() => getParam('song') || '')
   const [data, setData] = useState<SongHistory | null>(null)
   const [filter, setFilter] = useState('')
-  const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>('avg')
-  const [minPlayed, setMinPlayed] = useState(5)
+  const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>(() => {
+    const s = getParam('sort')
+    return s === 'jc' || s === 'played' ? s : 'avg'
+  })
+  const [minPlayed, setMinPlayed] = useState(() => {
+    const m = getParam('min')
+    return m ? parseInt(m, 10) || 5 : 5
+  })
+
+  // Sync deep-dive state to URL params
+  useEffect(() => {
+    setParams({
+      song: selectedSong || null,
+      sort: sortBy === 'avg' ? null : sortBy,
+      min: minPlayed === 5 ? null : String(minPlayed),
+    })
+  }, [selectedSong, sortBy, minPlayed])
 
   // Reload song list when year changes
   useEffect(() => {
@@ -57,7 +73,7 @@ export default function SongDeepDive({ year }: { year: string }) {
         // Keep current selection if it exists in the new list, otherwise pick first
         if (list.length > 0) {
           const exists = list.some((s: SongOption) => s.song_name === selectedSong)
-          if (!exists) setSelectedSong(list[0].song_name)
+          if (!exists) setSelectedSong(selectedSong || list[0].song_name)
         }
       })
       .catch(() => {})

@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react'
 import * as d3 from 'd3'
 import * as dataSource from '../api/data-source'
+import { getParam, setParams } from '../url-params'
 
 interface ShowHeat {
   show_date: string
@@ -26,7 +27,14 @@ export default function ShowHeatCalendar({ year }: { year: string }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
   const [data, setData] = useState<ShowHeat[]>([])
-  const [colorBy, setColorBy] = useState<'jc' | 'pct' | 'duration'>('jc')
+  const [colorBy, setColorBy] = useState<'jc' | 'pct' | 'duration'>(() => {
+    const c = getParam('color')
+    return c === 'pct' || c === 'duration' ? c : 'jc'
+  })
+
+  useEffect(() => {
+    setParams({ color: colorBy === 'jc' ? null : colorBy })
+  }, [colorBy])
 
   useEffect(() => {
     dataSource.fetchShowHeat(year).then(setData).catch(() => {})
