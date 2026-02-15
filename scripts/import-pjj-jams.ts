@@ -53,15 +53,13 @@ const SONG_NAME_MAP: Record<string, string> = {
   'Walls': 'Walls of the Cave',
   'Runaway Jim': 'Runaway Jim',
   'Limb': 'Limb by Limb',
+  '2001': 'Also Sprach Zarathustra',
+  'Caspian': 'Prince Caspian',
+  'Chinese Water Torture': 'The Chinese Water Torture',
+  'My Friend My Friend': 'My Friend, My Friend',
+  'Number Line': 'Backwards Down the Number Line',
+  'We Are Come To Outlive Our Brains': 'We Are Come to Outlive Our Brains',
 }
-
-/** Top 25 PJJ songs by jam clip count — start with these */
-const TOP_25: Set<string> = new Set([
-  'Ghost', 'Tweezer', 'Disease', 'Light', 'Sand', 'Bathtub Gin', 'Carini',
-  'Hood', 'Piper', "Wolfman's", 'Twist', "No Man's Land", 'Golden Age',
-  'Chalkdust', "Everything's Right", 'Fuego', 'Split', '46 Days', 'Simple',
-  'Stash', 'Tube', 'Crosseyed', 'Blaze On', 'Reba', 'Set Your Soul Free',
-])
 
 interface CsvRow {
   url: string
@@ -96,7 +94,6 @@ function parseCsv(path: string): { tagNames: string[]; rows: CsvRow[] } {
     if (date < '2009') continue
 
     const trackName = cols[urlIdx + 1] || ''
-    if (!TOP_25.has(trackName)) continue
 
     const tagValues = cols.slice(0, urlIdx)
     const activeTags: string[] = []
