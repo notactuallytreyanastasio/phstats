@@ -52,6 +52,7 @@ export default function SongDeepDive({ year }: { year: string }) {
   const [filter, setFilter] = useState('')
   const [modalTrack, setModalTrack] = useState<Track | null>(null)
   const [nowPlaying, setNowPlaying] = useState<{ url: string; date: string; song: string } | null>(null)
+  const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 })
   const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>(() => {
     const s = getParam('sort')
     return s === 'jc' || s === 'played' ? s : 'avg'
@@ -515,34 +516,77 @@ export default function SongDeepDive({ year }: { year: string }) {
           </div>
         </div>
       )}
-      <audio ref={audioRef} onEnded={stopPlayback} />
-      {nowPlaying && (
-        <div style={{
-          position: 'fixed', bottom: 0, left: 0, right: 0,
-          background: '#1a1a2e', color: 'white', padding: '8px 16px',
-          display: 'flex', alignItems: 'center', gap: '12px',
-          boxShadow: '0 -2px 12px rgba(0,0,0,0.3)', zIndex: 1001,
-          fontSize: '13px',
-        }}>
-          <button
-            onClick={stopPlayback}
-            style={{
-              background: 'none', border: 'none', color: '#ef4444',
-              cursor: 'pointer', fontSize: '18px', padding: '0 4px',
-            }}
-            title="Stop"
-          >&#9632;</button>
-          <span style={{ color: '#22c55e' }}>&#9654;</span>
-          <span>
-            <strong>{nowPlaying.song}</strong>
-            {' '}
-            <span style={{ color: '#94a3b8' }}>{nowPlaying.date}</span>
-          </span>
-          <span style={{ color: '#64748b', fontSize: '11px', marginLeft: 'auto' }}>
-            via PhishJustJams
-          </span>
-        </div>
-      )}
+      <audio
+        ref={audioRef}
+        onEnded={stopPlayback}
+        onTimeUpdate={() => {
+          if (audioRef.current) {
+            setPlaybackTime({ current: audioRef.current.currentTime, duration: audioRef.current.duration || 0 })
+          }
+        }}
+        onLoadedMetadata={() => {
+          if (audioRef.current) {
+            setPlaybackTime({ current: 0, duration: audioRef.current.duration || 0 })
+          }
+        }}
+      />
+      {nowPlaying && (() => {
+        const fmtSec = (s: number) => {
+          if (!s || !isFinite(s)) return '0:00'
+          const m = Math.floor(s / 60)
+          const sec = Math.floor(s % 60)
+          return `${m}:${String(sec).padStart(2, '0')}`
+        }
+        const pct = playbackTime.duration > 0 ? (playbackTime.current / playbackTime.duration) * 100 : 0
+        return (
+          <div style={{
+            position: 'fixed', bottom: 0, left: 0, right: 0,
+            background: '#1a1a2e', color: 'white',
+            boxShadow: '0 -4px 20px rgba(0,0,0,0.4)', zIndex: 1001,
+          }}>
+            {/* Progress bar */}
+            <div
+              style={{ height: 4, background: '#334155', cursor: 'pointer' }}
+              onClick={e => {
+                if (!audioRef.current || !playbackTime.duration) return
+                const rect = e.currentTarget.getBoundingClientRect()
+                const ratio = (e.clientX - rect.left) / rect.width
+                audioRef.current.currentTime = ratio * playbackTime.duration
+              }}
+            >
+              <div style={{ height: '100%', width: `${pct}%`, background: '#22c55e', transition: 'width 0.2s linear' }} />
+            </div>
+            <div style={{
+              padding: '12px 20px',
+              display: 'flex', alignItems: 'center', gap: '16px',
+              fontSize: '15px',
+            }}>
+              <button
+                onClick={stopPlayback}
+                style={{
+                  background: 'none', border: 'none', color: '#ef4444',
+                  cursor: 'pointer', fontSize: '24px', padding: '0 4px', lineHeight: 1,
+                }}
+                title="Stop"
+              >&#9632;</button>
+              <span style={{ color: '#22c55e', fontSize: '20px' }}>&#9654;</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <span>
+                  <strong style={{ fontSize: '16px' }}>{nowPlaying.song}</strong>
+                  {' '}
+                  <span style={{ color: '#94a3b8' }}>{nowPlaying.date}</span>
+                </span>
+                <span style={{ fontSize: '13px', color: '#64748b', fontVariantNumeric: 'tabular-nums' }}>
+                  {fmtSec(playbackTime.current)} / {fmtSec(playbackTime.duration)}
+                </span>
+              </div>
+              <span style={{ color: '#475569', fontSize: '12px', marginLeft: 'auto' }}>
+                via PhishJustJams
+              </span>
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
