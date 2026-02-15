@@ -1,5 +1,69 @@
 [
   {
+    "hash": "018feb102ed13099b5713dae49bd478e2f31497f",
+    "short_hash": "018feb1",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T23:40:30-05:00",
+    "message": "feat: shell UI with aggregation modes and extended filters\n\nUpdate usePhanGraphs hook to use computeAggregatedLeaderboard with\ncareer/byYear/byTour support. Add venue, state, country, and run\nposition filter dropdowns. Derive available venues/states from\nyear-filtered tracks. URL params sync for all new filter dimensions.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "1f3769b8fef6990020b30aaff771ccb5834dba83",
+    "short_hash": "1f3769b",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T23:38:22-05:00",
+    "message": "feat: leaderboard refactor with career/byYear/byTour aggregation\n\nExtract computeLeaderboardFromTracks for reuse, add\ncomputeAggregatedLeaderboard that splits tracks into buckets\n(career/year/tour) and runs the full pipeline per bucket so all\nstats are scoped to each aggregation period. 12 new tests (312 total).\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "936ea9ac538df407471f61e60af25b15efa4b5a5",
+    "short_hash": "936ea9a",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T23:34:06-05:00",
+    "message": "feat: Extended filterTracks with venue/state/country/runPosition (13 new tests)\n\nAdd venue, state, country, and run position (N1-N5/opener/closer)\nfilter clauses. Uses location-utils for state/country parsing and\nvenue-runs for run position detection.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "342e3e3f8fe849060895a8ebfd25cd74c10c80ab",
+    "short_hash": "342e3e3",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T23:32:40-05:00",
+    "message": "feat: Extended filter types with neutral defaults\n\nAdd AggregationKey, AggregatedLeaderboardEntry, RunPositionFilter.\nExtend PhanGraphsFilter with venue, state, country, runPosition,\naggregation fields. All new defaults are neutral (null/all/career)\nso existing 287 tests pass unchanged.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "03c961b44f9c475dab7999176a09f56f32feb4ae",
+    "short_hash": "03c961b",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T23:32:00-05:00",
+    "message": "feat: Tour classifier with season-based labels (19 tests)\n\nidentifyTours groups shows into tours by gap > 5 days. seasonLabel\nassigns names: Summer/Fall/Winter/Spring/NYE + year. Disambiguates\nmultiple tours per season with (1)/(2). buildTourDateMap for lookups.\nAdds TourInfo type to types.ts.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "cf3d1615d90e98d52ec3a2d8f843f916e91b5415",
+    "short_hash": "cf3d161",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T23:30:21-05:00",
+    "message": "feat: Venue runs classifier for multi-night run detection (8 tests)\n\nclassifyVenueRuns maps show_date → VenueRunInfo with position in run,\nopener/closer flags. Groups consecutive calendar dates at same venue.\nAdds VenueRunInfo type to types.ts.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "b67789f780c845078178d75a4a8009654104d731",
+    "short_hash": "b67789f",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T23:29:00-05:00",
+    "message": "feat: Location utils for state/country parsing (17 tests)\n\nparseState, isUSLocation, extractUniqueStates, extractUniqueVenues.\nHandles US \"City, ST\" and international \"City, Province, Country\" formats.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "cc2e5862535c973ce6624a9343d02dfe4e23595e",
+    "short_hash": "cc2e586",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T22:45:44-05:00",
+    "message": "chore: deciduous sync after PhanGraphs implementation\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
     "hash": "6bcf996f29da0a7dffc6e4702b1271000d7c101c",
     "short_hash": "6bcf996",
     "author": "Robert Grayson",

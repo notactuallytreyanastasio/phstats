@@ -2023,6 +2023,171 @@
       "created_at": "2026-02-14T22:45:30.754965-05:00",
       "updated_at": "2026-02-14T22:45:30.754965-05:00",
       "metadata_json": "{\"branch\":\"main\",\"confidence\":90}"
+    },
+    {
+      "id": 185,
+      "change_id": "e337f9c3-ba2a-450b-8ede-09ead2be7d0c",
+      "node_type": "outcome",
+      "title": "PhanGraphs MVP complete — 243 tests, 10 core modules, full leaderboard UI",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T22:45:50.636480-05:00",
+      "updated_at": "2026-02-14T22:45:50.636480-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"cc2e586\",\"confidence\":95}"
+    },
+    {
+      "id": 186,
+      "change_id": "9176b49b-69bc-4368-b36f-22e6c1b62ca7",
+      "node_type": "goal",
+      "title": "PhanGraphs enhancements: aggregation modes + extended filters",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:27:59.294001-05:00",
+      "updated_at": "2026-02-14T23:27:59.294001-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"Le'ts write a plan document called ph_graph_enhancements_1.md. The next key feature is the ability to select to aggregate data across the year range or show stats by year or by tour. When doing stats by year or tour the rate stats should be for year or tour, not the career stat. Add additional split options including set, venue, state, country, and show number within a run.\"}"
+    },
+    {
+      "id": 187,
+      "change_id": "3bc5567c-77aa-4df4-af65-49e0a09ff49d",
+      "node_type": "action",
+      "title": "Implement location-utils with tests",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:28:23.118893-05:00",
+      "updated_at": "2026-02-14T23:28:23.118893-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 188,
+      "change_id": "20d3e80b-dff3-44d5-9fa2-d4b6b2c46735",
+      "node_type": "outcome",
+      "title": "Location utils — 17 tests pass",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:29:06.746700-05:00",
+      "updated_at": "2026-02-14T23:29:06.746700-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"b67789f\",\"confidence\":95}"
+    },
+    {
+      "id": 189,
+      "change_id": "8e48dd8d-c907-41af-a08a-e73eb403d03b",
+      "node_type": "action",
+      "title": "Implement venue-runs classifier with tests",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:29:16.091794-05:00",
+      "updated_at": "2026-02-14T23:29:16.091794-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 190,
+      "change_id": "6d1b6f68-3a3b-4e37-845a-826290c7f7de",
+      "node_type": "outcome",
+      "title": "Venue runs classifier — 8 tests pass",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:30:27.740597-05:00",
+      "updated_at": "2026-02-14T23:30:27.740597-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"cf3d161\",\"confidence\":95}"
+    },
+    {
+      "id": 191,
+      "change_id": "fbda2180-f5b8-4c7d-93a5-151cd4bb4003",
+      "node_type": "action",
+      "title": "Implement tour classifier with season labels and tests",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:30:35.981309-05:00",
+      "updated_at": "2026-02-14T23:30:35.981309-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 192,
+      "change_id": "180db6da-14a2-485e-a19c-8d0dc240572a",
+      "node_type": "outcome",
+      "title": "Tour classifier — 19 tests pass, season labels work",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:32:07.613550-05:00",
+      "updated_at": "2026-02-14T23:32:07.613550-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"03c961b\",\"confidence\":95}"
+    },
+    {
+      "id": 193,
+      "change_id": "3474c626-3476-4e63-be59-6e3c81b1f665",
+      "node_type": "outcome",
+      "title": "Extended filter types — 287 tests still pass",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:32:46.196809-05:00",
+      "updated_at": "2026-02-14T23:32:46.196809-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"342e3e3\",\"confidence\":95}"
+    },
+    {
+      "id": 194,
+      "change_id": "f9f687a6-0752-492d-9905-8b72481c834f",
+      "node_type": "action",
+      "title": "Extend filterTracks with venue/state/country/runPosition filters",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:32:57.060860-05:00",
+      "updated_at": "2026-02-14T23:32:57.060860-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 195,
+      "change_id": "710a8845-267f-4119-a018-706e95475f5a",
+      "node_type": "outcome",
+      "title": "Extended filters — 300 tests pass (13 new)",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:34:11.612201-05:00",
+      "updated_at": "2026-02-14T23:34:11.612201-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"936ea9a\",\"confidence\":95}"
+    },
+    {
+      "id": 196,
+      "change_id": "8a6843a2-5a3f-4cde-b6f8-3fd6b1ac09b8",
+      "node_type": "action",
+      "title": "Refactoring leaderboard with aggregation modes",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:36:30.077697-05:00",
+      "updated_at": "2026-02-14T23:36:30.077697-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85,\"files\":[\"src/core/phangraphs/leaderboard.ts\",\"src/core/phangraphs/leaderboard.test.ts\"]}"
+    },
+    {
+      "id": 197,
+      "change_id": "bc7ae1c5-0174-44e5-a4cf-b39139c4dec5",
+      "node_type": "outcome",
+      "title": "Leaderboard refactor + aggregation committed",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:38:27.089149-05:00",
+      "updated_at": "2026-02-14T23:38:27.089149-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"1f3769b\",\"confidence\":95}"
+    },
+    {
+      "id": 198,
+      "change_id": "5476f9c8-9113-431d-94e3-6f7254c5aa03",
+      "node_type": "action",
+      "title": "Updating shell hook and UI for aggregation + filters",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:38:58.702555-05:00",
+      "updated_at": "2026-02-14T23:38:58.702555-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85,\"files\":[\"src/shell/hooks/usePhanGraphs.ts\",\"src/shell/components/phangraphs/PhanGraphsPage.tsx\"]}"
+    },
+    {
+      "id": 199,
+      "change_id": "7b53455e-e1ce-407c-9fdc-c5d425972709",
+      "node_type": "outcome",
+      "title": "Shell hook + UI committed with aggregation and filters",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:40:36.138907-05:00",
+      "updated_at": "2026-02-14T23:40:36.138907-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"018feb1\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -4192,6 +4357,160 @@
       "weight": 1.0,
       "rationale": "Phase 8 of PhanGraphs implementation",
       "created_at": "2026-02-14T22:45:30.761037-05:00"
+    },
+    {
+      "id": 199,
+      "from_node_id": 184,
+      "to_node_id": 185,
+      "from_change_id": "470a6723-8fdb-4e18-995c-82667f7e3b9a",
+      "to_change_id": "e337f9c3-ba2a-450b-8ede-09ead2be7d0c",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Phase 8 complete — PhanGraphs shipped",
+      "created_at": "2026-02-14T22:45:50.642854-05:00"
+    },
+    {
+      "id": 200,
+      "from_node_id": 186,
+      "to_node_id": 187,
+      "from_change_id": "9176b49b-69bc-4368-b36f-22e6c1b62ca7",
+      "to_change_id": "3bc5567c-77aa-4df4-af65-49e0a09ff49d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 1: location utils",
+      "created_at": "2026-02-14T23:28:23.125370-05:00"
+    },
+    {
+      "id": 201,
+      "from_node_id": 187,
+      "to_node_id": 188,
+      "from_change_id": "3bc5567c-77aa-4df4-af65-49e0a09ff49d",
+      "to_change_id": "20d3e80b-dff3-44d5-9fa2-d4b6b2c46735",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 1 complete",
+      "created_at": "2026-02-14T23:29:06.753186-05:00"
+    },
+    {
+      "id": 202,
+      "from_node_id": 186,
+      "to_node_id": 189,
+      "from_change_id": "9176b49b-69bc-4368-b36f-22e6c1b62ca7",
+      "to_change_id": "8e48dd8d-c907-41af-a08a-e73eb403d03b",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 2: venue runs",
+      "created_at": "2026-02-14T23:29:16.097472-05:00"
+    },
+    {
+      "id": 203,
+      "from_node_id": 189,
+      "to_node_id": 190,
+      "from_change_id": "8e48dd8d-c907-41af-a08a-e73eb403d03b",
+      "to_change_id": "6d1b6f68-3a3b-4e37-845a-826290c7f7de",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 2 complete",
+      "created_at": "2026-02-14T23:30:27.747159-05:00"
+    },
+    {
+      "id": 204,
+      "from_node_id": 186,
+      "to_node_id": 191,
+      "from_change_id": "9176b49b-69bc-4368-b36f-22e6c1b62ca7",
+      "to_change_id": "fbda2180-f5b8-4c7d-93a5-151cd4bb4003",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 3: tour classifier",
+      "created_at": "2026-02-14T23:30:35.987472-05:00"
+    },
+    {
+      "id": 205,
+      "from_node_id": 191,
+      "to_node_id": 192,
+      "from_change_id": "fbda2180-f5b8-4c7d-93a5-151cd4bb4003",
+      "to_change_id": "180db6da-14a2-485e-a19c-8d0dc240572a",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 3 complete",
+      "created_at": "2026-02-14T23:32:07.618790-05:00"
+    },
+    {
+      "id": 206,
+      "from_node_id": 186,
+      "to_node_id": 193,
+      "from_change_id": "9176b49b-69bc-4368-b36f-22e6c1b62ca7",
+      "to_change_id": "3474c626-3476-4e63-be59-6e3c81b1f665",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 4: type extensions",
+      "created_at": "2026-02-14T23:32:46.202256-05:00"
+    },
+    {
+      "id": 207,
+      "from_node_id": 186,
+      "to_node_id": 194,
+      "from_change_id": "9176b49b-69bc-4368-b36f-22e6c1b62ca7",
+      "to_change_id": "f9f687a6-0752-492d-9905-8b72481c834f",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 5: extended filters",
+      "created_at": "2026-02-14T23:32:57.067820-05:00"
+    },
+    {
+      "id": 208,
+      "from_node_id": 194,
+      "to_node_id": 195,
+      "from_change_id": "f9f687a6-0752-492d-9905-8b72481c834f",
+      "to_change_id": "710a8845-267f-4119-a018-706e95475f5a",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 5 complete",
+      "created_at": "2026-02-14T23:34:11.617838-05:00"
+    },
+    {
+      "id": 209,
+      "from_node_id": 186,
+      "to_node_id": 196,
+      "from_change_id": "9176b49b-69bc-4368-b36f-22e6c1b62ca7",
+      "to_change_id": "8a6843a2-5a3f-4cde-b6f8-3fd6b1ac09b8",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 6: leaderboard refactor + aggregation",
+      "created_at": "2026-02-14T23:36:34.332830-05:00"
+    },
+    {
+      "id": 210,
+      "from_node_id": 196,
+      "to_node_id": 197,
+      "from_change_id": "8a6843a2-5a3f-4cde-b6f8-3fd6b1ac09b8",
+      "to_change_id": "bc7ae1c5-0174-44e5-a4cf-b39139c4dec5",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-14T23:38:31.497456-05:00"
+    },
+    {
+      "id": 211,
+      "from_node_id": 186,
+      "to_node_id": 198,
+      "from_change_id": "9176b49b-69bc-4368-b36f-22e6c1b62ca7",
+      "to_change_id": "5476f9c8-9113-431d-94e3-6f7254c5aa03",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Commit 7: shell hook + UI",
+      "created_at": "2026-02-14T23:39:02.707146-05:00"
+    },
+    {
+      "id": 212,
+      "from_node_id": 198,
+      "to_node_id": 199,
+      "from_change_id": "5476f9c8-9113-431d-94e3-6f7254c5aa03",
+      "to_change_id": "7b53455e-e1ce-407c-9fdc-c5d425972709",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-14T23:40:36.144628-05:00"
     }
   ]
 }
