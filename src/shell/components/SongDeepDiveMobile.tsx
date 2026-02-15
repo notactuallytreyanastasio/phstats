@@ -246,22 +246,6 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     else break
   }
 
-  // Venue stats
-  const venueMap = new Map<string, { count: number; jc: number }>()
-  for (const t of tracks) {
-    const v = t.venue || 'Unknown'
-    const entry = venueMap.get(v) || { count: 0, jc: 0 }
-    entry.count++
-    if (t.is_jamchart) entry.jc++
-    venueMap.set(v, entry)
-  }
-  let topVenue = '', topVenueCount = 0
-  let bestVenue = '', bestVenuePct = 0
-  for (const [v, { count, jc }] of venueMap) {
-    if (count > topVenueCount) { topVenue = v; topVenueCount = count }
-    if (count >= 2 && (100 * jc / count) > bestVenuePct) { bestVenue = v; bestVenuePct = 100 * jc / count }
-  }
-
   const pill = (label: string, value: ListFilter, count: number) => (
     <button
       key={value}
@@ -499,19 +483,6 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
                   <div style={{ fontSize: '10px', color: '#64748b' }}>
                     Total jam time: <strong style={{ color: '#e2e8f0' }}>{totalHours.toFixed(1)} hours</strong>
                   </div>
-                </div>
-              )}
-              {/* Venue stats */}
-              {topVenue && (
-                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #334155', textAlign: 'left' }}>
-                  <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>
-                    📍 Most played: {topVenue} ({topVenueCount}×)
-                  </div>
-                  {bestVenue && bestVenue !== topVenue && bestVenuePct > 0 && (
-                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
-                      Best JC rate: {bestVenue} ({Math.round(bestVenuePct)}%)
-                    </div>
-                  )}
                 </div>
               )}
               {/* Notable quote */}
