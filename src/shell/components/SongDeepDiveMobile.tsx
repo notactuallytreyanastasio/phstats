@@ -209,6 +209,18 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
   const longestMs = tracks.length > 0
     ? Math.max(...tracks.map(t => t.duration_ms))
     : 0
+  const longestTrack = tracks.length > 0
+    ? tracks.reduce((a, b) => (a.duration_ms > b.duration_ms ? a : b))
+    : null
+  const mostLovedTrack = tracks.length > 0
+    ? tracks.reduce((a, b) => ((a.likes || 0) > (b.likes || 0) ? a : b))
+    : null
+  const notableQuote = tracks
+    .filter(t => t.is_jamchart && t.jam_notes)
+    .map(t => t.jam_notes)[0] || null
+  const truncQuote = notableQuote
+    ? (notableQuote.length > 80 ? notableQuote.slice(0, 80) + '...' : notableQuote)
+    : null
 
   const pill = (label: string, value: ListFilter, count: number) => (
     <button
@@ -332,18 +344,33 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
         <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>Loading...</div>
       )}
 
-      {/* Baseball card */}
+      {/* Baseball card — 3D flip */}
       {currentSongOption && data && (
-        <div data-tour-m="baseball-card" style={{ margin: '12px' }}>
-          {!cardFlipped ? (
-            /* FRONT — hero stats */
+        <div
+          data-tour-m="baseball-card"
+          style={{
+            margin: '12px',
+            perspective: '1200px',
+          }}
+        >
+          <div style={{
+            position: 'relative',
+            transformStyle: 'preserve-3d',
+            transition: 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)',
+            transform: cardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            height: cardFlipped ? `calc(100vh - ${nowPlaying ? 200 : 140}px)` : 'auto',
+          }}>
+            {/* FRONT — hero stats */}
             <div
               onClick={() => setCardFlipped(true)}
               style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
                 padding: '20px', borderRadius: '16px',
                 background: '#1a1a2e', color: 'white',
                 border: '2px solid #334155', textAlign: 'center',
                 cursor: 'pointer',
+                ...(cardFlipped ? { visibility: 'hidden' as const } : {}),
               }}
             >
               <div style={{
@@ -385,23 +412,55 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
                 <span style={{ color: '#334155' }}>·</span>
                 <span>Peak {fmtDuration(longestMs)}</span>
               </div>
+              {/* Extended stats */}
+              {longestTrack && (
+                <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #334155', textAlign: 'left' }}>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>
+                    <span style={{ color: '#ef4444' }}>★</span> Longest: {fmtDuration(longestTrack.duration_ms)}
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#64748b', marginTop: '1px' }}>
+                    {longestTrack.show_date} · {longestTrack.venue}
+                  </div>
+                </div>
+              )}
+              {mostLovedTrack && (mostLovedTrack.likes || 0) > 0 && (
+                <div style={{ marginTop: '8px', textAlign: 'left' }}>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>
+                    <span style={{ color: '#ef4444' }}>♥</span> Most Loved: {mostLovedTrack.likes} likes
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#64748b', marginTop: '1px' }}>
+                    {mostLovedTrack.show_date} · {mostLovedTrack.venue}
+                  </div>
+                </div>
+              )}
+              {truncQuote && (
+                <div style={{ marginTop: '10px', fontSize: '11px', color: '#64748b', fontStyle: 'italic', lineHeight: 1.4, textAlign: 'left' }}>
+                  "{truncQuote}"
+                </div>
+              )}
               <div style={{
                 fontSize: '11px', color: '#22c55e', marginTop: '16px',
                 letterSpacing: '1px', textTransform: 'uppercase',
                 fontWeight: 700,
               }}>
-                TAP TO SEE AND PLAY JAMS
+                TAP TO FLIP
               </div>
             </div>
-          ) : (
-            /* BACK — all jams, scrollable */
+
+            {/* BACK — all jams, scrollable */}
             <div style={{
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
+              transform: 'rotateY(180deg)',
+              position: cardFlipped ? 'relative' as const : 'absolute' as const,
+              top: 0, left: 0, right: 0,
               borderRadius: '16px',
               background: '#1a1a2e', color: 'white',
               border: '2px solid #334155',
               display: 'flex', flexDirection: 'column',
-              height: `calc(100vh - ${nowPlaying ? 200 : 140}px)`,
+              height: '100%',
               overflow: 'hidden',
+              ...(!cardFlipped ? { visibility: 'hidden' as const, pointerEvents: 'none' as const } : {}),
             }}>
               {/* Back header — tap to flip back */}
               <div
@@ -533,7 +592,7 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
                 )}
               </div>
             </div>
-          )}
+          </div>
         </div>
       )}
 
