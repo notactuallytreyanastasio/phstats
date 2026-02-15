@@ -10,6 +10,8 @@ export type {
   PVSComponents, PerformancePVS, YearDurationStats,
   SongWAR, SongJIS,
   LeaderboardEntry, PhanGraphsFilter,
+  AggregationKey, AggregatedLeaderboardEntry,
+  TourInfo, VenueRunInfo, RunPositionFilter,
   TrackRow,
 } from './types'
 export { DEFAULT_FILTER, RUN_LEVERAGE, BUSTOUT_BONUS } from './types'
@@ -24,5 +26,10 @@ export { computeReplacementLevels, computeWAR, percentile } from './war'
 export { computeJIS, normalizeToJIS } from './jis'
 export { filterTracks, applyQualifications } from './filters'
 
+// New modules
+export { parseState, isUSLocation, extractUniqueStates, extractUniqueVenues } from './location-utils'
+export { classifyVenueRuns } from './venue-runs'
+export { identifyTours, buildTourDateMap, seasonLabel } from './tour-classifier'
+
 // Orchestrator
-export { computeLeaderboard } from './leaderboard'
+export { computeLeaderboard, computeLeaderboardFromTracks, computeAggregatedLeaderboard } from './leaderboard'
