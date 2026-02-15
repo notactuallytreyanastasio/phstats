@@ -1,5 +1,13 @@
 [
   {
+    "hash": "a18094bfdeea1227e63a31ec10215828751dba14",
+    "short_hash": "a18094b",
+    "author": "Robert Grayson",
+    "date": "2026-02-15T15:18:57-05:00",
+    "message": "deploy: update static site with card flip and mobile fixes\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
     "hash": "653ed0980fe8788c70016933782d7eba6f187fab",
     "short_hash": "653ed09",
     "author": "Robert Grayson",
