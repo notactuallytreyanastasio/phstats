@@ -11,6 +11,9 @@ import JamVehicleScatter from './JamVehicleScatter'
 import JamchartPositionMap from './JamchartPositionMap'
 import JamchartRankings from './JamchartRankings'
 import ShowHeatCalendar from './ShowHeatCalendar'
+import VenueRankings from './VenueRankings'
+import JamEvolution from './JamEvolution'
+import SongPairings from './SongPairings'
 import SongDeepDive from './SongDeepDive'
 import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
@@ -81,7 +84,7 @@ interface JamPosition {
 }
 
 type VizTab = 'heatmap' | 'scatter' | 'timeline' | 'years' | 'radar' | 'gaps'
-type JamTab = 'vehicles' | 'heat-calendar' | 'positions' | 'rankings' | 'deep-dive'
+type JamTab = 'vehicles' | 'heat-calendar' | 'positions' | 'rankings' | 'deep-dive' | 'venue-rankings' | 'jam-evolution' | 'song-pairings'
 
 const VIZ_TABS: { key: VizTab; label: string }[] = [
   { key: 'heatmap', label: 'Song Treemap' },
@@ -95,12 +98,15 @@ const VIZ_TABS: { key: VizTab; label: string }[] = [
 const JAM_TABS: { key: JamTab; label: string }[] = [
   { key: 'vehicles', label: 'Jam Vehicles' },
   { key: 'heat-calendar', label: 'Show Heat' },
+  { key: 'venue-rankings', label: 'Venue Power' },
+  { key: 'jam-evolution', label: 'Jam Evolution' },
+  { key: 'song-pairings', label: 'Song Pairings' },
   { key: 'positions', label: 'Set Positions' },
   { key: 'rankings', label: 'Rankings' },
   { key: 'deep-dive', label: 'Song Deep Dive' },
 ]
 
-const VALID_JAM_TABS = new Set<JamTab>(['vehicles', 'heat-calendar', 'positions', 'rankings', 'deep-dive'])
+const VALID_JAM_TABS = new Set<JamTab>(['vehicles', 'heat-calendar', 'positions', 'rankings', 'deep-dive', 'venue-rankings', 'jam-evolution', 'song-pairings'])
 
 function initTab(): JamTab {
   const t = getParam('tab')
@@ -140,6 +146,10 @@ function App() {
     // Clear heat-calendar params when not on that tab
     if (activeJam !== 'heat-calendar') {
       updates.color = null
+    }
+    // Clear song-pairings params when not on that tab
+    if (activeJam !== 'song-pairings') {
+      updates.pmin = null
     }
     setParams(updates)
   }, [activeJam, jamYear])
@@ -181,6 +191,24 @@ function App() {
       placement: 'bottom',
     },
     {
+      target: '[data-tour="tab-venue-rankings"]',
+      title: 'Venue Jam Power',
+      content: 'Horizontal bar chart of venues ranked by total jamchart entries. See which venues inspire the most jams — darker bars = higher jam rate.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour="tab-jam-evolution"]',
+      title: 'Jam Evolution',
+      content: 'Line chart showing how Phish\'s jamming has evolved year by year. Track jamcharts per show, total jamcharts, or average jam duration. Hover to see new "jam vehicles" each year.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour="tab-song-pairings"]',
+      title: 'Song Pairings',
+      content: 'Force-directed network graph of songs that get jammed together in the same show. Thicker lines = more co-occurrences. Drag nodes around to explore the connections.',
+      placement: 'bottom',
+    },
+    {
       target: '[data-tour="tab-positions"]',
       title: 'Set Positions',
       content: 'Heatmap showing where in the setlist jams tend to land. Rows = sets, columns = slot position. Darker cells = more jamcharts in that spot.',
@@ -216,11 +244,14 @@ function App() {
   const stepTabMap: Record<number, JamTab> = {
     2: 'vehicles',
     3: 'heat-calendar',
-    4: 'positions',
-    5: 'rankings',
-    6: 'deep-dive',
-    7: 'deep-dive',
-    8: 'deep-dive',
+    4: 'venue-rankings',
+    5: 'jam-evolution',
+    6: 'song-pairings',
+    7: 'positions',
+    8: 'rankings',
+    9: 'deep-dive',
+    10: 'deep-dive',
+    11: 'deep-dive',
   }
 
   function handleTourCallback(data: CallBackProps) {
@@ -532,6 +563,15 @@ function App() {
             )}
             {activeJam === 'heat-calendar' && (
               <ShowHeatCalendar year={jamYear} />
+            )}
+            {activeJam === 'venue-rankings' && (
+              <VenueRankings year={jamYear} />
+            )}
+            {activeJam === 'jam-evolution' && (
+              <JamEvolution />
+            )}
+            {activeJam === 'song-pairings' && (
+              <SongPairings year={jamYear} />
             )}
             {activeJam === 'positions' && (
               <JamchartPositionMap data={jamPositions} />
