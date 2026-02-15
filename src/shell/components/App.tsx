@@ -415,7 +415,7 @@ function App() {
             </button>
           )}
           <a
-            href={(import.meta.env.BASE_URL || '/') + 'phangraphs'}
+            href="#/phangraphs"
             style={{
               marginLeft: '1rem', padding: '0.3rem 0.8rem', fontSize: '0.75rem',
               border: '1px solid #ef4444', borderRadius: '4px',

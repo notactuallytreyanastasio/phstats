@@ -76,7 +76,7 @@ function PhanGraphsPage() {
             Song Sabermetrics
           </span>
         </h1>
-        <a href={import.meta.env.BASE_URL || '/'} style={{ color: '#2563eb', textDecoration: 'none', fontSize: '0.9rem' }}>
+        <a href="#/" style={{ color: '#2563eb', textDecoration: 'none', fontSize: '0.9rem' }}>
           Back to phstats
         </a>
       </div>
