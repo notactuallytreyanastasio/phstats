@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { loadTracks } from '../api/static-queries'
-import { computeLeaderboard } from '../../core/phangraphs/leaderboard'
-import type { LeaderboardEntry, PhanGraphsFilter, TrackRow } from '../../core/phangraphs/types'
+import { computeAggregatedLeaderboard } from '../../core/phangraphs/leaderboard'
+import { filterTracks } from '../../core/phangraphs/filters'
+import { extractUniqueVenues, extractUniqueStates } from '../../core/phangraphs/location-utils'
+import type { AggregatedLeaderboardEntry, PhanGraphsFilter, TrackRow } from '../../core/phangraphs/types'
 import { DEFAULT_FILTER } from '../../core/phangraphs/types'
 import { getParam, setParams } from '../url-params'
 
@@ -16,6 +18,11 @@ function initFilter(): PhanGraphsFilter {
     minJamchartCount: parseInt(getParam('mjc') ?? '0'),
     minTotalMinutes: parseInt(getParam('mtm') ?? '0'),
     setSplit: (getParam('set') as PhanGraphsFilter['setSplit']) || DEFAULT_FILTER.setSplit,
+    venue: getParam('ven') || null,
+    state: getParam('st') || null,
+    country: (getParam('cty') as PhanGraphsFilter['country']) || DEFAULT_FILTER.country,
+    runPosition: (getParam('rp') as PhanGraphsFilter['runPosition']) || DEFAULT_FILTER.runPosition,
+    aggregation: (getParam('agg') as PhanGraphsFilter['aggregation']) || DEFAULT_FILTER.aggregation,
   }
 }
 
@@ -54,16 +61,38 @@ export function usePhanGraphs() {
       mjc: filter.minJamchartCount !== 0 ? String(filter.minJamchartCount) : null,
       mtm: filter.minTotalMinutes !== 0 ? String(filter.minTotalMinutes) : null,
       set: filter.setSplit !== 'all' ? filter.setSplit : null,
+      ven: filter.venue,
+      st: filter.state,
+      cty: filter.country !== 'all' ? filter.country : null,
+      rp: filter.runPosition !== 'all' ? filter.runPosition : null,
+      agg: filter.aggregation !== 'career' ? filter.aggregation : null,
       col: sortCol !== 'war' ? sortCol : null,
       dir: sortDir !== 'desc' ? sortDir : null,
     })
   }, [filter, sortCol, sortDir])
 
+  // Derive available venues and states from year-filtered tracks (before venue/state/country filter)
+  const { availableVenues, availableStates } = useMemo(() => {
+    if (tracks.length === 0) return { availableVenues: [], availableStates: [] }
+    // Apply only year + set filters so dropdowns show relevant options
+    const yearSetFilter: PhanGraphsFilter = {
+      ...DEFAULT_FILTER,
+      yearStart: filter.yearStart,
+      yearEnd: filter.yearEnd,
+      setSplit: filter.setSplit,
+    }
+    const yearFiltered = filterTracks(tracks, yearSetFilter)
+    return {
+      availableVenues: extractUniqueVenues(yearFiltered),
+      availableStates: extractUniqueStates(yearFiltered),
+    }
+  }, [tracks, filter.yearStart, filter.yearEnd, filter.setSplit])
+
   // Compute leaderboard (memoized to avoid recomputation on sort changes)
-  const entries = useMemo<LeaderboardEntry[]>(() => {
+  const entries = useMemo<AggregatedLeaderboardEntry[]>(() => {
     if (tracks.length === 0) return []
-    return computeLeaderboard(tracks, filter)
+    return computeAggregatedLeaderboard(tracks, filter)
   }, [tracks, filter])
 
-  return { entries, filter, setFilter, loading, sortCol, setSortCol, sortDir, setSortDir }
+  return { entries, filter, setFilter, loading, sortCol, setSortCol, sortDir, setSortDir, availableVenues, availableStates }
 }

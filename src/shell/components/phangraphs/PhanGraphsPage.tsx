@@ -1,6 +1,6 @@
 import { usePhanGraphs } from '../../hooks/usePhanGraphs'
 import WARSparkline from './WARSparkline'
-import type { LeaderboardEntry, PhanGraphsFilter } from '../../../core/phangraphs/types'
+import type { AggregatedLeaderboardEntry, PhanGraphsFilter, RunPositionFilter } from '../../../core/phangraphs/types'
 
 type SortColumn = 'war' | 'warPerPlay' | 'warPerShow' | 'avgJIS' | 'peakJIS' | 'timesPlayed' | 'jamRate' | 'jamchartCount'
 
@@ -15,7 +15,7 @@ const SORT_COLUMNS: { key: SortColumn; label: string }[] = [
   { key: 'jamchartCount', label: 'JC Count' },
 ]
 
-function getSortValue(entry: LeaderboardEntry, col: SortColumn): number {
+function getSortValue(entry: AggregatedLeaderboardEntry, col: SortColumn): number {
   switch (col) {
     case 'war': return entry.war.careerWAR
     case 'warPerPlay': return entry.war.warPerPlay
@@ -37,8 +37,15 @@ function warColor(war: number, maxWar: number): string {
   return `rgb(${r},${g},${b})`
 }
 
+function entryKey(entry: AggregatedLeaderboardEntry): string {
+  const k = entry.aggregationKey
+  return `${k.songName}-${k.year ?? ''}-${k.tourId ?? ''}`
+}
+
 function PhanGraphsPage() {
-  const { entries, filter, setFilter, loading, sortCol, setSortCol, sortDir, setSortDir } = usePhanGraphs()
+  const { entries, filter, setFilter, loading, sortCol, setSortCol, sortDir, setSortDir, availableVenues, availableStates } = usePhanGraphs()
+
+  const isAggregated = filter.aggregation !== 'career'
 
   const sorted = [...entries].sort((a, b) => {
     const va = getSortValue(a, sortCol)
@@ -74,10 +81,10 @@ function PhanGraphsPage() {
         </a>
       </div>
 
-      {/* Filters */}
+      {/* Row 1: Year range + Aggregation + Set */}
       <div style={{
         display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center',
-        padding: '1rem', background: '#f9fafb', borderRadius: '8px', marginBottom: '1.5rem',
+        padding: '1rem', background: '#f9fafb', borderRadius: '8px 8px 0 0', borderBottom: '1px solid #eee',
         fontSize: '0.85rem',
       }}>
         <label>
@@ -88,6 +95,14 @@ function PhanGraphsPage() {
           <span style={{ margin: '0 0.25rem' }}>-</span>
           <select value={filter.yearEnd} onChange={e => setFilter({ ...filter, yearEnd: parseInt(e.target.value) })} style={selectStyle}>
             {years.map(y => <option key={y} value={y}>{y}</option>)}
+          </select>
+        </label>
+        <label>
+          View:
+          <select value={filter.aggregation} onChange={e => setFilter({ ...filter, aggregation: e.target.value as PhanGraphsFilter['aggregation'] })} style={selectStyle}>
+            <option value="career">Career</option>
+            <option value="byYear">By Year</option>
+            <option value="byTour">By Tour</option>
           </select>
         </label>
         <label>
@@ -102,6 +117,57 @@ function PhanGraphsPage() {
             <option value="closer">Closers</option>
           </select>
         </label>
+      </div>
+
+      {/* Row 2: Venue, State, Country, Run Position */}
+      <div style={{
+        display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center',
+        padding: '1rem', background: '#f9fafb', borderBottom: '1px solid #eee',
+        fontSize: '0.85rem',
+      }}>
+        <label>
+          Venue:
+          <select value={filter.venue ?? ''} onChange={e => setFilter({ ...filter, venue: e.target.value || null })} style={selectStyle}>
+            <option value="">All</option>
+            {availableVenues.map(v => <option key={v} value={v}>{v}</option>)}
+          </select>
+        </label>
+        <label>
+          State:
+          <select value={filter.state ?? ''} onChange={e => setFilter({ ...filter, state: e.target.value || null })} style={selectStyle}>
+            <option value="">All</option>
+            {availableStates.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+        </label>
+        <label>
+          Country:
+          <select value={filter.country} onChange={e => setFilter({ ...filter, country: e.target.value as PhanGraphsFilter['country'] })} style={selectStyle}>
+            <option value="all">All</option>
+            <option value="us">US</option>
+            <option value="international">International</option>
+          </select>
+        </label>
+        <label>
+          Run #:
+          <select value={filter.runPosition} onChange={e => setFilter({ ...filter, runPosition: e.target.value as RunPositionFilter })} style={selectStyle}>
+            <option value="all">All</option>
+            <option value="opener">Run Opener</option>
+            <option value="n1">N1</option>
+            <option value="n2">N2</option>
+            <option value="n3">N3</option>
+            <option value="n4">N4</option>
+            <option value="n5">N5</option>
+            <option value="closer">Run Closer</option>
+          </select>
+        </label>
+      </div>
+
+      {/* Row 3: Qualification thresholds */}
+      <div style={{
+        display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center',
+        padding: '1rem', background: '#f9fafb', borderRadius: '0 0 8px 8px', marginBottom: '1.5rem',
+        fontSize: '0.85rem',
+      }}>
         <label>
           Min plays:
           <input type="number" value={filter.minTimesPlayed} min={0} onChange={e => setFilter({ ...filter, minTimesPlayed: parseInt(e.target.value) || 0 })} style={inputStyle} />
@@ -125,7 +191,7 @@ function PhanGraphsPage() {
       {!loading && sorted.length > 0 && (
         <>
           <p style={{ color: '#888', fontSize: '0.85rem', marginBottom: '0.5rem' }}>
-            {sorted.length} songs qualified
+            {sorted.length} {isAggregated ? 'rows' : 'songs'} qualified
           </p>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
@@ -133,6 +199,11 @@ function PhanGraphsPage() {
                 <tr>
                   <th style={thStyle}>#</th>
                   <th style={{ ...thStyle, textAlign: 'left', minWidth: '140px' }}>Song</th>
+                  {isAggregated && (
+                    <th style={{ ...thStyle, textAlign: 'left', minWidth: '100px' }}>
+                      {filter.aggregation === 'byYear' ? 'Year' : 'Tour'}
+                    </th>
+                  )}
                   {SORT_COLUMNS.map(col => (
                     <th
                       key={col.key}
@@ -145,14 +216,19 @@ function PhanGraphsPage() {
                   ))}
                   <th style={thStyle}>JIS Vol</th>
                   <th style={thStyle}>Peak Year</th>
-                  <th style={thStyle}>WAR Trend</th>
+                  {!isAggregated && <th style={thStyle}>WAR Trend</th>}
                 </tr>
               </thead>
               <tbody>
                 {sorted.map((entry, i) => (
-                  <tr key={entry.songName} style={{ background: i % 2 === 0 ? '#fafafa' : 'white' }}>
+                  <tr key={entryKey(entry)} style={{ background: i % 2 === 0 ? '#fafafa' : 'white' }}>
                     <td style={tdStyle}>{i + 1}</td>
                     <td style={{ ...tdStyle, textAlign: 'left', fontWeight: 500 }}>{entry.songName}</td>
+                    {isAggregated && (
+                      <td style={{ ...tdStyle, textAlign: 'left', color: '#666', fontSize: '0.8rem' }}>
+                        {entry.aggregationKey.year ?? entry.aggregationKey.tourLabel ?? ''}
+                      </td>
+                    )}
                     <td style={{ ...tdStyle, background: warColor(entry.war.careerWAR, maxWar), fontWeight: 600 }}>
                       {entry.war.careerWAR.toFixed(1)}
                     </td>
@@ -165,9 +241,11 @@ function PhanGraphsPage() {
                     <td style={tdStyle}>{entry.counting.jamchartCount}</td>
                     <td style={tdStyle}>{entry.jis.jisVolatility.toFixed(2)}</td>
                     <td style={tdStyle}>{entry.war.peakWARYear || '-'}</td>
-                    <td style={tdStyle}>
-                      <WARSparkline warByYear={entry.war.warByYear} />
-                    </td>
+                    {!isAggregated && (
+                      <td style={tdStyle}>
+                        <WARSparkline warByYear={entry.war.warByYear} />
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
