@@ -379,35 +379,38 @@ function App() {
   const hasCompareData = compareData && compareData.usernames.length >= 2
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: '1400px', margin: '0 auto' }}>
-      <Joyride
-        steps={tourSteps}
-        run={runTour}
-        continuous
-        showSkipButton
-        showProgress
-        scrollToFirstStep
-        callback={handleTourCallback}
-        styles={{
-          options: {
-            primaryColor: '#ef4444',
-            zIndex: 10000,
-          },
-          tooltip: {
-            borderRadius: 8,
-          },
-          buttonNext: {
-            borderRadius: 6,
-          },
-          buttonBack: {
-            color: '#666',
-          },
-        }}
-        locale={{
-          last: 'Let\'s go!',
-          skip: 'Skip tour',
-        }}
-      />
+    <div style={{ padding: isMobile ? '0' : '2rem', fontFamily: 'system-ui', maxWidth: '1400px', margin: '0 auto' }}>
+      {!isMobile && (
+        <Joyride
+          steps={tourSteps}
+          run={runTour}
+          continuous
+          showSkipButton
+          showProgress
+          scrollToFirstStep
+          callback={handleTourCallback}
+          styles={{
+            options: {
+              primaryColor: '#ef4444',
+              zIndex: 10000,
+            },
+            tooltip: {
+              borderRadius: 8,
+            },
+            buttonNext: {
+              borderRadius: 6,
+            },
+            buttonBack: {
+              color: '#666',
+            },
+          }}
+          locale={{
+            last: 'Let\'s go!',
+            skip: 'Skip tour',
+          }}
+        />
+      )}
+      {!isMobile && (
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
         <h1 style={{ margin: 0 }}>
           {isPublic ? 'Phish 3.0 Jamchart Analysis' : 'Phish Stats'}
@@ -453,6 +456,7 @@ function App() {
           </div>
         )}
       </div>
+      )}
 
       {!isPublic && stats && (
         <>
@@ -530,6 +534,9 @@ function App() {
 
       {/* Jamchart Analysis Section */}
       {(jamSongs.length > 0 || jamYears.length > 0) && (
+        isMobile ? (
+          <SongDeepDiveMobile year={jamYear} years={jamYears} onYearChange={setJamYear} />
+        ) : (
         <div data-tour="jamchart-section" style={{ marginBottom: '3rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
             <h2 style={{ margin: 0 }}>Jamchart Analysis</h2>
@@ -599,12 +606,11 @@ function App() {
               <JamchartRankings songs={jamSongs} />
             )}
             {activeJam === 'deep-dive' && (
-              isMobile
-                ? <SongDeepDiveMobile year={jamYear} />
-                : <SongDeepDive year={jamYear} />
+              <SongDeepDive year={jamYear} />
             )}
           </div>
         </div>
+        )
       )}
 
       {/* Visualization Section (hidden in public mode) */}

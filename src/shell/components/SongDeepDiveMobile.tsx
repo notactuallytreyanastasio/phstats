@@ -1,4 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
+import Joyride, { STATUS } from 'react-joyride'
+import type { CallBackProps, Step } from 'react-joyride'
 import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
 
@@ -46,9 +48,11 @@ function battingAvg(s: SongOption): number {
   return s.times_played > 0 ? s.jamchart_count / s.times_played : 0
 }
 
-type ListFilter = 'all' | 'jamcharts' | 'has-clip'
+type ListFilter = 'all' | 'jamcharts'
 
-export default function SongDeepDiveMobile({ year }: { year: string }) {
+const MOBILE_TOUR_KEY = 'phstats-mobile-tour-seen'
+
+export default function SongDeepDiveMobile({ year, years, onYearChange }: { year: string; years: number[]; onYearChange: (y: string) => void }) {
   const audioRef = useRef<HTMLAudioElement>(null)
   const [songList, setSongList] = useState<SongOption[]>([])
   const [selectedSong, setSelectedSong] = useState(() => getParam('song') || '')
@@ -56,7 +60,7 @@ export default function SongDeepDiveMobile({ year }: { year: string }) {
   const [data, setData] = useState<SongHistory | null>(null)
   const [nowPlaying, setNowPlaying] = useState<{ url: string; date: string; song: string } | null>(null)
   const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 })
-  const [listFilter, setListFilter] = useState<ListFilter>('all')
+  const [listFilter, setListFilter] = useState<ListFilter>('jamcharts')
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
   const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>(() => {
     const s = getParam('sort')
@@ -66,6 +70,63 @@ export default function SongDeepDiveMobile({ year }: { year: string }) {
     const m = getParam('min')
     return m ? parseInt(m, 10) || 5 : 5
   })
+  const [runTour, setRunTour] = useState(false)
+
+  // Start tour for first-time mobile visitors once song list loads
+  useEffect(() => {
+    if (!songListLoaded || songList.length === 0) return
+    if (localStorage.getItem(MOBILE_TOUR_KEY)) return
+    if (window.location.search) return
+    const t = setTimeout(() => setRunTour(true), 800)
+    return () => clearTimeout(t)
+  }, [songListLoaded, songList.length])
+
+  const tourSteps: Step[] = [
+    {
+      target: '[data-tour-m="year-picker"]',
+      title: 'Pick a Year',
+      content: 'Filter all data to a single year, or view all of Phish 3.0 (2009\u2013now).',
+      placement: 'bottom',
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour-m="song-picker"]',
+      title: 'Choose a Song',
+      content: 'Songs are sorted by batting average \u2014 the ratio of jamchart entries to times played. Higher avg = more consistently jammed.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour-m="sort-pills"]',
+      title: 'Sort & Filter',
+      content: 'Sort by batting avg, jamchart count, or times played. Use the slider to set a minimum play count.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour-m="baseball-card"]',
+      title: 'The Baseball Card',
+      content: 'Key stats at a glance: batting average (the hero number), jamchart count, times played, average & peak duration.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour-m="filter-pills"]',
+      title: 'Filter Performances',
+      content: 'Toggle between all performances or just jamchart selections. Jamcharts are the cream of the crop.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour-m="perf-list"]',
+      title: 'Performance Cards',
+      content: 'Each card shows date, venue, duration (with a bar), and jam notes. Tap the green PLAY JAM button to stream the jam clip directly.',
+      placement: 'top',
+    },
+  ]
+
+  function handleTourCallback(data: CallBackProps) {
+    if (data.status === STATUS.FINISHED || data.status === STATUS.SKIPPED) {
+      setRunTour(false)
+      localStorage.setItem(MOBILE_TOUR_KEY, 'true')
+    }
+  }
 
   const playJam = useCallback((url: string, date: string, song: string) => {
     if (nowPlaying?.url === url) {
@@ -149,11 +210,9 @@ export default function SongDeepDiveMobile({ year }: { year: string }) {
   const tracks = data?.tracks ?? []
   const filteredTracks = tracks.filter(t => {
     if (listFilter === 'jamcharts') return t.is_jamchart
-    if (listFilter === 'has-clip') return !!t.jam_url
     return true
   })
   const jcCount = tracks.filter(t => t.is_jamchart).length
-  const clipCount = tracks.filter(t => t.jam_url).length
   const avgDur = tracks.length > 0
     ? tracks.reduce((sum, t) => sum + t.duration_ms, 0) / tracks.length
     : 0
@@ -189,13 +248,49 @@ export default function SongDeepDiveMobile({ year }: { year: string }) {
 
   return (
     <div style={{ fontFamily: 'system-ui', maxWidth: '100vw', paddingBottom: nowPlaying ? 72 : 0 }}>
+      <Joyride
+        steps={tourSteps}
+        run={runTour}
+        continuous
+        showSkipButton
+        showProgress
+        scrollToFirstStep
+        callback={handleTourCallback}
+        styles={{
+          options: { primaryColor: '#ef4444', zIndex: 10000 },
+          tooltip: { borderRadius: 8 },
+          buttonNext: { borderRadius: 6 },
+          buttonBack: { color: '#666' },
+        }}
+        locale={{ last: 'Let\'s go!', skip: 'Skip tour' }}
+      />
+
       {/* Sticky song picker */}
       <div style={{
         position: 'sticky', top: 0, zIndex: 100,
         background: '#fff', padding: '8px 12px',
         borderBottom: '1px solid #e5e7eb',
       }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
+          <span style={{ fontWeight: 800, fontSize: '16px', color: '#111' }}>phstats</span>
+          <select
+            data-tour-m="year-picker"
+            value={year}
+            onChange={e => onYearChange(e.target.value)}
+            style={{
+              marginLeft: 'auto', padding: '6px 8px', fontSize: '13px',
+              borderRadius: '6px', border: '1px solid #d1d5db',
+              background: '#fff', fontWeight: 600,
+            }}
+          >
+            <option value="all">All 3.0</option>
+            {years.map(y => (
+              <option key={y} value={String(y)}>{y}</option>
+            ))}
+          </select>
+        </div>
         <select
+          data-tour-m="song-picker"
           value={selectedSong}
           onChange={e => { setSelectedSong(e.target.value); setListFilter('all') }}
           style={{
@@ -206,11 +301,11 @@ export default function SongDeepDiveMobile({ year }: { year: string }) {
         >
           {sortedSongs.map(s => (
             <option key={s.song_name} value={s.song_name}>
-              {s.song_name} ({fmtAvg(s)} · {s.jamchart_count} JC · {s.times_played}×)
+              {fmtAvg(s)} — {s.song_name} ({s.jamchart_count} JC / {s.times_played}×)
             </option>
           ))}
         </select>
-        <div style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
+        <div data-tour-m="sort-pills" style={{ display: 'flex', gap: '8px', marginTop: '8px', alignItems: 'center' }}>
           {(['avg', 'jc', 'played'] as const).map(mode => (
             <button
               key={mode}
@@ -239,7 +334,7 @@ export default function SongDeepDiveMobile({ year }: { year: string }) {
 
       {/* Baseball card - song stats hero */}
       {currentSongOption && data && (
-        <div style={{
+        <div data-tour-m="baseball-card" style={{
           margin: '12px', padding: '20px', borderRadius: '16px',
           background: '#1a1a2e', color: 'white',
           border: '2px solid #334155',
@@ -294,18 +389,17 @@ export default function SongDeepDiveMobile({ year }: { year: string }) {
 
       {/* Filter pills */}
       {data && tracks.length > 0 && (
-        <div style={{
+        <div data-tour-m="filter-pills" style={{
           display: 'flex', gap: '8px', padding: '0 12px 12px',
           overflowX: 'auto',
         }}>
           {pill('All', 'all', tracks.length)}
           {pill('Jamcharts', 'jamcharts', jcCount)}
-          {pill('Has Clip', 'has-clip', clipCount)}
         </div>
       )}
 
       {/* Performance cards */}
-      <div style={{ padding: '0 12px' }}>
+      <div data-tour-m="perf-list" style={{ padding: '0 12px' }}>
         {filteredTracks.map((t, i) => {
           const isJc = !!t.is_jamchart
           const hasClip = !!t.jam_url
@@ -327,18 +421,30 @@ export default function SongDeepDiveMobile({ year }: { year: string }) {
                 onClick={() => t.jam_notes ? setExpandedIdx(isExpanded ? null : i) : undefined}
                 style={{ padding: '12px 14px', cursor: t.jam_notes ? 'pointer' : 'default' }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    {isJc && <span style={{ color: '#ef4444', fontSize: '14px' }}>&#9733;</span>}
+                    {isJc && <span style={{ color: '#ef4444', fontSize: '16px' }}>&#9733;</span>}
                     <span style={{ fontWeight: 700, fontSize: '15px', color: '#111' }}>{t.show_date}</span>
                   </div>
-                  <span style={{
-                    fontSize: '18px', fontWeight: 800, color: isJc ? '#ef4444' : '#374151',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}>
-                    {fmtDuration(t.duration_ms)}
-                  </span>
+                  <div style={{ textAlign: 'right' }}>
+                    <span style={{
+                      fontSize: '22px', fontWeight: 900, color: isJc ? '#ef4444' : '#374151',
+                      fontVariantNumeric: 'tabular-nums', lineHeight: 1,
+                    }}>
+                      {fmtDuration(t.duration_ms)}
+                    </span>
+                  </div>
                 </div>
+                {/* Duration bar */}
+                {longestMs > 0 && t.duration_ms > 0 && (
+                  <div style={{ height: 3, background: '#e5e7eb', borderRadius: 2, marginTop: '6px' }}>
+                    <div style={{
+                      height: '100%', borderRadius: 2,
+                      width: `${Math.round(100 * t.duration_ms / longestMs)}%`,
+                      background: isJc ? '#ef4444' : '#9ca3af',
+                    }} />
+                  </div>
+                )}
                 <div style={{ fontSize: '13px', color: '#555', marginTop: '2px' }}>{t.venue}</div>
                 <div style={{ fontSize: '12px', color: '#999' }}>{t.location}</div>
                 <div style={{ fontSize: '12px', color: '#999', marginTop: '2px' }}>
