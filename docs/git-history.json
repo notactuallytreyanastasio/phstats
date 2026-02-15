@@ -1,5 +1,349 @@
 [
   {
+    "hash": "9feacbf19a0de5b4c505226858d1c346c2a12149",
+    "short_hash": "9feacbf",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T21:22:22-05:00",
+    "message": "wire Venue Power, Jam Evolution, Song Pairings tabs into App\n\nAdd 3 new tabs to the Jamchart Analysis section: Venue Power\nRankings, Jam Evolution Timeline, and Song Pairings network graph.\nUpdate Joyride tour with 3 new steps and fix step-to-tab mapping.\nClean up URL params when switching away from song-pairings tab.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "7178083c9f72e55d41e8920de787d93947d0df97",
+    "short_hash": "7178083",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T21:21:03-05:00",
+    "message": "add SongPairings force-directed network graph component\n\nD3 force simulation showing songs that get jammed together.\nThicker links = more co-occurrences. Node size by total connections.\nDraggable nodes, hover tooltips, adjustable min-shows slider with\nURL param persistence.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "4621b02316dc7c4387cce57c6904b4474e106441",
+    "short_hash": "4621b02",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T21:20:06-05:00",
+    "message": "add JamEvolution timeline chart component\n\nD3 line chart showing jam metrics over years: JC per show, total\njamcharts, or avg jam duration. Hover tooltips show yearly stats\nand new jam vehicles. Annotations mark years with new vehicles.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "d46162b4f7213b9feb4db75ff65aeb41616fa478",
+    "short_hash": "d46162b",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T21:19:11-05:00",
+    "message": "add VenueRankings horizontal bar chart component\n\nD3 horizontal bar chart showing top 30 venues by jamchart count.\nDarker bars indicate higher jamchart rate. Hover tooltips with\nvenue details, show count, and avg track duration.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "ce3ab34346663c775ac76e15c81753e0df19728a",
+    "short_hash": "ce3ab34",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T21:18:20-05:00",
+    "message": "wire venue stats, jam evolution, song pairings into data layer\n\nAdd SQLite queries to sqlite-plugin.ts, client-side wrappers in\nstatic-queries.ts (reusing pure functions from track-queries.ts),\nand data-source.ts abstraction functions.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "82a2ec41162999d411e2288f119fb21a76ccb6fe",
+    "short_hash": "82a2ec4",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T21:16:38-05:00",
+    "message": "test + implement pure track query functions\n\nAdd computeVenueStats, computeJamEvolution, and computeSongPairings\nas pure functions over TrackRow arrays. All 13 tests pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "95ffe639a0df0ac905b11895d5ad15c79a34a08f",
+    "short_hash": "95ffe63",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T20:57:57-05:00",
+    "message": "feat: add URL parameterization for shareable links\n\nAll view state syncs to URL search params via replaceState:\n- tab: active jamchart tab (vehicles, heat-calendar, positions, rankings, deep-dive)\n- year: year filter (all = omitted)\n- song: selected song name (deep-dive tab)\n- sort: sort mode - avg/jc/played (deep-dive tab)\n- min: minimum times played threshold (deep-dive tab)\n- color: heat calendar color mode - jc/pct/duration\n\nParams are cleaned up when switching tabs. Tour auto-skips if user\narrived via a shared link (has URL params).\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "03205d08d8fc387f818a0b03c963e869f8351a2f",
+    "short_hash": "03205d0",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T20:44:03-05:00",
+    "message": "feat: add Show Heat Calendar — GitHub-style heatmap of jam density per show\n\nNew visualization showing every Phish 3.0 show as a cell in a calendar\nheatmap. Darker red = more jamcharts that night. Color by jamchart count,\njamchart rate, or total jam time. Hover for venue/show details. Instantly\nreveals hot tours, legendary runs, and the all-time heaters.\n\nAdded as new \"Show Heat\" tab, kept Set Positions as its own tab. Updated\nJoyride tour with a new step for the heat calendar.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 5
+  },
+  {
+    "hash": "21cb74efeef891af37c7fe9a50b33b8f6164e0a6",
+    "short_hash": "21cb74e",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T20:25:08-05:00",
+    "message": "feat: add guided tour with react-joyride for first-time visitors\n\n8-step tour walks through each Jamchart Analysis tab and the Song Deep\nDive controls. Auto-switches tabs as the tour progresses. Stores\ncompletion in localStorage so it only shows once. \"Take Tour\" button\nlets users replay it anytime.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "bd765b3ed164d99e0a8cde9ca1acac769d9e3d42",
+    "short_hash": "bd765b3",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T20:04:04-05:00",
+    "message": "feat: add GitHub Pages static site with GH Actions deployment\n\n- Export song_tracks (13,624 tracks) as data/tracks.json for static hosting\n- Add client-side query engine (static-queries.ts) that mirrors server API\n- Add data-source.ts abstraction layer (API in dev, client-side in static)\n- VITE_PUBLIC_MODE=true hides personal stats, shows only Jamchart Analysis\n- Vite base path set to /phstats/ for GH Pages\n- GH Actions workflow builds and deploys on push to main\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 8
+  },
+  {
+    "hash": "964309b4ad71d7a6df57deafb8584f8334e34191",
+    "short_hash": "964309b",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T19:57:54-05:00",
+    "message": "fix: dedup songs by song_name instead of song_slug\n\nphish.in uses multiple slugs for the same song (e.g., tweezer, tweezer-2,\ntweezer-3 for split segments). Changed querySongList to GROUP BY song_name,\nquerySongHistory to filter by song_name, and SongDeepDive to use song_name\nas the selection key. This eliminates duplicate entries in dropdowns.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "de1d4cdb022a83d3194e99341d8a2e56a53d1aba",
+    "short_hash": "de1d4cd",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T19:32:27-05:00",
+    "message": "feat: wire all visualizations into App with tabbed sections and year picker\n\nUser Comparisons section with 6 tabs (treemap, scatter, timeline, year compare,\nradar, song gaps). Jamchart Analysis section with 4 tabs (jam vehicles, set\nposition map, rankings, song deep dive) and year picker that filters all tabs.\nFetches jamchart data, comparison data, and all-shows data in parallel.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "43fd94fba272c1634f99abaef91b9613631d6333",
+    "short_hash": "43fd94f",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T19:32:09-05:00",
+    "message": "feat: add jamchart, song history, and song list API endpoints with year filtering\n\nNew endpoints: /api/jamchart-songs, /api/jamchart-positions, /api/jamchart-years,\n/api/song-list, /api/song-history, /api/all-shows, /api/compare-songs. Jamchart\nand song queries switched from performances to song_tracks table (all 678 3.0\nshows). All jamchart/song endpoints accept ?year= param for per-year analysis.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "98001da85f4632d09959c8365a1b98cc0b88e113",
+    "short_hash": "98001da",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T19:31:50-05:00",
+    "message": "feat: add Song Deep Dive component and phish.in track scraping\n\nSongDeepDive shows duration timeline with jamchart markers, venue tooltips,\nand jam notes for any song. Includes song picker with batting average sort,\nmin-played filter, and year filtering. Scripts fetch track data from phish.in\nAPI v2 into song_tracks SQLite table (13,624 tracks across 678 Phish 3.0 shows).\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "d5f9c0e4b992b341a8420de4ff1b5913ddc0d370",
+    "short_hash": "d5f9c0e",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T19:31:30-05:00",
+    "message": "feat: add jamchart analysis visualizations\n\nJamVehicleScatter (bubble plot of jam vehicles vs staples),\nJamchartPositionMap (set position heatmap), JamchartRankings\n(sortable horizontal bar chart). Not yet wired into App.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "0ea4a042a1831537b213af39690ae767bf4040ab",
+    "short_hash": "0ea4a04",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T19:31:12-05:00",
+    "message": "feat: add 6 user comparison visualizations with tabbed navigation\n\nSongHeatmap reworked with user picker, split-color bands, and tooltips.\nNew components: SongScatter (taste comparison), ShowTimeline (shared shows),\nYearCompare (grouped bars), RadarChart (stat spider), SongGaps (recommendations).\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 6
+  },
+  {
+    "hash": "b6427524831ca371e575d1d5ef43c3ab28908f91",
+    "short_hash": "b642752",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T13:04:14-05:00",
+    "message": "feat: add D3 song comparison heatmap and multi-user support\n\n- /api/users endpoint lists all scraped users\n- /api/compare-songs returns song x user matrix (deduplicated per show)\n- D3.js heatmap renders song counts with YlOrRd color scale\n- User selector dropdown when multiple users are in the DB\n- Heatmap auto-loads when 2+ users available\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "47c55d46c55b51d6719a5c415ac7ec419adcf630",
+    "short_hash": "47c55d4",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T13:02:13-05:00",
+    "message": "fix: deduplicate song counts per show, not per performance row (green)\n\ncomputeSongFrequency now counts distinct shows per song using a\nSet<showDate>. SQL queryTopSongs uses subquery with GROUP BY\nsong_name, show_date. Tweezer Reprise x6 at SPAC now counts as 1.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "47c55d46c55b51d6719a5c415ac7ec419adcf630",
+    "short_hash": "47c55d4",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T13:02:13-05:00",
+    "message": "fix: deduplicate song counts per show, not per performance row (green)\n\ncomputeSongFrequency now counts distinct shows per song using a\nSet<showDate>. SQL queryTopSongs uses subquery with GROUP BY\nsong_name, show_date. Tweezer Reprise x6 at SPAC now counts as 1.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "201cbba02415797f1c6bbdf66bab0f6c856cb3ea",
+    "short_hash": "201cbba",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:55:57-05:00",
+    "message": "feat: wire up App with SQLite-backed API via Vite plugin\n\n- Added Vite server plugin that serves /api/* routes from SQLite DB\n- App.tsx fetches stats, top songs, year stats from API endpoints\n- Scrape script writes data incrementally to SQLite (data/phstats.db)\n- Refresh button to see data as scraping progresses\n- Removed JSON export approach in favor of direct DB reads\n- Installed better-sqlite3 for Node-side SQLite access\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 7
+  },
+  {
+    "hash": "01c3f9b7ea461215e16a7e9bb5764e86f0d47cf2",
+    "short_hash": "01c3f9b",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:41:53-05:00",
+    "message": "feat: expand DataTables to show all rows before scraping (green)\n\nUses jQuery DataTables API page.len(-1).draw() to display all rows\ninstead of the default 100. Gets all 149 shows for the user.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "467e299ed8e1e30e8bfa3a0124aa217355d78ba9",
+    "short_hash": "467e299",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:37:35-05:00",
+    "message": "feat: fix setlist scraper for real phish.net HTML (green)\n\nUse <span class=\"set-label\"> instead of <b> for set labels. Detect\njamchart songs via data-original-title attribute. All 90 tests pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "467e299ed8e1e30e8bfa3a0124aa217355d78ba9",
+    "short_hash": "467e299",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:37:35-05:00",
+    "message": "feat: fix setlist scraper for real phish.net HTML (green)\n\nUse <span class=\"set-label\"> instead of <b> for set labels. Detect\njamchart songs via data-original-title attribute. All 90 tests pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "5efd3f3b17c62bb740ed73dfdb45b509afdc27fb",
+    "short_hash": "5efd3f3",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:36:59-05:00",
+    "message": "test: update setlist fixtures to match real phish.net HTML (red)\n\nReal page uses <span class=\"set-label\"> not <b> for set labels, and\nclass=\"setlist-song\" on links. Jamchart songs have data-original-title\nattribute. 6 tests now fail against old scraper implementation.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "ca3e2ca568ecc169bb7789d86845e2d19eac6724",
+    "short_hash": "ca3e2ca",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:33:56-05:00",
+    "message": "fix: align scrapers with real phish.net HTML structure\n\nReal phish.net uses YYYY-MM-DD dates (not MM/DD/YYYY) and \"City, ST\"\nlocations (no country). Removed parseUSDate, simplified parseLocation,\nupdated all test fixtures to match actual page structure. Added\nscrape-2025.ts script for live data collection.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "b641806641acda315b4d8f3156995d82f550dae8",
+    "short_hash": "b641806",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:26:40-05:00",
+    "message": "refactor: switch orchestrator + hook from API to Playwright scraper\n\nOrchestrator now imports from phishnet-scraper instead of phishnet,\nremoving the PhishNetConfig/apiKey dependency entirely. Hook signature\nsimplified to just useUserStats(username). Browser cleanup via\ncloseBrowser() in finally block. 89 tests passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "b641806641acda315b4d8f3156995d82f550dae8",
+    "short_hash": "b641806",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:26:40-05:00",
+    "message": "refactor: switch orchestrator + hook from API to Playwright scraper\n\nOrchestrator now imports from phishnet-scraper instead of phishnet,\nremoving the PhishNetConfig/apiKey dependency entirely. Hook signature\nsimplified to just useUserStats(username). Browser cleanup via\ncloseBrowser() in finally block. 89 tests passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "3c77ec66fc319788eb5b281595b70adfea3803a3",
+    "short_hash": "3c77ec6",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:24:55-05:00",
+    "message": "feat: implement Playwright-based phish.net scraper shell client\n\nReplaces fetch-based API calls with Playwright headless browser to\nhandle phish.net's DataTables JS rendering. Uses shared browser\ninstance, delegates HTML parsing to pure cheerio scrapers in core.\n89 tests passing across 8 test files.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "1a73d14af1661016c662d687136a49f8121b45eb",
+    "short_hash": "1a73d14",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:22:54-05:00",
+    "message": "test: add failing tests for phishnet-scraper shell client (red)\n\n4 tests for fetchUserShowsScrape and fetchSetlistScrape which\nfetch HTML from phish.net and delegate to pure scraper parsers.\nReplaces API-based phishnet.ts for data fetching.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "7a42a86703e29a9aaa355185f86400b26b1c0e55",
+    "short_hash": "7a42a86",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:21:58-05:00",
+    "message": "feat: implement phish.net HTML scrapers with cheerio (green)\n\nscrapeUserShows parses the #phish-shows table from /user/{name}/shows.\nscrapeSetlist extracts songs from setlist pages by finding <p> tags\nwith bold set labels and /song/ links. Both are pure functions.\n87 tests passing across 7 test files.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "80b974d53f7f33c20afb3145bb574dd4954c114b",
+    "short_hash": "80b974d",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:20:41-05:00",
+    "message": "test: add failing tests for phish.net HTML scrapers (red)\n\n11 tests for scrapeUserShows and scrapeSetlist pure functions\nthat will parse phish.net HTML pages instead of using the API\n(API key generation is broken). Also adds cheerio dependency.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "a632ae06292a7eed1d153283347f0fcb2b733765",
+    "short_hash": "a632ae0",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:15:19-05:00",
+    "message": "docs: rewrite PLAN.md with full project architecture and status\n\nComprehensive plan covering stack, architecture (functional core /\nimperative shell), both API data sources, all implemented functions\nwith status tables, lyrics DB plans, and D3.js visualization roadmap.\n76 tests across 6 files, all passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "e1993231ce666bda9f2d5d134f7b94329653a729",
+    "short_hash": "e199323",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:14:30-05:00",
+    "message": "feat: implement useUserStats React hook (green)\n\nThin shell hook wrapping fetchUserStats orchestrator with React\nstate management. Handles loading, success, error, and cancellation.\n76 tests passing across 6 test files.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "e1993231ce666bda9f2d5d134f7b94329653a729",
+    "short_hash": "e199323",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:14:30-05:00",
+    "message": "feat: implement useUserStats React hook (green)\n\nThin shell hook wrapping fetchUserStats orchestrator with React\nstate management. Handles loading, success, error, and cancellation.\n76 tests passing across 6 test files.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "344fd0331da6efd960acf81abebddcf5ece32bb9",
+    "short_hash": "344fd03",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:13:52-05:00",
+    "message": "test: add failing tests for useUserStats React hook (red)\n\n4 tests covering: loading state, successful fetch, error handling,\nand skipping fetch on empty username. Hook stub throws Not implemented.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "632b692dece9edc3e0d3d95a29727a8ed3c3b664",
+    "short_hash": "632b692",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:12:46-05:00",
+    "message": "feat: implement fetchUserStats orchestrator (green)\n\nWires phish.net and phish.in API clients together: fetches shows,\nthen parallelizes setlist + track fetching per show via Promise.all,\nand delegates to computeUserStats for pure computation.\n72 tests passing across 5 test files.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "632b692dece9edc3e0d3d95a29727a8ed3c3b664",
+    "short_hash": "632b692",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:12:46-05:00",
+    "message": "feat: implement fetchUserStats orchestrator (green)\n\nWires phish.net and phish.in API clients together: fetches shows,\nthen parallelizes setlist + track fetching per show via Promise.all,\nand delegates to computeUserStats for pure computation.\n72 tests passing across 5 test files.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "9fad4abff9ef5eb3c52c295bfb7e77ea8322d955",
+    "short_hash": "9fad4ab",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:11:40-05:00",
+    "message": "test: add failing tests for fetchUserStats orchestrator (red)\n\n3 tests covering: full orchestration pipeline with mocked APIs,\nempty user with no shows, and phish.in returning empty tracks.\nOrchestrator stub throws Not implemented.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "6fa37f3032faeba4e5a89af70852cc0793fe17f5",
+    "short_hash": "6fa37f3",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:10:35-05:00",
+    "message": "feat: implement computeUserStats (green)\n\nComposes groupShowsByYear, computeYearStats, and computeSongFrequency\nto build a complete UserStats object from shows, performances, and\ntracks. All 24 transform tests passing.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "518fda17fb524d3a3dfa798c7e261262ddf3a305",
+    "short_hash": "518fda1",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:09:54-05:00",
+    "message": "test: add failing tests for computeUserStats + shell API clients (red)\n\nAdd 2 failing tests for computeUserStats which will compose existing\ntransform functions into a complete user stats pipeline. Also adds\nUserStats type and shell API clients (phishnet.ts, phishin.ts) that\nwire parsers to fetch functions.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "518fda17fb524d3a3dfa798c7e261262ddf3a305",
+    "short_hash": "518fda1",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:09:54-05:00",
+    "message": "test: add failing tests for computeUserStats + shell API clients (red)\n\nAdd 2 failing tests for computeUserStats which will compose existing\ntransform functions into a complete user stats pipeline. Also adds\nUserStats type and shell API clients (phishnet.ts, phishin.ts) that\nwire parsers to fetch functions.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "ada24f1cc9cde95fd0b6cc3ebcc5c5174ce1eab1",
+    "short_hash": "ada24f1",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:05:56-05:00",
+    "message": "feat: implement API response parsers (green)\n\nThree pure parsers converting raw API JSON to core types:\n- parsePhishNetShows: deduplicates attendance entries into Show[]\n- parsePhishNetSetlist: converts setlist entries to SongPerformance[]\n  with proper set labels (Set 1, Encore, Encore 2)\n- parsePhishInTracks: maps phish.in track data to Track[]\nAll 67 tests passing (10 new + 57 existing).\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "f417fc9a32145dacb1aa76f4e22a6370319c2ebe",
+    "short_hash": "f417fc9",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T12:05:12-05:00",
+    "message": "test: add failing tests for API response parsers (red)\n\nTests for three pure parsers that convert raw API JSON to core types:\n- parsePhishNetShows: attendance response -> Show[]\n- parsePhishNetSetlist: setlist response -> SongPerformance[]\n- parsePhishInTracks: phish.in tracks -> Track[]\n10 new failing tests.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
     "hash": "d5fed2693e96c1bc84aed3492eb34295592ae1c9",
     "short_hash": "d5fed26",
     "author": "Robert Grayson",
@@ -110,6 +454,14 @@
     "date": "2026-02-14T11:49:37-05:00",
     "message": "test: add failing tests for formatDuration (red)\n\nTests for converting milliseconds to human-readable duration strings\n(mm:ss and h:mm:ss formats). Function not yet implemented.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
     "files_changed": 1
+  },
+  {
+    "hash": "ebbc86d5df37a412f25dcdc8ab17936f622753ad",
+    "short_hash": "ebbc86d",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T11:49:02-05:00",
+    "message": "chore: scaffold Vite React-TS project with functional core/imperative shell\n\nSets up the base project structure:\n- Vite + React 19 + TypeScript + Vitest + D3.js\n- Functional core (src/core/) for pure data transforms\n- Imperative shell (src/shell/) for API, hooks, components\n- Path aliases (@core/*, @shell/*) configured\n- Test infrastructure with jsdom, testing-library, coverage\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 16
   },
   {
     "hash": "ebbc86d5df37a412f25dcdc8ab17936f622753ad",
