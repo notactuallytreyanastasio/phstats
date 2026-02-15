@@ -48,6 +48,35 @@ export function sqliteApiPlugin(): Plugin {
             const data = queryCompareSongs(db, usernames)
             res.writeHead(200, { 'Content-Type': 'application/json' })
             res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/jamchart-years')) {
+            const data = queryJamchartYears(db)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/jamchart-songs')) {
+            const year = url.searchParams.get('year') || 'all'
+            const data = queryJamchartSongs(db, year)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/jamchart-positions')) {
+            const year = url.searchParams.get('year') || 'all'
+            const data = queryJamchartPositions(db, year)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/song-list')) {
+            const year = url.searchParams.get('year') || 'all'
+            const data = querySongList(db, year)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/song-history')) {
+            const slug = url.searchParams.get('slug') || 'what-s-going-through-your-mind'
+            const year = url.searchParams.get('year') || 'all'
+            const data = querySongHistory(db, slug, year)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/all-shows')) {
+            const data = queryAllShows(db)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
           } else if (req.url.startsWith('/api/stats')) {
             const stats = queryStats(db, username)
             res.writeHead(200, { 'Content-Type': 'application/json' })
@@ -145,6 +174,87 @@ function queryUsers(db: Database.Database) {
     SELECT username, COUNT(*) as show_count FROM shows
     GROUP BY username ORDER BY username
   `).all()
+}
+
+function queryAllShows(db: Database.Database) {
+  return db.prepare(`
+    SELECT username, date, venue, city, state FROM shows
+    ORDER BY date
+  `).all()
+}
+
+function queryJamchartYears(db: Database.Database) {
+  return db.prepare(`
+    SELECT DISTINCT CAST(substr(show_date, 1, 4) AS INTEGER) as year
+    FROM song_tracks
+    ORDER BY year
+  `).all().map((r: any) => r.year)
+}
+
+function queryJamchartSongs(db: Database.Database, year: string) {
+  const where = year === 'all' ? '' : `WHERE substr(show_date, 1, 4) = ?`
+  const params = year === 'all' ? [] : [year]
+  return db.prepare(`
+    SELECT song_name,
+      COUNT(DISTINCT show_date) as total_shows,
+      SUM(is_jamchart) as jamchart_count,
+      ROUND(100.0 * SUM(is_jamchart) / COUNT(DISTINCT show_date), 1) as jamchart_pct
+    FROM song_tracks
+    ${where}
+    GROUP BY song_name
+    HAVING total_shows >= 2
+    ORDER BY jamchart_count DESC
+  `).all(...params)
+}
+
+function queryJamchartPositions(db: Database.Database, year: string) {
+  const where = year === 'all' ? '' : `WHERE substr(show_date, 1, 4) = ?`
+  const params = year === 'all' ? [] : [year]
+  return db.prepare(`
+    SELECT set_name as set_label, position,
+      COUNT(*) as total,
+      SUM(is_jamchart) as jamcharts
+    FROM song_tracks
+    ${where}
+    GROUP BY set_name, position
+    ORDER BY set_name, position
+  `).all(...params)
+}
+
+function querySongList(db: Database.Database, year: string) {
+  const where = year === 'all' ? '' : `WHERE substr(show_date, 1, 4) = ?`
+  const params = year === 'all' ? [] : [year]
+  return db.prepare(`
+    SELECT song_slug, song_name,
+      COUNT(*) as times_played,
+      SUM(is_jamchart) as jamchart_count,
+      ROUND(100.0 * SUM(is_jamchart) / COUNT(*), 1) as jamchart_pct
+    FROM song_tracks
+    ${where}
+    GROUP BY song_slug
+    ORDER BY jamchart_count DESC, times_played DESC
+  `).all(...params)
+}
+
+function querySongHistory(db: Database.Database, slug: string, year: string) {
+  const yearClause = year === 'all' ? '' : `AND substr(show_date, 1, 4) = ?`
+  const params = year === 'all' ? [slug] : [slug, year]
+  const tracks = db.prepare(`
+    SELECT song_name, show_date, set_name, position, duration_ms,
+      likes, is_jamchart, jam_notes, venue, location
+    FROM song_tracks
+    WHERE song_slug = ? ${yearClause}
+    ORDER BY show_date
+  `).all(...params) as any[]
+
+  return {
+    slug,
+    song_name: tracks[0]?.song_name ?? slug,
+    tracks: tracks.map(t => ({
+      ...t,
+      duration_min: t.duration_ms > 0 ? +(t.duration_ms / 60000).toFixed(1) : null,
+    })),
+  }
 }
 
 function queryCompareSongs(db: Database.Database, usernames: string[]) {
