@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
+import Joyride, { STATUS, ACTIONS, EVENTS } from 'react-joyride'
+import type { CallBackProps, Step } from 'react-joyride'
 import SongHeatmap from './SongHeatmap'
 import SongScatter from './SongScatter'
 import ShowTimeline from './ShowTimeline'
@@ -12,6 +14,7 @@ import SongDeepDive from './SongDeepDive'
 import * as dataSource from '../api/data-source'
 
 const isPublic = import.meta.env.VITE_PUBLIC_MODE === 'true'
+const TOUR_KEY = 'phstats-tour-seen'
 
 interface Stats {
   username: string
@@ -110,6 +113,96 @@ function App() {
   const [jamYear, setJamYear] = useState('all')
   const [jamYears, setJamYears] = useState<number[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [runTour, setRunTour] = useState(false)
+
+  // Start tour for first-time visitors once jamchart data loads
+  useEffect(() => {
+    if (jamSongs.length === 0) return
+    if (localStorage.getItem(TOUR_KEY)) return
+    // Small delay so the page renders before the tour starts
+    const t = setTimeout(() => setRunTour(true), 800)
+    return () => clearTimeout(t)
+  }, [jamSongs.length])
+
+  const tourSteps: Step[] = [
+    {
+      target: '[data-tour="jamchart-section"]',
+      title: 'Welcome to phstats!',
+      content: 'This is a deep dive into Phish 3.0 jamchart data — every show from 2009 to now. Let\'s take a quick tour of what you can do here.',
+      placement: 'bottom',
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="year-picker"]',
+      title: 'Slice by Year',
+      content: 'Use the year picker to filter everything to a single year. All the charts, rankings, and song lists will update to show just that year\'s data. Pick "All Time" to see the full 3.0 era.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour="tab-vehicles"]',
+      title: 'Jam Vehicles',
+      content: 'Bubble chart showing which songs get jammed the most. X axis = times played, Y axis = jamchart %, bubble size = total jamcharts. Hover any bubble for details.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour="tab-positions"]',
+      title: 'Set Position Map',
+      content: 'Heatmap showing where in the setlist jams tend to land. Rows = sets, columns = slot position. Darker cells = more jamcharts in that spot.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour="tab-rankings"]',
+      title: 'Rankings',
+      content: 'Horizontal bar chart ranking songs by jamchart count. Sort and limit controls let you zoom in on the top contenders.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour="tab-deep-dive"]',
+      title: 'Song Deep Dive',
+      content: 'The main event. Pick any song and see its full performance history as a duration timeline. Jamchart versions get red dots with stars. Hover for venue, jam notes, and more.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour="deep-dive-controls"]',
+      title: 'Slice & Dice',
+      content: 'Filter songs by name, set a minimum times-played threshold, and sort by batting average (jamcharts / times played), jamchart count, or times played. The dropdown shows all the stats for each song.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour="deep-dive-chart"]',
+      title: 'The Chart',
+      content: 'Duration timeline for the selected song. Hover any dot for venue, date, set position, likes, and jam notes. The red starred dots are the jamchart selections. Doink around!',
+      placement: 'top',
+    },
+  ]
+
+  // Map step indices to the tab that should be active when that step shows
+  const stepTabMap: Record<number, JamTab> = {
+    2: 'vehicles',
+    3: 'positions',
+    4: 'rankings',
+    5: 'deep-dive',
+    6: 'deep-dive',
+    7: 'deep-dive',
+  }
+
+  function handleTourCallback(data: CallBackProps) {
+    const { status, action, index, type } = data
+
+    // Switch to the right tab when stepping forward/back
+    if (type === EVENTS.STEP_AFTER || type === EVENTS.STEP_BEFORE) {
+      const nextIndex = action === ACTIONS.PREV ? index - 1 : index + 1
+      if (nextIndex in stepTabMap) {
+        setActiveJam(stepTabMap[nextIndex])
+      }
+    }
+
+    // Tour finished or skipped
+    if (status === STATUS.FINISHED || status === STATUS.SKIPPED) {
+      setRunTour(false)
+      localStorage.setItem(TOUR_KEY, 'true')
+    }
+  }
 
   // Fetch user list (skip in public mode)
   useEffect(() => {
@@ -210,8 +303,50 @@ function App() {
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: '1400px', margin: '0 auto' }}>
+      <Joyride
+        steps={tourSteps}
+        run={runTour}
+        continuous
+        showSkipButton
+        showProgress
+        scrollToFirstStep
+        callback={handleTourCallback}
+        styles={{
+          options: {
+            primaryColor: '#ef4444',
+            zIndex: 10000,
+          },
+          tooltip: {
+            borderRadius: 8,
+          },
+          buttonNext: {
+            borderRadius: 6,
+          },
+          buttonBack: {
+            color: '#666',
+          },
+        }}
+        locale={{
+          last: 'Let\'s go!',
+          skip: 'Skip tour',
+        }}
+      />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
-        <h1 style={{ margin: 0 }}>{isPublic ? 'Phish 3.0 Jamchart Analysis' : 'Phish Stats'}</h1>
+        <h1 style={{ margin: 0 }}>
+          {isPublic ? 'Phish 3.0 Jamchart Analysis' : 'Phish Stats'}
+          {jamSongs.length > 0 && (
+            <button
+              onClick={() => { setRunTour(false); setTimeout(() => { setActiveJam('vehicles'); setRunTour(true) }, 100) }}
+              style={{
+                marginLeft: '1rem', padding: '0.3rem 0.8rem', fontSize: '0.75rem',
+                background: 'none', border: '1px solid #ccc', borderRadius: '4px',
+                color: '#888', cursor: 'pointer', verticalAlign: 'middle',
+              }}
+            >
+              Take Tour
+            </button>
+          )}
+        </h1>
         {!isPublic && (
           <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
             {users.length > 1 && (
@@ -308,10 +443,10 @@ function App() {
 
       {/* Jamchart Analysis Section */}
       {(jamSongs.length > 0 || jamYears.length > 0) && (
-        <div style={{ marginBottom: '3rem' }}>
+        <div data-tour="jamchart-section" style={{ marginBottom: '3rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
             <h2 style={{ margin: 0 }}>Jamchart Analysis</h2>
-            <label style={{ fontSize: '0.85rem', color: '#666' }}>
+            <label data-tour="year-picker" style={{ fontSize: '0.85rem', color: '#666' }}>
               Year:
               <select
                 value={jamYear}
@@ -335,6 +470,7 @@ function App() {
             {JAM_TABS.map(tab => (
               <button
                 key={tab.key}
+                data-tour={`tab-${tab.key}`}
                 onClick={() => setActiveJam(tab.key)}
                 style={{
                   padding: '0.6rem 1.2rem',

@@ -315,7 +315,7 @@ export default function SongDeepDive({ year }: { year: string }) {
       <p style={{ color: '#888', fontSize: '0.8rem', margin: '0 0 0.5rem' }}>
         Duration timeline {year === 'all' ? 'for any Phish 3.0 song' : `for ${year}`}. Larger red dots with stars = jamchart selections. Hover for venue details and jam notes.
       </p>
-      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+      <div data-tour="deep-dive-controls" style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <label style={{ fontSize: '0.85rem' }}>
           Song:
           <input
@@ -363,7 +363,7 @@ export default function SongDeepDive({ year }: { year: string }) {
         </select>
         {data === null && selectedSong && <span style={{ color: '#999', fontSize: '0.8rem' }}>Loading...</span>}
       </div>
-      <div style={{ overflowX: 'auto' }}>
+      <div data-tour="deep-dive-chart" style={{ overflowX: 'auto' }}>
         <svg ref={svgRef} style={{ width: '100%', maxWidth: 960 }} />
       </div>
       <div ref={tooltipRef} style={{
