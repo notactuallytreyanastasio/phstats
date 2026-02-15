@@ -142,6 +142,22 @@ export interface LeaderboardEntry {
   jis: SongJIS
 }
 
+/** Aggregation key identifying scope of a leaderboard row */
+export interface AggregationKey {
+  songName: string
+  year?: number
+  tourId?: string
+  tourLabel?: string
+}
+
+/** Extended leaderboard entry with aggregation context */
+export interface AggregatedLeaderboardEntry extends LeaderboardEntry {
+  aggregationKey: AggregationKey
+}
+
+/** Run position filter value */
+export type RunPositionFilter = 'all' | 'n1' | 'n2' | 'n3' | 'n4' | 'n5' | 'opener' | 'closer'
+
 /** Filter state for PhanGraphs queries */
 export interface PhanGraphsFilter {
   yearStart: number
@@ -151,6 +167,11 @@ export interface PhanGraphsFilter {
   minJamchartCount: number
   minTotalMinutes: number
   setSplit: 'all' | 'set1' | 'set2' | 'set3' | 'encore' | 'opener' | 'closer'
+  venue: string | null
+  state: string | null
+  country: 'all' | 'us' | 'international'
+  runPosition: RunPositionFilter
+  aggregation: 'career' | 'byYear' | 'byTour'
 }
 
 /** Default filter values */
@@ -162,4 +183,9 @@ export const DEFAULT_FILTER: PhanGraphsFilter = {
   minJamchartCount: 0,
   minTotalMinutes: 0,
   setSplit: 'all',
+  venue: null,
+  state: null,
+  country: 'all',
+  runPosition: 'all',
+  aggregation: 'career',
 }
