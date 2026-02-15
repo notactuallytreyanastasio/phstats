@@ -49,6 +49,7 @@ export default function SongDeepDive({ year }: { year: string }) {
   const [selectedSong, setSelectedSong] = useState(() => getParam('song') || '')
   const [data, setData] = useState<SongHistory | null>(null)
   const [filter, setFilter] = useState('')
+  const [modalTrack, setModalTrack] = useState<Track | null>(null)
   const [nowPlaying, setNowPlaying] = useState<{ url: string; date: string; song: string } | null>(null)
   const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>(() => {
     const s = getParam('sort')
@@ -61,7 +62,6 @@ export default function SongDeepDive({ year }: { year: string }) {
 
   const playJam = useCallback((url: string, date: string, song: string) => {
     if (nowPlaying?.url === url) {
-      // Toggle pause/play
       if (audioRef.current?.paused) {
         audioRef.current.play()
       } else {
@@ -98,7 +98,6 @@ export default function SongDeepDive({ year }: { year: string }) {
     dataSource.fetchSongList(year)
       .then((list: SongOption[]) => {
         setSongList(list)
-        // Keep current selection if it exists in the new list, otherwise pick first
         if (list.length > 0) {
           const exists = list.some((s: SongOption) => s.song_name === selectedSong)
           if (!exists) setSelectedSong(selectedSong || list[0].song_name)
@@ -197,21 +196,6 @@ export default function SongDeepDive({ year }: { year: string }) {
       .attr('stroke-width', t => t.is_jamchart ? 2 : 1.5)
       .style('cursor', 'pointer')
 
-    // Play icons on dots with jam URLs
-    const playTriangle = 'M-3,-4 L-3,4 L4,0 Z'
-    svg.selectAll('.jam-play')
-      .data(tracks.filter(t => t.jam_url))
-      .join('path')
-      .attr('class', 'jam-play')
-      .attr('d', playTriangle)
-      .attr('transform', t => {
-        const cx = x(parseDate(t.show_date)!)
-        const cy = y(t.duration_ms / 60000) + (t.is_jamchart ? 18 : 14)
-        return `translate(${cx},${cy})`
-      })
-      .attr('fill', '#22c55e').attr('opacity', 0.8)
-      .style('pointer-events', 'none')
-
     // Jamchart stars
     const starPath = 'M0,-8 L2,-3 L7,-3 L3,1 L5,6 L0,3 L-5,6 L-3,1 L-7,-3 L-2,-3 Z'
     svg.selectAll('.jc-star')
@@ -245,15 +229,11 @@ export default function SongDeepDive({ year }: { year: string }) {
         const jcBadge = t.is_jamchart
           ? '<strong style="color:#ef4444">&#9733; JAMCHART</strong><br/>'
           : ''
-        const jamBadge = t.jam_url
-          ? '<span style="color:#22c55e;font-size:11px">&#9654; Click to play jam clip</span><br/>'
-          : ''
         tip.innerHTML = `<strong>${esc(t.show_date)}</strong><br/>`
           + `${esc(t.venue)}<br/>`
           + `${esc(t.location)}<br/>`
           + `<br/>`
           + `${jcBadge}`
-          + `${jamBadge}`
           + `Duration: <strong>${dur}</strong><br/>`
           + `Set: ${esc(t.set_name)}, Position ${t.position}<br/>`
           + `Likes: ${t.likes}<br/>`
@@ -268,9 +248,8 @@ export default function SongDeepDive({ year }: { year: string }) {
         if (tooltipRef.current) tooltipRef.current.style.display = 'none'
       })
       .on('click', (_event: MouseEvent, t) => {
-        if (t.jam_url) {
-          playJam(t.jam_url, t.show_date, t.song_name)
-        }
+        if (tooltipRef.current) tooltipRef.current.style.display = 'none'
+        setModalTrack(t)
       })
 
     // X axis
@@ -324,11 +303,6 @@ export default function SongDeepDive({ year }: { year: string }) {
       .attr('fill', '#ef4444')
     svg.append('text').attr('x', legendX + 92).attr('y', legendY + 4)
       .style('font-size', '10px').style('fill', '#888').text('Jamchart')
-    svg.append('path').attr('d', playTriangle)
-      .attr('transform', `translate(${legendX + 150},${legendY}) scale(0.8)`)
-      .attr('fill', '#22c55e')
-    svg.append('text').attr('x', legendX + 160).attr('y', legendY + 4)
-      .style('font-size', '10px').style('fill', '#888').text('Has jam clip')
 
     // Annotate longest
     const longest = tracks.reduce((a, b) => a.duration_ms > b.duration_ms ? a : b)
@@ -361,7 +335,7 @@ export default function SongDeepDive({ year }: { year: string }) {
         `Total likes: ${totalLikes}`,
       ].join('    '))
 
-  }, [data, playJam])
+  }, [data])
 
   function battingAvg(s: SongOption): number {
     return s.times_played > 0 ? s.jamchart_count / s.times_played : 0
@@ -386,7 +360,7 @@ export default function SongDeepDive({ year }: { year: string }) {
   return (
     <div style={{ position: 'relative' }}>
       <p style={{ color: '#888', fontSize: '0.8rem', margin: '0 0 0.5rem' }}>
-        Duration timeline {year === 'all' ? 'for any Phish 3.0 song' : `for ${year}`}. Larger red dots with stars = jamchart selections. Hover for venue details and jam notes.
+        Duration timeline {year === 'all' ? 'for any Phish 3.0 song' : `for ${year}`}. Larger red dots with stars = jamchart selections. Hover for details, click for more.
       </p>
       <div data-tour="deep-dive-controls" style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <label style={{ fontSize: '0.85rem' }}>
@@ -439,12 +413,93 @@ export default function SongDeepDive({ year }: { year: string }) {
       <div data-tour="deep-dive-chart" style={{ overflowX: 'auto' }}>
         <svg ref={svgRef} style={{ width: '100%', maxWidth: 960 }} />
       </div>
+      {/* Hover tooltip — info only */}
       <div ref={tooltipRef} style={{
         display: 'none', position: 'fixed', background: 'rgba(0,0,0,0.88)',
         color: 'white', padding: '8px 12px', borderRadius: '6px', fontSize: '13px',
         lineHeight: '1.5', pointerEvents: 'none', zIndex: 1000, maxWidth: 300,
         boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
       }} />
+      {/* Click modal — track details + play button */}
+      {modalTrack && (
+        <div
+          onClick={() => setModalTrack(null)}
+          style={{
+            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+            zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              background: '#1a1a2e', color: 'white', borderRadius: '12px',
+              padding: '24px', minWidth: 300, maxWidth: 380,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+              <div>
+                <div style={{ fontSize: '18px', fontWeight: 700 }}>{modalTrack.show_date}</div>
+                <div style={{ color: '#94a3b8', fontSize: '13px', marginTop: '2px' }}>{modalTrack.venue}</div>
+                <div style={{ color: '#64748b', fontSize: '12px' }}>{modalTrack.location}</div>
+              </div>
+              <button
+                onClick={() => setModalTrack(null)}
+                style={{
+                  background: 'none', border: 'none', color: '#64748b',
+                  cursor: 'pointer', fontSize: '20px', padding: '0 0 0 12px', lineHeight: 1,
+                }}
+              >&times;</button>
+            </div>
+            {modalTrack.is_jamchart ? (
+              <div style={{ color: '#ef4444', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
+                &#9733; JAMCHART
+              </div>
+            ) : null}
+            <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#cbd5e1', marginBottom: '4px' }}>
+              <span>Duration: <strong style={{ color: 'white' }}>{fmtDuration(modalTrack.duration_ms)}</strong></span>
+              <span>Set {modalTrack.set_name}, #{modalTrack.position}</span>
+            </div>
+            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
+              Likes: {modalTrack.likes}
+            </div>
+            {modalTrack.jam_notes && (
+              <div style={{
+                borderTop: '1px solid #334155', paddingTop: '8px', marginBottom: '12px',
+                fontSize: '12px', color: '#94a3b8', lineHeight: '1.5',
+              }}>
+                {modalTrack.jam_notes}
+              </div>
+            )}
+            {modalTrack.jam_url ? (
+              <button
+                onClick={() => {
+                  playJam(modalTrack.jam_url, modalTrack.show_date, modalTrack.song_name)
+                  setModalTrack(null)
+                }}
+                style={{
+                  width: '100%', padding: '14px', background: '#22c55e', color: 'white',
+                  border: '2px solid #16a34a', borderRadius: '10px', cursor: 'pointer',
+                  fontSize: '18px', fontWeight: 800, letterSpacing: '0.5px',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                  boxShadow: '0 4px 14px rgba(34,197,94,0.35)',
+                }}
+              >
+                <span style={{ fontSize: '22px' }}>&#9654;</span>
+                Play Jam
+              </button>
+            ) : (
+              <div style={{
+                width: '100%', padding: '12px', background: '#1e293b',
+                borderRadius: '10px', textAlign: 'center',
+                fontSize: '13px', color: '#475569',
+              }}>
+                No jam clip available
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       <audio ref={audioRef} onEnded={stopPlayback} />
       {nowPlaying && (
         <div style={{
