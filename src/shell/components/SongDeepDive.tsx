@@ -256,6 +256,7 @@ export default function SongDeepDive({ year }: { year: string }) {
           + (t.jam_notes
             ? `<br/><div style="border-top:1px solid #555;padding-top:6px;margin-top:4px;font-size:11px;color:#ccc;max-width:280px">${esc(t.jam_notes)}</div>`
             : '')
+          + `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #555;font-size:15px;font-weight:800;color:#22c55e;text-align:center;letter-spacing:0.5px">CLICK TO FIND JAM AND PLAY</div>`
         tip.style.display = 'block'
         tip.style.left = `${event.clientX + 12}px`
         tip.style.top = `${event.clientY - 10}px`
