@@ -222,6 +222,46 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     ? (notableQuote.length > 80 ? notableQuote.slice(0, 80) + '...' : notableQuote)
     : null
 
+  // Total jam time in hours
+  const totalHours = tracks.reduce((sum, t) => sum + (t.duration_ms || 0), 0) / 3_600_000
+
+  // Recent form: last 5 tracks
+  const last5 = tracks.slice(-5)
+  const last5Jc = last5.filter(t => t.is_jamchart).length
+
+  // Duration trend: compare last 5 avg to overall
+  const recentAvgDur = last5.length > 0
+    ? last5.reduce((sum, t) => sum + (t.duration_ms || 0), 0) / last5.length
+    : 0
+  const durTrend = avgDur === 0 || tracks.length < 6
+    ? null
+    : recentAvgDur > avgDur * 1.1 ? 'longer'
+    : recentAvgDur < avgDur * 0.9 ? 'shorter'
+    : 'stable'
+
+  // JC streak: consecutive jamcharts from most recent backwards
+  let jcStreak = 0
+  for (let i = tracks.length - 1; i >= 0; i--) {
+    if (tracks[i].is_jamchart) jcStreak++
+    else break
+  }
+
+  // Venue stats
+  const venueMap = new Map<string, { count: number; jc: number }>()
+  for (const t of tracks) {
+    const v = t.venue || 'Unknown'
+    const entry = venueMap.get(v) || { count: 0, jc: 0 }
+    entry.count++
+    if (t.is_jamchart) entry.jc++
+    venueMap.set(v, entry)
+  }
+  let topVenue = '', topVenueCount = 0
+  let bestVenue = '', bestVenuePct = 0
+  for (const [v, { count, jc }] of venueMap) {
+    if (count > topVenueCount) { topVenue = v; topVenueCount = count }
+    if (count >= 2 && (100 * jc / count) > bestVenuePct) { bestVenue = v; bestVenuePct = 100 * jc / count }
+  }
+
   const pill = (label: string, value: ListFilter, count: number) => (
     <button
       key={value}
@@ -428,6 +468,53 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
                   </div>
                 </div>
               )}
+              {/* Streaks */}
+              {jcStreak > 0 && (
+                <div style={{ marginTop: '8px', textAlign: 'left' }}>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>
+                    🔥 JC Streak: {jcStreak}
+                  </div>
+                </div>
+              )}
+              {last5.length > 0 && (
+                <div style={{ marginTop: '4px', textAlign: 'left' }}>
+                  <div style={{ fontSize: '10px', color: '#64748b' }}>
+                    Recent form: <strong style={{ color: '#e2e8f0' }}>{last5Jc}/{last5.length} JC</strong> (last {last5.length})
+                  </div>
+                </div>
+              )}
+              {/* Duration trend */}
+              {durTrend && (
+                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #334155', textAlign: 'left' }}>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>
+                    {durTrend === 'longer' ? '↑ Getting longer' : durTrend === 'shorter' ? '↓ Getting shorter' : '→ Steady duration'}
+                  </div>
+                  <div style={{ fontSize: '10px', color: '#64748b', marginTop: '1px' }}>
+                    Recent avg {(recentAvgDur / 60000).toFixed(1)}m vs overall {(avgDur / 60000).toFixed(1)}m
+                  </div>
+                </div>
+              )}
+              {totalHours > 0.1 && (
+                <div style={{ marginTop: '4px', textAlign: 'left' }}>
+                  <div style={{ fontSize: '10px', color: '#64748b' }}>
+                    Total jam time: <strong style={{ color: '#e2e8f0' }}>{totalHours.toFixed(1)} hours</strong>
+                  </div>
+                </div>
+              )}
+              {/* Venue stats */}
+              {topVenue && (
+                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #334155', textAlign: 'left' }}>
+                  <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>
+                    📍 Most played: {topVenue} ({topVenueCount}×)
+                  </div>
+                  {bestVenue && bestVenue !== topVenue && bestVenuePct > 0 && (
+                    <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>
+                      Best JC rate: {bestVenue} ({Math.round(bestVenuePct)}%)
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Notable quote */}
               {truncQuote && (
                 <div style={{ marginTop: '10px', fontSize: '11px', color: '#64748b', fontStyle: 'italic', lineHeight: 1.4, textAlign: 'left' }}>
                   "{truncQuote}"
