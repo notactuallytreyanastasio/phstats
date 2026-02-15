@@ -62,6 +62,7 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
   const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 })
   const [listFilter, setListFilter] = useState<ListFilter>('jamcharts')
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
+  const [cardFlipped, setCardFlipped] = useState(false)
   const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>(() => {
     const s = getParam('sort')
     return s === 'jc' || s === 'played' ? s : 'avg'
@@ -98,13 +99,13 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     {
       target: '[data-tour-m="sort-pills"]',
       title: 'Sort & Filter',
-      content: 'Sort by batting avg, jamchart count, or times played. Use the slider to set a minimum play count.',
+      content: 'Sort by batting avg, jamchart count, or times played. Use the dropdown to set a minimum play count.',
       placement: 'bottom',
     },
     {
       target: '[data-tour-m="baseball-card"]',
       title: 'The Baseball Card',
-      content: 'Key stats at a glance: batting average (the hero number), jamchart count, times played, average & peak duration.',
+      content: 'Key stats at a glance. Tap the card to flip it over and see the best jams ranked by duration, with play buttons.',
       placement: 'bottom',
     },
     {
@@ -190,6 +191,7 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     if (!selectedSong) return
     setData(null)
     setExpandedIdx(null)
+    setCardFlipped(false)
     dataSource.fetchSongHistory(selectedSong, year)
       .then(setData)
       .catch(() => {})
@@ -321,66 +323,184 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
               {mode === 'avg' ? 'AVG' : mode === 'jc' ? 'JC' : 'PLAYED'}
             </button>
           ))}
-          <span style={{ fontSize: '12px', color: '#999', marginLeft: 'auto' }}>
-            Min {minPlayed}×
-          </span>
-          <input
-            type="range" min={1} max={20} value={minPlayed}
+          <select
+            value={minPlayed}
             onChange={e => setMinPlayed(Number(e.target.value))}
-            style={{ width: 60 }}
-          />
+            style={{
+              marginLeft: 'auto', padding: '4px 6px', fontSize: '12px',
+              borderRadius: '6px', border: '1px solid #ccc',
+              background: '#fff', fontWeight: 600,
+            }}
+          >
+            {[1, 2, 3, 5, 8, 10, 15, 20, 30, 50].map(n => (
+              <option key={n} value={n}>Min {n}×</option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Baseball card - song stats hero */}
-      {currentSongOption && data && (
-        <div data-tour-m="baseball-card" style={{
-          margin: '12px', padding: '20px', borderRadius: '16px',
-          background: '#1a1a2e', color: 'white',
-          border: '2px solid #334155',
-          textAlign: 'center',
-        }}>
-          <div style={{
-            fontSize: '22px', fontWeight: 800, letterSpacing: '1px',
-            textTransform: 'uppercase', marginBottom: '4px',
-          }}>
-            {data.song_name}
+      {/* Baseball card with 3D flip */}
+      {currentSongOption && data && (() => {
+        const bestJams = [...tracks]
+          .filter(t => t.is_jamchart)
+          .sort((a, b) => b.duration_ms - a.duration_ms)
+          .slice(0, 8)
+        const cardBg = '#1a1a2e'
+        const cardBorder = '2px solid #334155'
+        const cardRadius = '16px'
+        return (
+          <div data-tour-m="baseball-card" style={{ perspective: '1000px', margin: '12px' }}>
+            <div
+              onClick={() => setCardFlipped(!cardFlipped)}
+              style={{
+                transformStyle: 'preserve-3d',
+                transform: cardFlipped ? 'rotateY(180deg)' : 'rotateY(0)',
+                transition: 'transform 0.6s',
+                position: 'relative',
+                cursor: 'pointer',
+              }}
+            >
+              {/* FRONT — hero stats */}
+              <div style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                padding: '20px', borderRadius: cardRadius,
+                background: cardBg, color: 'white',
+                border: cardBorder, textAlign: 'center',
+                ...(cardFlipped ? { position: 'absolute', top: 0, left: 0, right: 0 } : {}),
+              }}>
+                <div style={{
+                  fontSize: '22px', fontWeight: 800, letterSpacing: '1px',
+                  textTransform: 'uppercase', marginBottom: '4px',
+                }}>
+                  {data.song_name}
+                </div>
+                <div style={{
+                  width: '40px', height: '2px', background: '#ef4444',
+                  margin: '0 auto 16px',
+                }} />
+                <div style={{
+                  fontSize: '52px', fontWeight: 900, lineHeight: 1,
+                  color: '#ef4444', marginBottom: '4px',
+                  fontVariantNumeric: 'tabular-nums',
+                }}>
+                  {fmtAvg(currentSongOption)}
+                </div>
+                <div style={{
+                  fontSize: '11px', fontWeight: 600, letterSpacing: '2px',
+                  color: '#64748b', textTransform: 'uppercase', marginBottom: '16px',
+                }}>
+                  BATTING AVG
+                </div>
+                <div style={{
+                  display: 'flex', justifyContent: 'center', gap: '16px',
+                  fontSize: '14px', color: '#94a3b8',
+                }}>
+                  <span><strong style={{ color: '#ef4444' }}>{currentSongOption.jamchart_count}</strong> JC</span>
+                  <span style={{ color: '#334155' }}>·</span>
+                  <span><strong style={{ color: 'white' }}>{currentSongOption.times_played}</strong>× played</span>
+                </div>
+                <div style={{
+                  display: 'flex', justifyContent: 'center', gap: '16px',
+                  fontSize: '13px', color: '#64748b', marginTop: '6px',
+                }}>
+                  <span>Avg {(avgDur / 60000).toFixed(1)}m</span>
+                  <span style={{ color: '#334155' }}>·</span>
+                  <span>Peak {fmtDuration(longestMs)}</span>
+                </div>
+                <div style={{
+                  fontSize: '10px', color: '#475569', marginTop: '14px',
+                  letterSpacing: '1px', textTransform: 'uppercase',
+                }}>
+                  TAP TO FLIP
+                </div>
+              </div>
+
+              {/* BACK — best jams list */}
+              <div style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                transform: 'rotateY(180deg)',
+                padding: '16px', borderRadius: cardRadius,
+                background: cardBg, color: 'white',
+                border: cardBorder,
+                ...(!cardFlipped ? { position: 'absolute', top: 0, left: 0, right: 0 } : {}),
+              }}>
+                <div style={{
+                  fontSize: '11px', fontWeight: 700, letterSpacing: '2px',
+                  color: '#ef4444', textTransform: 'uppercase',
+                  textAlign: 'center', marginBottom: '12px',
+                  borderBottom: '1px solid #334155', paddingBottom: '8px',
+                }}>
+                  {data.song_name} — BEST JAMS
+                </div>
+                {bestJams.length === 0 && (
+                  <div style={{ textAlign: 'center', color: '#64748b', fontSize: '13px', padding: '12px 0' }}>
+                    No jamchart entries
+                  </div>
+                )}
+                {bestJams.map((t, i) => (
+                  <div
+                    key={`${t.show_date}-back`}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      padding: '6px 0',
+                      borderBottom: i < bestJams.length - 1 ? '1px solid #1e293b' : 'none',
+                    }}
+                  >
+                    <span style={{
+                      fontSize: '14px', fontWeight: 800, color: '#475569',
+                      width: '18px', textAlign: 'right', flexShrink: 0,
+                    }}>
+                      {i + 1}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                        <span style={{ fontSize: '14px', fontWeight: 700, color: '#e2e8f0' }}>
+                          {t.show_date}
+                        </span>
+                        <span style={{
+                          fontSize: '16px', fontWeight: 900, color: '#ef4444',
+                          fontVariantNumeric: 'tabular-nums',
+                        }}>
+                          {fmtDuration(t.duration_ms)}
+                        </span>
+                      </div>
+                      <div style={{
+                        fontSize: '11px', color: '#64748b',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {t.venue}
+                      </div>
+                    </div>
+                    {t.jam_url && (
+                      <button
+                        onClick={e => { e.stopPropagation(); playJam(t.jam_url, t.show_date, t.song_name) }}
+                        style={{
+                          background: nowPlaying?.url === t.jam_url ? '#16a34a' : '#22c55e',
+                          color: 'white', border: 'none', borderRadius: '50%',
+                          width: '30px', height: '30px', fontSize: '13px',
+                          cursor: 'pointer', flexShrink: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        {nowPlaying?.url === t.jam_url ? '\u23F8' : '\u25B6'}
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <div style={{
+                  fontSize: '10px', color: '#475569', marginTop: '10px',
+                  letterSpacing: '1px', textTransform: 'uppercase',
+                  textAlign: 'center',
+                }}>
+                  TAP TO FLIP BACK
+                </div>
+              </div>
+            </div>
           </div>
-          <div style={{
-            width: '40px', height: '2px', background: '#ef4444',
-            margin: '0 auto 16px',
-          }} />
-          <div style={{
-            fontSize: '52px', fontWeight: 900, lineHeight: 1,
-            color: '#ef4444', marginBottom: '4px',
-            fontVariantNumeric: 'tabular-nums',
-          }}>
-            {fmtAvg(currentSongOption)}
-          </div>
-          <div style={{
-            fontSize: '11px', fontWeight: 600, letterSpacing: '2px',
-            color: '#64748b', textTransform: 'uppercase', marginBottom: '16px',
-          }}>
-            BATTING AVG
-          </div>
-          <div style={{
-            display: 'flex', justifyContent: 'center', gap: '16px',
-            fontSize: '14px', color: '#94a3b8',
-          }}>
-            <span><strong style={{ color: '#ef4444' }}>{currentSongOption.jamchart_count}</strong> JC</span>
-            <span style={{ color: '#334155' }}>·</span>
-            <span><strong style={{ color: 'white' }}>{currentSongOption.times_played}</strong>× played</span>
-          </div>
-          <div style={{
-            display: 'flex', justifyContent: 'center', gap: '16px',
-            fontSize: '13px', color: '#64748b', marginTop: '6px',
-          }}>
-            <span>Avg {(avgDur / 60000).toFixed(1)}m</span>
-            <span style={{ color: '#334155' }}>·</span>
-            <span>Peak {fmtDuration(longestMs)}</span>
-          </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Loading state */}
       {!data && selectedSong && (
@@ -525,6 +645,8 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
             position: 'fixed', bottom: 0, left: 0, right: 0,
             background: '#1a1a2e', color: 'white',
             boxShadow: '0 -4px 20px rgba(0,0,0,0.4)', zIndex: 1001,
+            transform: 'translate3d(0,0,0)',
+            WebkitTransform: 'translate3d(0,0,0)',
           }}>
             <div
               style={{ height: 4, background: '#334155', cursor: 'pointer' }}
