@@ -67,6 +67,21 @@ export function sqliteApiPlugin(): Plugin {
             const data = queryShowHeat(db, year)
             res.writeHead(200, { 'Content-Type': 'application/json' })
             res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/venue-stats')) {
+            const year = url.searchParams.get('year') || 'all'
+            const data = queryVenueStats(db, year)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/jam-evolution')) {
+            const data = queryJamEvolution(db)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/song-pairings')) {
+            const year = url.searchParams.get('year') || 'all'
+            const min = parseInt(url.searchParams.get('min') || '3')
+            const data = querySongPairings(db, year, min)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
           } else if (req.url.startsWith('/api/song-list')) {
             const year = url.searchParams.get('year') || 'all'
             const data = querySongList(db, year)
@@ -277,6 +292,97 @@ function querySongHistory(db: Database.Database, songName: string, year: string)
       duration_min: t.duration_ms > 0 ? +(t.duration_ms / 60000).toFixed(1) : null,
     })),
   }
+}
+
+function queryVenueStats(db: Database.Database, year: string) {
+  const where = year === 'all' ? '' : `WHERE substr(show_date, 1, 4) = ?`
+  const params = year === 'all' ? [] : [year]
+  return db.prepare(`
+    SELECT venue, MAX(location) as location,
+      COUNT(DISTINCT show_date) as total_shows,
+      COUNT(*) as total_tracks,
+      SUM(is_jamchart) as jamchart_count,
+      ROUND(100.0 * SUM(is_jamchart) / COUNT(*), 1) as jamchart_pct,
+      ROUND(AVG(duration_ms)) as avg_duration_ms
+    FROM song_tracks
+    ${where}
+    GROUP BY venue
+    ORDER BY jamchart_count DESC
+  `).all(...params)
+}
+
+function queryJamEvolution(db: Database.Database) {
+  const yearRows = db.prepare(`
+    SELECT CAST(substr(show_date, 1, 4) AS INTEGER) as year,
+      COUNT(DISTINCT show_date) as total_shows,
+      COUNT(*) as total_tracks,
+      SUM(is_jamchart) as jamchart_count,
+      ROUND(1.0 * SUM(is_jamchart) / COUNT(DISTINCT show_date), 2) as jc_per_show,
+      ROUND(AVG(duration_ms)) as avg_duration_ms,
+      ROUND(AVG(CASE WHEN is_jamchart THEN duration_ms END)) as avg_jam_duration_ms
+    FROM song_tracks
+    GROUP BY year
+    ORDER BY year
+  `).all() as any[]
+
+  // Detect new jam vehicles per year
+  const firstYears = db.prepare(`
+    SELECT song_name, MIN(CAST(substr(show_date, 1, 4) AS INTEGER)) as first_year
+    FROM song_tracks
+    WHERE is_jamchart = 1
+    GROUP BY song_name
+  `).all() as { song_name: string; first_year: number }[]
+
+  const vehiclesByYear = new Map<number, string[]>()
+  for (const { song_name, first_year } of firstYears) {
+    const list = vehiclesByYear.get(first_year) || []
+    list.push(song_name)
+    vehiclesByYear.set(first_year, list)
+  }
+
+  return yearRows.map((r: any) => ({
+    ...r,
+    new_vehicles: (vehiclesByYear.get(r.year) || []).sort(),
+  }))
+}
+
+function querySongPairings(db: Database.Database, year: string, minShows: number) {
+  const where = year === 'all' ? '' : `WHERE substr(show_date, 1, 4) = ?`
+  const params = year === 'all' ? [] : [year]
+
+  // Get jammed songs per show
+  const rows = db.prepare(`
+    SELECT show_date, song_name
+    FROM song_tracks
+    ${where ? where + ' AND is_jamchart = 1' : 'WHERE is_jamchart = 1'}
+    ORDER BY show_date, song_name
+  `).all(...params) as { show_date: string; song_name: string }[]
+
+  const showJams = new Map<string, string[]>()
+  for (const { show_date, song_name } of rows) {
+    const list = showJams.get(show_date) || []
+    list.push(song_name)
+    showJams.set(show_date, list)
+  }
+
+  const pairCounts = new Map<string, number>()
+  for (const songs of showJams.values()) {
+    if (songs.length < 2) continue
+    for (let i = 0; i < songs.length; i++) {
+      for (let j = i + 1; j < songs.length; j++) {
+        const key = `${songs[i]}|||${songs[j]}`
+        pairCounts.set(key, (pairCounts.get(key) ?? 0) + 1)
+      }
+    }
+  }
+
+  return [...pairCounts.entries()]
+    .filter(([, count]) => count >= minShows)
+    .map(([key, count]) => {
+      const [a, b] = key.split('|||')
+      return { song_a: a, song_b: b, co_occurrences: count }
+    })
+    .sort((a, b) => b.co_occurrences - a.co_occurrences)
 }
 
 function queryCompareSongs(db: Database.Database, usernames: string[]) {

@@ -3,18 +3,10 @@
  * Used by the static GH Pages build instead of server API calls.
  */
 
-export interface TrackRow {
-  song_name: string
-  show_date: string
-  set_name: string
-  position: number
-  duration_ms: number
-  likes: number
-  is_jamchart: number
-  jam_notes: string
-  venue: string
-  location: string
-}
+import { computeVenueStats, computeJamEvolution, computeSongPairings } from '../../core/track-queries'
+import type { TrackRow } from '../../core/track-queries'
+
+export type { TrackRow }
 
 let cachedTracks: TrackRow[] | null = null
 let loadPromise: Promise<TrackRow[]> | null = null
@@ -164,4 +156,19 @@ export async function querySongHistory(songName: string, year: string): Promise<
       duration_min: t.duration_ms > 0 ? +(t.duration_ms / 60000).toFixed(1) : null,
     })),
   }
+}
+
+export async function queryVenueStats(year: string): Promise<any[]> {
+  const tracks = await loadTracks()
+  return computeVenueStats(tracks, year)
+}
+
+export async function queryJamEvolution(): Promise<any[]> {
+  const tracks = await loadTracks()
+  return computeJamEvolution(tracks)
+}
+
+export async function querySongPairings(year: string, minShows: number): Promise<any[]> {
+  const tracks = await loadTracks()
+  return computeSongPairings(tracks, year, minShows)
 }

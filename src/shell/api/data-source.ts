@@ -48,3 +48,23 @@ export async function fetchSongHistory(song: string, year: string): Promise<any>
   const yearParam = year === 'all' ? '' : `&year=${year}`
   return fetchJson(`/api/song-history?song=${encodeURIComponent(song)}${yearParam}`)
 }
+
+export async function fetchVenueStats(year: string): Promise<any[]> {
+  if (isPublic) return staticQ.queryVenueStats(year)
+  const param = year === 'all' ? '' : `?year=${year}`
+  return fetchJson(`/api/venue-stats${param}`) ?? []
+}
+
+export async function fetchJamEvolution(): Promise<any[]> {
+  if (isPublic) return staticQ.queryJamEvolution()
+  return fetchJson('/api/jam-evolution') ?? []
+}
+
+export async function fetchSongPairings(year: string, minShows: number = 3): Promise<any[]> {
+  if (isPublic) return staticQ.querySongPairings(year, minShows)
+  const params = new URLSearchParams()
+  if (year !== 'all') params.set('year', year)
+  if (minShows !== 3) params.set('min', String(minShows))
+  const qs = params.toString()
+  return fetchJson(`/api/song-pairings${qs ? '?' + qs : ''}`) ?? []
+}
