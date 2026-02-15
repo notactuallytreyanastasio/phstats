@@ -68,7 +68,7 @@ function PhanGraphsPage() {
   const years = Array.from({ length: currentYear - 2009 + 1 }, (_, i) => 2009 + i)
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: '1400px', margin: '0 auto' }}>
+    <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: '1700px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
         <h1 style={{ margin: 0 }}>
           PhanGraphs
@@ -80,6 +80,9 @@ function PhanGraphsPage() {
           Back to phstats
         </a>
       </div>
+
+      <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
 
       {/* Row 1: Year range + Aggregation + Set */}
       <div style={{
@@ -254,9 +257,47 @@ function PhanGraphsPage() {
           </div>
         </>
       )}
+
+      </div>{/* end left column */}
+
+      {/* Glossary sidebar */}
+      <div style={{
+        width: '240px', flexShrink: 0,
+        background: '#f9fafb', borderRadius: '8px', padding: '1rem',
+        fontSize: '0.78rem', lineHeight: 1.5, alignSelf: 'flex-start',
+        position: 'sticky', top: '1rem',
+      }}>
+        <h3 style={{ margin: '0 0 0.75rem', fontSize: '0.85rem', color: '#333' }}>Glossary</h3>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <tbody>
+            {GLOSSARY.map(({ abbr, full }) => (
+              <tr key={abbr}>
+                <td style={glossaryAbbrStyle}>{abbr}</td>
+                <td style={glossaryDefStyle}>{full}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      </div>{/* end flex row */}
     </div>
   )
 }
+
+const GLOSSARY: { abbr: string; full: string }[] = [
+  { abbr: 'WAR', full: 'Wins Above Replacement. Total song value vs. a 20th-percentile baseline, derived from PVS.' },
+  { abbr: 'PVS', full: 'Performance Value Score. Per-performance composite of length, jam status, bustout, set/run leverage, and rarity.' },
+  { abbr: 'JIS', full: 'Jam Impact Score. PVS normalized to a 0\u201310 scale across all performances.' },
+  { abbr: 'JIS Vol', full: 'JIS Volatility. Std deviation of per-performance JIS \u2014 higher means less consistent.' },
+  { abbr: 'JC', full: 'Jamchart. A performance flagged on phish.net as a notable jam.' },
+  { abbr: 'Jam Rate', full: '% of performances that are jamchart entries.' },
+  { abbr: 'WAR/Play', full: 'WAR per individual performance.' },
+  { abbr: 'WAR/Show', full: 'WAR per show in scope \u2014 rewards songs that appear frequently.' },
+  { abbr: 'Peak Year', full: 'Year with the highest single-year WAR.' },
+  { abbr: 'N1\u2013N5', full: 'Night 1 through Night 5 of a multi-show venue run.' },
+  { abbr: 'Bustout', full: 'A song returning after a long gap between plays (40+ shows).' },
+]
 
 const selectStyle: React.CSSProperties = {
   marginLeft: '0.25rem', padding: '0.3rem', fontSize: '0.85rem',
@@ -280,6 +321,21 @@ const tdStyle: React.CSSProperties = {
   borderBottom: '1px solid #eee',
   textAlign: 'center',
   fontSize: '0.85rem',
+}
+
+const glossaryAbbrStyle: React.CSSProperties = {
+  fontWeight: 600,
+  padding: '0.25rem 0.4rem 0.25rem 0',
+  verticalAlign: 'top',
+  whiteSpace: 'nowrap',
+  borderBottom: '1px solid #eee',
+  color: '#333',
+}
+
+const glossaryDefStyle: React.CSSProperties = {
+  padding: '0.25rem 0',
+  borderBottom: '1px solid #eee',
+  color: '#555',
 }
 
 export default PhanGraphsPage
