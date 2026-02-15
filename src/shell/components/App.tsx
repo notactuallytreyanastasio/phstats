@@ -96,6 +96,7 @@ const VIZ_TABS: { key: VizTab; label: string }[] = [
 ]
 
 const JAM_TABS: { key: JamTab; label: string }[] = [
+  { key: 'deep-dive', label: 'Song Deep Dive' },
   { key: 'vehicles', label: 'Jam Vehicles' },
   { key: 'heat-calendar', label: 'Show Heat' },
   { key: 'venue-rankings', label: 'Venue Power' },
@@ -103,14 +104,13 @@ const JAM_TABS: { key: JamTab; label: string }[] = [
   { key: 'song-pairings', label: 'Song Pairings' },
   { key: 'positions', label: 'Set Positions' },
   { key: 'rankings', label: 'Rankings' },
-  { key: 'deep-dive', label: 'Song Deep Dive' },
 ]
 
 const VALID_JAM_TABS = new Set<JamTab>(['vehicles', 'heat-calendar', 'positions', 'rankings', 'deep-dive', 'venue-rankings', 'jam-evolution', 'song-pairings'])
 
 function initTab(): JamTab {
   const t = getParam('tab')
-  return t && VALID_JAM_TABS.has(t as JamTab) ? t as JamTab : 'vehicles'
+  return t && VALID_JAM_TABS.has(t as JamTab) ? t as JamTab : 'deep-dive'
 }
 
 function App() {
@@ -134,7 +134,7 @@ function App() {
   // Sync App-level state to URL params, clean up child params on tab change
   useEffect(() => {
     const updates: Record<string, string | null> = {
-      tab: activeJam === 'vehicles' ? null : activeJam,
+      tab: activeJam === 'deep-dive' ? null : activeJam,
       year: jamYear === 'all' ? null : jamYear,
     }
     // Clear deep-dive params when not on that tab
@@ -404,7 +404,7 @@ function App() {
           {isPublic ? 'Phish 3.0 Jamchart Analysis' : 'Phish Stats'}
           {jamSongs.length > 0 && (
             <button
-              onClick={() => { setRunTour(false); setTimeout(() => { setActiveJam('vehicles'); setRunTour(true) }, 100) }}
+              onClick={() => { setRunTour(false); setTimeout(() => { setActiveJam('deep-dive'); setRunTour(true) }, 100) }}
               style={{
                 marginLeft: '1rem', padding: '0.3rem 0.8rem', fontSize: '0.75rem',
                 background: 'none', border: '1px solid #ccc', borderRadius: '4px',
