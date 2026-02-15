@@ -355,22 +355,17 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
         >
           <div style={{
             position: 'relative',
-            transformStyle: 'preserve-3d',
-            transition: 'transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1)',
-            transform: cardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
             height: cardFlipped ? `calc(100vh - ${nowPlaying ? 200 : 140}px)` : 'auto',
           }}>
             {/* FRONT — hero stats */}
             <div
               onClick={() => setCardFlipped(true)}
               style={{
-                backfaceVisibility: 'hidden',
-                WebkitBackfaceVisibility: 'hidden',
                 padding: '20px', borderRadius: '16px',
                 background: '#1a1a2e', color: 'white',
                 border: '2px solid #334155', textAlign: 'center',
                 cursor: 'pointer',
-                ...(cardFlipped ? { visibility: 'hidden' as const } : {}),
+                display: cardFlipped ? 'none' : 'block',
               }}
             >
               <div style={{
@@ -449,18 +444,13 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
 
             {/* BACK — all jams, scrollable */}
             <div style={{
-              backfaceVisibility: 'hidden',
-              WebkitBackfaceVisibility: 'hidden',
-              transform: 'rotateY(180deg)',
-              position: cardFlipped ? 'relative' as const : 'absolute' as const,
-              top: 0, left: 0, right: 0,
               borderRadius: '16px',
               background: '#1a1a2e', color: 'white',
               border: '2px solid #334155',
-              display: 'flex', flexDirection: 'column',
+              display: cardFlipped ? 'flex' : 'none',
+              flexDirection: 'column' as const,
               height: '100%',
               overflow: 'hidden',
-              ...(!cardFlipped ? { visibility: 'hidden' as const, pointerEvents: 'none' as const } : {}),
             }}>
               {/* Back header — tap to flip back */}
               <div
