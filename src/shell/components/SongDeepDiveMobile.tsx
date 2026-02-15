@@ -400,7 +400,8 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
               background: '#1a1a2e', color: 'white',
               border: '2px solid #334155',
               display: 'flex', flexDirection: 'column',
-              maxHeight: `calc(100vh - ${nowPlaying ? 200 : 140}px)`,
+              height: `calc(100vh - ${nowPlaying ? 200 : 140}px)`,
+              overflow: 'hidden',
             }}>
               {/* Back header — tap to flip back */}
               <div
