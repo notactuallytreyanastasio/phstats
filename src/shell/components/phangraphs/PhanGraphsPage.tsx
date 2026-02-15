@@ -4,15 +4,15 @@ import type { AggregatedLeaderboardEntry, PhanGraphsFilter, RunPositionFilter } 
 
 type SortColumn = 'war' | 'warPerPlay' | 'warPerShow' | 'avgJIS' | 'peakJIS' | 'timesPlayed' | 'jamRate' | 'jamchartCount'
 
-const SORT_COLUMNS: { key: SortColumn; label: string }[] = [
-  { key: 'war', label: 'Career WAR' },
-  { key: 'warPerPlay', label: 'WAR/Play' },
-  { key: 'warPerShow', label: 'WAR/Show' },
-  { key: 'avgJIS', label: 'Avg JIS' },
-  { key: 'peakJIS', label: 'Peak JIS' },
-  { key: 'timesPlayed', label: 'Times Played' },
-  { key: 'jamRate', label: 'Jam Rate' },
-  { key: 'jamchartCount', label: 'JC Count' },
+const SORT_COLUMNS: { key: SortColumn; label: string; tooltip: string }[] = [
+  { key: 'war', label: 'Career WAR', tooltip: 'Wins Above Replacement — total value above a 20th-percentile replacement-level song, based on PVS' },
+  { key: 'warPerPlay', label: 'WAR/Play', tooltip: 'WAR divided by times played — value per individual performance' },
+  { key: 'warPerShow', label: 'WAR/Show', tooltip: 'WAR divided by total shows in scope — how much WAR a song generates per show' },
+  { key: 'avgJIS', label: 'Avg JIS', tooltip: 'Average Jam Impact Score (0-10) — normalized PVS across all performances' },
+  { key: 'peakJIS', label: 'Peak JIS', tooltip: 'Highest single-performance JIS — the best version of this song' },
+  { key: 'timesPlayed', label: 'Times Played', tooltip: 'Total number of performances in the filtered range' },
+  { key: 'jamRate', label: 'Jam Rate', tooltip: 'Percentage of performances designated as jamchart entries on phish.net' },
+  { key: 'jamchartCount', label: 'JC Count', tooltip: 'Total number of jamchart-designated performances' },
 ]
 
 function getSortValue(entry: AggregatedLeaderboardEntry, col: SortColumn): number {
@@ -197,8 +197,8 @@ function PhanGraphsPage() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr>
-                  <th style={thStyle}>#</th>
-                  <th style={{ ...thStyle, textAlign: 'left', minWidth: '140px' }}>Song</th>
+                  <th style={thStyle} title="Rank by current sort column">#</th>
+                  <th style={{ ...thStyle, textAlign: 'left', minWidth: '140px' }} title="Song name">Song</th>
                   {isAggregated && (
                     <th style={{ ...thStyle, textAlign: 'left', minWidth: '100px' }}>
                       {filter.aggregation === 'byYear' ? 'Year' : 'Tour'}
@@ -207,6 +207,7 @@ function PhanGraphsPage() {
                   {SORT_COLUMNS.map(col => (
                     <th
                       key={col.key}
+                      title={col.tooltip}
                       style={{ ...thStyle, cursor: 'pointer', userSelect: 'none' }}
                       onClick={() => handleSort(col.key)}
                     >
@@ -214,9 +215,9 @@ function PhanGraphsPage() {
                       {sortCol === col.key && (sortDir === 'desc' ? ' \u25BC' : ' \u25B2')}
                     </th>
                   ))}
-                  <th style={thStyle}>JIS Vol</th>
-                  <th style={thStyle}>Peak Year</th>
-                  {!isAggregated && <th style={thStyle}>WAR Trend</th>}
+                  <th style={thStyle} title="JIS volatility — standard deviation of per-performance JIS scores (higher = more inconsistent)">JIS Vol</th>
+                  <th style={thStyle} title="Year with the highest single-year WAR contribution">Peak Year</th>
+                  {!isAggregated && <th style={thStyle} title="WAR by year sparkline — visual trend of annual WAR contributions">WAR Trend</th>}
                 </tr>
               </thead>
               <tbody>
