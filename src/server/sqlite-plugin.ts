@@ -68,9 +68,9 @@ export function sqliteApiPlugin(): Plugin {
             res.writeHead(200, { 'Content-Type': 'application/json' })
             res.end(JSON.stringify(data))
           } else if (req.url.startsWith('/api/song-history')) {
-            const slug = url.searchParams.get('slug') || 'what-s-going-through-your-mind'
+            const song = url.searchParams.get('song') || url.searchParams.get('slug') || ''
             const year = url.searchParams.get('year') || 'all'
-            const data = querySongHistory(db, slug, year)
+            const data = querySongHistory(db, song, year)
             res.writeHead(200, { 'Content-Type': 'application/json' })
             res.end(JSON.stringify(data))
           } else if (req.url.startsWith('/api/all-shows')) {
@@ -225,31 +225,30 @@ function querySongList(db: Database.Database, year: string) {
   const where = year === 'all' ? '' : `WHERE substr(show_date, 1, 4) = ?`
   const params = year === 'all' ? [] : [year]
   return db.prepare(`
-    SELECT song_slug, song_name,
+    SELECT song_name,
       COUNT(*) as times_played,
       SUM(is_jamchart) as jamchart_count,
       ROUND(100.0 * SUM(is_jamchart) / COUNT(*), 1) as jamchart_pct
     FROM song_tracks
     ${where}
-    GROUP BY song_slug
+    GROUP BY song_name
     ORDER BY jamchart_count DESC, times_played DESC
   `).all(...params)
 }
 
-function querySongHistory(db: Database.Database, slug: string, year: string) {
+function querySongHistory(db: Database.Database, songName: string, year: string) {
   const yearClause = year === 'all' ? '' : `AND substr(show_date, 1, 4) = ?`
-  const params = year === 'all' ? [slug] : [slug, year]
+  const params = year === 'all' ? [songName] : [songName, year]
   const tracks = db.prepare(`
     SELECT song_name, show_date, set_name, position, duration_ms,
       likes, is_jamchart, jam_notes, venue, location
     FROM song_tracks
-    WHERE song_slug = ? ${yearClause}
+    WHERE song_name = ? ${yearClause}
     ORDER BY show_date
   `).all(...params) as any[]
 
   return {
-    slug,
-    song_name: tracks[0]?.song_name ?? slug,
+    song_name: tracks[0]?.song_name ?? songName,
     tracks: tracks.map(t => ({
       ...t,
       duration_min: t.duration_ms > 0 ? +(t.duration_ms / 60000).toFixed(1) : null,

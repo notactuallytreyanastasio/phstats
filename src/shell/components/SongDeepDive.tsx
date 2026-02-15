@@ -16,13 +16,11 @@ interface Track {
 }
 
 interface SongHistory {
-  slug: string
   song_name: string
   tracks: Track[]
 }
 
 interface SongOption {
-  song_slug: string
   song_name: string
   times_played: number
   jamchart_count: number
@@ -44,7 +42,7 @@ export default function SongDeepDive({ year }: { year: string }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
   const [songList, setSongList] = useState<SongOption[]>([])
-  const [selectedSlug, setSelectedSlug] = useState('')
+  const [selectedSong, setSelectedSong] = useState('')
   const [data, setData] = useState<SongHistory | null>(null)
   const [filter, setFilter] = useState('')
   const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>('avg')
@@ -59,8 +57,8 @@ export default function SongDeepDive({ year }: { year: string }) {
         setSongList(list)
         // Keep current selection if it exists in the new list, otherwise pick first
         if (list.length > 0) {
-          const exists = list.some((s: SongOption) => s.song_slug === selectedSlug)
-          if (!exists) setSelectedSlug(list[0].song_slug)
+          const exists = list.some((s: SongOption) => s.song_name === selectedSong)
+          if (!exists) setSelectedSong(list[0].song_name)
         }
       })
       .catch(() => {})
@@ -68,14 +66,14 @@ export default function SongDeepDive({ year }: { year: string }) {
 
   // Fetch history when selection or year changes
   useEffect(() => {
-    if (!selectedSlug) return
+    if (!selectedSong) return
     setData(null)
     const yearParam = year === 'all' ? '' : `&year=${year}`
-    fetch(`/api/song-history?slug=${encodeURIComponent(selectedSlug)}${yearParam}`)
+    fetch(`/api/song-history?song=${encodeURIComponent(selectedSong)}${yearParam}`)
       .then(r => r.ok ? r.json() : null)
       .then(setData)
       .catch(() => {})
-  }, [selectedSlug, year])
+  }, [selectedSong, year])
 
   // D3 chart
   useEffect(() => {
@@ -356,17 +354,17 @@ export default function SongDeepDive({ year }: { year: string }) {
           </select>
         </label>
         <select
-          value={selectedSlug}
-          onChange={e => { setSelectedSlug(e.target.value); setFilter('') }}
+          value={selectedSong}
+          onChange={e => { setSelectedSong(e.target.value); setFilter('') }}
           style={{ padding: '0.3rem', fontSize: '0.85rem', maxWidth: 420 }}
         >
           {sortedSongs.map(s => (
-            <option key={s.song_slug} value={s.song_slug}>
+            <option key={s.song_name} value={s.song_name}>
               {s.song_name} ({fmtAvg(s)} avg, {s.jamchart_count} JC, {s.times_played}x)
             </option>
           ))}
         </select>
-        {data === null && selectedSlug && <span style={{ color: '#999', fontSize: '0.8rem' }}>Loading...</span>}
+        {data === null && selectedSong && <span style={{ color: '#999', fontSize: '0.8rem' }}>Loading...</span>}
       </div>
       <div style={{ overflowX: 'auto' }}>
         <svg ref={svgRef} style={{ width: '100%', maxWidth: 960 }} />
