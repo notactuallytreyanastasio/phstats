@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react'
 import * as d3 from 'd3'
+import * as dataSource from '../api/data-source'
 
 interface Track {
   song_name: string
@@ -50,9 +51,7 @@ export default function SongDeepDive({ year }: { year: string }) {
 
   // Reload song list when year changes
   useEffect(() => {
-    const yearParam = year === 'all' ? '' : `?year=${year}`
-    fetch(`/api/song-list${yearParam}`)
-      .then(r => r.ok ? r.json() : [])
+    dataSource.fetchSongList(year)
       .then((list: SongOption[]) => {
         setSongList(list)
         // Keep current selection if it exists in the new list, otherwise pick first
@@ -68,9 +67,7 @@ export default function SongDeepDive({ year }: { year: string }) {
   useEffect(() => {
     if (!selectedSong) return
     setData(null)
-    const yearParam = year === 'all' ? '' : `&year=${year}`
-    fetch(`/api/song-history?song=${encodeURIComponent(selectedSong)}${yearParam}`)
-      .then(r => r.ok ? r.json() : null)
+    dataSource.fetchSongHistory(selectedSong, year)
       .then(setData)
       .catch(() => {})
   }, [selectedSong, year])

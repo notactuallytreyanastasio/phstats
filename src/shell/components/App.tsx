@@ -9,6 +9,9 @@ import JamVehicleScatter from './JamVehicleScatter'
 import JamchartPositionMap from './JamchartPositionMap'
 import JamchartRankings from './JamchartRankings'
 import SongDeepDive from './SongDeepDive'
+import * as dataSource from '../api/data-source'
+
+const isPublic = import.meta.env.VITE_PUBLIC_MODE === 'true'
 
 interface Stats {
   username: string
@@ -108,16 +111,18 @@ function App() {
   const [jamYears, setJamYears] = useState<number[]>([])
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch user list
+  // Fetch user list (skip in public mode)
   useEffect(() => {
+    if (isPublic) return
     fetch('/api/users')
       .then(r => r.ok ? r.json() : [])
       .then(setUsers)
       .catch(() => {})
   }, [])
 
-  // Fetch stats for active user
+  // Fetch stats for active user (skip in public mode)
   const fetchData = useCallback(async () => {
+    if (isPublic) return
     try {
       const [statsRes, songsRes, yearsRes] = await Promise.all([
         fetch(`/api/stats?username=${activeUser}`),
@@ -146,26 +151,25 @@ function App() {
 
   // Fetch available jamchart years on mount
   useEffect(() => {
-    fetch('/api/jamchart-years')
-      .then(r => r.ok ? r.json() : [])
+    dataSource.fetchJamchartYears()
       .then(setJamYears)
       .catch(() => {})
   }, [])
 
   // Fetch jamchart data (not user-specific), re-fetch when year changes
   useEffect(() => {
-    const yearParam = jamYear === 'all' ? '' : `?year=${jamYear}`
     Promise.all([
-      fetch(`/api/jamchart-songs${yearParam}`).then(r => r.ok ? r.json() : []),
-      fetch(`/api/jamchart-positions${yearParam}`).then(r => r.ok ? r.json() : []),
+      dataSource.fetchJamchartSongs(jamYear),
+      dataSource.fetchJamchartPositions(jamYear),
     ]).then(([songs, positions]) => {
       setJamSongs(songs)
       setJamPositions(positions)
     }).catch(() => {})
   }, [jamYear])
 
-  // Fetch comparison data when we have 2+ users
+  // Fetch comparison data when we have 2+ users (skip in public mode)
   useEffect(() => {
+    if (isPublic) return
     if (users.length < 2) return
 
     const params = users.map(u => `user=${encodeURIComponent(u.username)}`).join('&')
@@ -184,7 +188,7 @@ function App() {
     }).catch(() => {})
   }, [users])
 
-  if (error) {
+  if (!isPublic && error) {
     return (
       <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
         <h1>Phish Stats</h1>
@@ -193,7 +197,7 @@ function App() {
     )
   }
 
-  if (!stats) {
+  if (!isPublic && !stats) {
     return (
       <div style={{ padding: '2rem', fontFamily: 'system-ui' }}>
         <h1>Phish Stats</h1>
@@ -207,94 +211,100 @@ function App() {
   return (
     <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: '1400px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
-        <h1 style={{ margin: 0 }}>Phish Stats</h1>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          {users.length > 1 && (
-            <select
-              value={activeUser}
-              onChange={e => setActiveUser(e.target.value)}
-              style={{ padding: '0.4rem', fontSize: '0.9rem' }}
-            >
-              {users.map(u => (
-                <option key={u.username} value={u.username}>
-                  {u.username} ({u.show_count} shows)
-                </option>
-              ))}
-            </select>
-          )}
-          <button onClick={fetchData} style={{ padding: '0.4rem 1rem', cursor: 'pointer' }}>Refresh</button>
-        </div>
+        <h1 style={{ margin: 0 }}>{isPublic ? 'Phish 3.0 Jamchart Analysis' : 'Phish Stats'}</h1>
+        {!isPublic && (
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {users.length > 1 && (
+              <select
+                value={activeUser}
+                onChange={e => setActiveUser(e.target.value)}
+                style={{ padding: '0.4rem', fontSize: '0.9rem' }}
+              >
+                {users.map(u => (
+                  <option key={u.username} value={u.username}>
+                    {u.username} ({u.show_count} shows)
+                  </option>
+                ))}
+              </select>
+            )}
+            <button onClick={fetchData} style={{ padding: '0.4rem 1rem', cursor: 'pointer' }}>Refresh</button>
+          </div>
+        )}
       </div>
 
-      <h2 style={{ color: '#444', marginTop: 0 }}>{stats.username}</h2>
+      {!isPublic && stats && (
+        <>
+          <h2 style={{ color: '#444', marginTop: 0 }}>{stats.username}</h2>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-        <StatCard label="Shows" value={stats.totalShows} />
-        <StatCard label="Songs Heard" value={stats.totalPerformances} />
-        <StatCard label="Unique Songs" value={stats.uniqueSongs} />
-        <StatCard label="States" value={stats.statesVisited.length} />
-        <StatCard label="Venues" value={stats.venuesVisited.length} />
-        <StatCard label="First Show" value={stats.firstShow ?? '\u2014'} />
-        <StatCard label="Last Show" value={stats.lastShow ?? '\u2014'} />
-      </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+            <StatCard label="Shows" value={stats.totalShows} />
+            <StatCard label="Songs Heard" value={stats.totalPerformances} />
+            <StatCard label="Unique Songs" value={stats.uniqueSongs} />
+            <StatCard label="States" value={stats.statesVisited.length} />
+            <StatCard label="Venues" value={stats.venuesVisited.length} />
+            <StatCard label="First Show" value={stats.firstShow ?? '\u2014'} />
+            <StatCard label="Last Show" value={stats.lastShow ?? '\u2014'} />
+          </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
-        <div>
-          <h2>Top Songs</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={thStyle}>#</th>
-                <th style={{ ...thStyle, textAlign: 'left' }}>Song</th>
-                <th style={thStyle}>Shows</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topSongs.slice(0, 25).map((s, i) => (
-                <tr key={s.song_name} style={{ background: i % 2 === 0 ? '#f9f9f9' : 'white' }}>
-                  <td style={tdStyle}>{i + 1}</td>
-                  <td style={{ ...tdStyle, textAlign: 'left' }}>{s.song_name}</td>
-                  <td style={tdStyle}>{s.count}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
+            <div>
+              <h2>Top Songs</h2>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={thStyle}>#</th>
+                    <th style={{ ...thStyle, textAlign: 'left' }}>Song</th>
+                    <th style={thStyle}>Shows</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topSongs.slice(0, 25).map((s, i) => (
+                    <tr key={s.song_name} style={{ background: i % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                      <td style={tdStyle}>{i + 1}</td>
+                      <td style={{ ...tdStyle, textAlign: 'left' }}>{s.song_name}</td>
+                      <td style={tdStyle}>{s.count}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-        <div>
-          <h2>Shows by Year</h2>
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              <tr>
-                <th style={thStyle}>Year</th>
-                <th style={thStyle}>Shows</th>
-                <th style={thStyle}>Venues</th>
-                <th style={thStyle}>Songs</th>
-              </tr>
-            </thead>
-            <tbody>
-              {yearStats.map((y, i) => (
-                <tr key={y.year} style={{ background: i % 2 === 0 ? '#f9f9f9' : 'white' }}>
-                  <td style={tdStyle}>{y.year}</td>
-                  <td style={tdStyle}>{y.show_count}</td>
-                  <td style={tdStyle}>{y.unique_venues}</td>
-                  <td style={tdStyle}>{y.unique_songs}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            <div>
+              <h2>Shows by Year</h2>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={thStyle}>Year</th>
+                    <th style={thStyle}>Shows</th>
+                    <th style={thStyle}>Venues</th>
+                    <th style={thStyle}>Songs</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {yearStats.map((y, i) => (
+                    <tr key={y.year} style={{ background: i % 2 === 0 ? '#f9f9f9' : 'white' }}>
+                      <td style={tdStyle}>{y.year}</td>
+                      <td style={tdStyle}>{y.show_count}</td>
+                      <td style={tdStyle}>{y.unique_venues}</td>
+                      <td style={tdStyle}>{y.unique_songs}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
 
-          <h2 style={{ marginTop: '2rem' }}>States Visited</h2>
-          <p style={{ color: '#444' }}>{stats.statesVisited.join(', ')}</p>
+              <h2 style={{ marginTop: '2rem' }}>States Visited</h2>
+              <p style={{ color: '#444' }}>{stats.statesVisited.join(', ')}</p>
 
-          <h2 style={{ marginTop: '2rem' }}>Venues</h2>
-          <ul style={{ columns: 2, columnGap: '1rem', padding: 0, listStyle: 'none' }}>
-            {stats.venuesVisited.map(v => (
-              <li key={v} style={{ padding: '2px 0', fontSize: '0.9rem', color: '#444' }}>{v}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
+              <h2 style={{ marginTop: '2rem' }}>Venues</h2>
+              <ul style={{ columns: 2, columnGap: '1rem', padding: 0, listStyle: 'none' }}>
+                {stats.venuesVisited.map(v => (
+                  <li key={v} style={{ padding: '2px 0', fontSize: '0.9rem', color: '#444' }}>{v}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Jamchart Analysis Section */}
       {(jamSongs.length > 0 || jamYears.length > 0) && (
@@ -360,8 +370,8 @@ function App() {
         </div>
       )}
 
-      {/* Visualization Section */}
-      {hasCompareData && (
+      {/* Visualization Section (hidden in public mode) */}
+      {!isPublic && hasCompareData && (
         <div>
           <h2 style={{ marginBottom: '0.5rem' }}>User Comparisons</h2>
 

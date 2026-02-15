@@ -4,8 +4,11 @@ import react from '@vitejs/plugin-react'
 import path from 'path'
 import { sqliteApiPlugin } from './src/server/sqlite-plugin'
 
+const isPublic = process.env.VITE_PUBLIC_MODE === 'true'
+
 export default defineConfig({
-  plugins: [react(), sqliteApiPlugin()],
+  base: isPublic ? '/phstats/' : '/',
+  plugins: isPublic ? [react()] : [react(), sqliteApiPlugin()],
   resolve: {
     alias: {
       '@core': path.resolve(__dirname, './src/core'),
