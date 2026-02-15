@@ -1,5 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
 import SongHeatmap from './SongHeatmap'
+import SongScatter from './SongScatter'
+import ShowTimeline from './ShowTimeline'
+import YearCompare from './YearCompare'
+import RadarChart from './RadarChart'
+import SongGaps from './SongGaps'
+import JamVehicleScatter from './JamVehicleScatter'
+import JamchartPositionMap from './JamchartPositionMap'
+import JamchartRankings from './JamchartRankings'
+import SongDeepDive from './SongDeepDive'
 
 interface Stats {
   username: string
@@ -41,6 +50,47 @@ interface CompareData {
   matrix: HeatmapRow[]
 }
 
+interface ShowRecord {
+  username: string
+  date: string
+  venue: string
+  city: string
+  state: string
+}
+
+interface JamSong {
+  song_name: string
+  total_shows: number
+  jamchart_count: number
+  jamchart_pct: number
+}
+
+interface JamPosition {
+  set_label: string
+  position: number
+  total: number
+  jamcharts: number
+}
+
+type VizTab = 'heatmap' | 'scatter' | 'timeline' | 'years' | 'radar' | 'gaps'
+type JamTab = 'vehicles' | 'positions' | 'rankings' | 'deep-dive'
+
+const VIZ_TABS: { key: VizTab; label: string }[] = [
+  { key: 'heatmap', label: 'Song Treemap' },
+  { key: 'scatter', label: 'Taste Scatter' },
+  { key: 'timeline', label: 'Show Timeline' },
+  { key: 'years', label: 'Year Compare' },
+  { key: 'radar', label: 'Stat Radar' },
+  { key: 'gaps', label: 'Song Gaps' },
+]
+
+const JAM_TABS: { key: JamTab; label: string }[] = [
+  { key: 'vehicles', label: 'Jam Vehicles' },
+  { key: 'positions', label: 'Set Position Map' },
+  { key: 'rankings', label: 'Rankings' },
+  { key: 'deep-dive', label: 'Song Deep Dive' },
+]
+
 function App() {
   const [activeUser, setActiveUser] = useState('someguyorwhatever')
   const [users, setUsers] = useState<User[]>([])
@@ -48,6 +98,14 @@ function App() {
   const [topSongs, setTopSongs] = useState<TopSong[]>([])
   const [yearStats, setYearStats] = useState<YearStat[]>([])
   const [compareData, setCompareData] = useState<CompareData | null>(null)
+  const [allShows, setAllShows] = useState<ShowRecord[]>([])
+  const [allStats, setAllStats] = useState<Stats[]>([])
+  const [activeViz, setActiveViz] = useState<VizTab>('heatmap')
+  const [activeJam, setActiveJam] = useState<JamTab>('vehicles')
+  const [jamSongs, setJamSongs] = useState<JamSong[]>([])
+  const [jamPositions, setJamPositions] = useState<JamPosition[]>([])
+  const [jamYear, setJamYear] = useState('all')
+  const [jamYears, setJamYears] = useState<number[]>([])
   const [error, setError] = useState<string | null>(null)
 
   // Fetch user list
@@ -86,14 +144,44 @@ function App() {
     fetchData()
   }, [fetchData])
 
-  // Fetch comparison heatmap when we have 2+ users
+  // Fetch available jamchart years on mount
+  useEffect(() => {
+    fetch('/api/jamchart-years')
+      .then(r => r.ok ? r.json() : [])
+      .then(setJamYears)
+      .catch(() => {})
+  }, [])
+
+  // Fetch jamchart data (not user-specific), re-fetch when year changes
+  useEffect(() => {
+    const yearParam = jamYear === 'all' ? '' : `?year=${jamYear}`
+    Promise.all([
+      fetch(`/api/jamchart-songs${yearParam}`).then(r => r.ok ? r.json() : []),
+      fetch(`/api/jamchart-positions${yearParam}`).then(r => r.ok ? r.json() : []),
+    ]).then(([songs, positions]) => {
+      setJamSongs(songs)
+      setJamPositions(positions)
+    }).catch(() => {})
+  }, [jamYear])
+
+  // Fetch comparison data when we have 2+ users
   useEffect(() => {
     if (users.length < 2) return
+
     const params = users.map(u => `user=${encodeURIComponent(u.username)}`).join('&')
-    fetch(`/api/compare-songs?${params}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(setCompareData)
-      .catch(() => {})
+
+    // Fetch compare songs + all shows + per-user stats in parallel
+    Promise.all([
+      fetch(`/api/compare-songs?${params}`).then(r => r.ok ? r.json() : null),
+      fetch('/api/all-shows').then(r => r.ok ? r.json() : []),
+      ...users.map(u =>
+        fetch(`/api/stats?username=${encodeURIComponent(u.username)}`).then(r => r.ok ? r.json() : null)
+      ),
+    ]).then(([compare, shows, ...userStats]) => {
+      setCompareData(compare)
+      setAllShows(shows)
+      setAllStats(userStats.filter(Boolean))
+    }).catch(() => {})
   }, [users])
 
   if (error) {
@@ -113,6 +201,8 @@ function App() {
       </div>
     )
   }
+
+  const hasCompareData = compareData && compareData.usernames.length >= 2
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'system-ui', maxWidth: '1400px', margin: '0 auto' }}>
@@ -144,8 +234,8 @@ function App() {
         <StatCard label="Unique Songs" value={stats.uniqueSongs} />
         <StatCard label="States" value={stats.statesVisited.length} />
         <StatCard label="Venues" value={stats.venuesVisited.length} />
-        <StatCard label="First Show" value={stats.firstShow ?? '—'} />
-        <StatCard label="Last Show" value={stats.lastShow ?? '—'} />
+        <StatCard label="First Show" value={stats.firstShow ?? '\u2014'} />
+        <StatCard label="Last Show" value={stats.lastShow ?? '\u2014'} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
@@ -206,14 +296,120 @@ function App() {
         </div>
       </div>
 
-      {compareData && compareData.usernames.length >= 2 && (
-        <div>
-          <h2>Song Comparison Heatmap</h2>
-          <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '1rem' }}>
-            Shows each song was seen by each user. Hover cells for details.
+      {/* Jamchart Analysis Section */}
+      {(jamSongs.length > 0 || jamYears.length > 0) && (
+        <div style={{ marginBottom: '3rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+            <h2 style={{ margin: 0 }}>Jamchart Analysis</h2>
+            <label style={{ fontSize: '0.85rem', color: '#666' }}>
+              Year:
+              <select
+                value={jamYear}
+                onChange={e => setJamYear(e.target.value)}
+                style={{ marginLeft: '0.5rem', padding: '0.3rem', fontSize: '0.85rem' }}
+              >
+                <option value="all">All Time (3.0)</option>
+                {jamYears.map(y => (
+                  <option key={y} value={String(y)}>{y}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <p style={{ color: '#888', fontSize: '0.85rem', margin: '0 0 1rem' }}>
+            {jamYear === 'all' ? 'All Phish 3.0 shows (2009\u2013present)' : `Shows from ${jamYear}`} \u2014 {jamSongs.length} songs in the database.
           </p>
-          <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: '80vh' }}>
-            <SongHeatmap usernames={compareData.usernames} matrix={compareData.matrix} />
+
+          <div style={{
+            display: 'flex', gap: '0', borderBottom: '2px solid #e5e7eb', marginBottom: '1.5rem',
+          }}>
+            {JAM_TABS.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveJam(tab.key)}
+                style={{
+                  padding: '0.6rem 1.2rem',
+                  fontSize: '0.9rem',
+                  border: 'none',
+                  borderBottom: activeJam === tab.key ? '3px solid #ef4444' : '3px solid transparent',
+                  background: 'none',
+                  color: activeJam === tab.key ? '#ef4444' : '#666',
+                  fontWeight: activeJam === tab.key ? '600' : '400',
+                  cursor: 'pointer',
+                  marginBottom: '-2px',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ overflowX: 'auto' }}>
+            {activeJam === 'vehicles' && (
+              <JamVehicleScatter songs={jamSongs} />
+            )}
+            {activeJam === 'positions' && (
+              <JamchartPositionMap data={jamPositions} />
+            )}
+            {activeJam === 'rankings' && (
+              <JamchartRankings songs={jamSongs} />
+            )}
+            {activeJam === 'deep-dive' && (
+              <SongDeepDive year={jamYear} />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Visualization Section */}
+      {hasCompareData && (
+        <div>
+          <h2 style={{ marginBottom: '0.5rem' }}>User Comparisons</h2>
+
+          {/* Tab bar */}
+          <div style={{
+            display: 'flex', gap: '0', borderBottom: '2px solid #e5e7eb', marginBottom: '1.5rem',
+          }}>
+            {VIZ_TABS.map(tab => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveViz(tab.key)}
+                style={{
+                  padding: '0.6rem 1.2rem',
+                  fontSize: '0.9rem',
+                  border: 'none',
+                  borderBottom: activeViz === tab.key ? '3px solid #2563eb' : '3px solid transparent',
+                  background: 'none',
+                  color: activeViz === tab.key ? '#2563eb' : '#666',
+                  fontWeight: activeViz === tab.key ? '600' : '400',
+                  cursor: 'pointer',
+                  marginBottom: '-2px',
+                }}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Active visualization */}
+          <div style={{ overflowX: 'auto' }}>
+            {activeViz === 'heatmap' && (
+              <SongHeatmap allUsernames={compareData!.usernames} matrix={compareData!.matrix} />
+            )}
+            {activeViz === 'scatter' && (
+              <SongScatter allUsernames={compareData!.usernames} matrix={compareData!.matrix} />
+            )}
+            {activeViz === 'timeline' && allShows.length > 0 && (
+              <ShowTimeline allShows={allShows} allUsernames={compareData!.usernames} />
+            )}
+            {activeViz === 'years' && allShows.length > 0 && (
+              <YearCompare allShows={allShows} allUsernames={compareData!.usernames} />
+            )}
+            {activeViz === 'radar' && allStats.length > 0 && (
+              <RadarChart userSummaries={allStats} />
+            )}
+            {activeViz === 'gaps' && (
+              <SongGaps allUsernames={compareData!.usernames} matrix={compareData!.matrix} />
+            )}
           </div>
         </div>
       )}
