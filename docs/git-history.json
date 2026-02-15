@@ -1,5 +1,45 @@
 [
   {
+    "hash": "653ed0980fe8788c70016933782d7eba6f187fab",
+    "short_hash": "653ed09",
+    "author": "Robert Grayson",
+    "date": "2026-02-15T15:11:05-05:00",
+    "message": "feat: mobile-only UI — hide desktop chrome, add year picker and Joyride tour\n\nOn mobile (≤768px), hides header, Take Tour button, PhanGraphs link,\n\"Jamchart Analysis\" heading, tab bar, and description. Renders only\nSongDeepDiveMobile with integrated year picker in the sticky header.\nAdds a 6-step mobile Joyride tour covering year picker, song picker,\nsort pills, baseball card, filter pills, and performance cards.\nAlso defaults mobile to Jamcharts filter and removes Has Clip filter.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "fb07b86253785d69fce93e4590c0bd8fe64fa909",
+    "short_hash": "fb07b86",
+    "author": "Robert Grayson",
+    "date": "2026-02-15T14:05:09-05:00",
+    "message": "feat: link all 144 PJJ songs to song_tracks (up from top 25)\n\nRemove TOP_25 filter, add 6 remaining song name mappings.\n2,756 jams imported, 2,621 song_tracks rows now have jam_url.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "9f70a3d00fb33493e8f4d696fe02ecad01b4bcd6",
+    "short_hash": "9f70a3d",
+    "author": "Robert Grayson",
+    "date": "2026-02-15T13:37:21-05:00",
+    "message": "feat: add jam clip playback to Song Deep Dive chart\n\n- Add jam_url field to TrackRow (denormalized from pjj_jams)\n- Green play triangles on chart dots that have PJJ jam clips\n- Click any dot with a jam to stream audio from PhishJustJams\n- Fixed-bottom mini player bar with stop button and song/date info\n- Tooltip shows \"Click to play jam clip\" hint for available jams\n- Legend updated with play icon indicator\n- 1,698 of 13,624 tracks have jam clips (top 25 songs)\n- Update import script to denormalize jam_url into song_tracks\n- Re-export tracks.json with jam_url field\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 5
+  },
+  {
+    "hash": "d51b69caf1f24faf608f2712dd914a3156cc0239",
+    "short_hash": "d51b69c",
+    "author": "Robert Grayson",
+    "date": "2026-02-15T13:30:46-05:00",
+    "message": "feat: add PJJ jam import script with normalized SQLite schema\n\nImports PhishJustJams CSV data into 4 normalized tables:\n- pjj_jams: 1775 jam clips (top 25 songs, 2009+)\n- pjj_tags: 39 tag definitions across both playlist CSVs\n- pjj_jam_tags: many-to-many join (2403 links)\n- pjj_song_map: PJJ abbreviation → song_tracks full name\n\n93% of jams link to existing song_tracks via date+name join.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "af4833d2a9372fd66605f2c180d6ef2ee6298829",
+    "short_hash": "af4833d",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T23:41:17-05:00",
+    "message": "chore: deciduous sync after aggregation enhancement\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
     "hash": "018feb102ed13099b5713dae49bd478e2f31497f",
     "short_hash": "018feb1",
     "author": "Robert Grayson",

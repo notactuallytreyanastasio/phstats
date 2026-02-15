@@ -2188,6 +2188,149 @@
       "created_at": "2026-02-14T23:40:36.138907-05:00",
       "updated_at": "2026-02-14T23:40:36.138907-05:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"018feb1\",\"confidence\":95}"
+    },
+    {
+      "id": 200,
+      "change_id": "8553b63e-6e18-4a7d-afca-ce878d0d1e2d",
+      "node_type": "outcome",
+      "title": "Barrel exports + deciduous sync complete",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-14T23:41:21.124669-05:00",
+      "updated_at": "2026-02-14T23:41:21.124669-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"af4833d\",\"confidence\":95}"
+    },
+    {
+      "id": 201,
+      "change_id": "bbca762b-bb76-4681-9aab-a8f31c9064a1",
+      "node_type": "goal",
+      "title": "Import PJJ jam data into SQLite",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T13:26:38.697894-05:00",
+      "updated_at": "2026-02-15T13:26:38.697894-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"we have some data to load into SQLite. We are going to incorporate the markations of when the jams were in the duration of the song. we are also going to allow mousing over a show to have a play button that will start the jam so people can find them. this will be for the song deep dive view of the application. let's hash this out. here are the files /Users/robertgrayson/Downloads/PJJTrackList - Playlists 1.csv /Users/robertgrayson/Downloads/PJJTrackList - Playlists 2.csv are the data sides. then, we can get the URLs to make the MP3 be streamable like so https://www.phishjustjams.com/?play=ph_jams13_000.mp3 or we can go to a specific song like this. you will need to figure out how to get the individual songs\\n\\nmake sure to log ALL this in deciduous, and save it to SQLite to link EVERYTHING we have -- but remember, only scrape / produce the links for 2009 on\\n\\ntake the CSV files and just prep them into SQLite and then you will make proper relationships and indexes and uniqueness and join tables etc\\n\\nlog to deciduous and keep all these deets!\"}"
+    },
+    {
+      "id": 202,
+      "change_id": "45143b77-078e-49b7-9886-2eb7e2a92541",
+      "node_type": "action",
+      "title": "Create PJJ SQLite schema and import top 25 songs",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T13:28:36.761626-05:00",
+      "updated_at": "2026-02-15T13:28:36.761626-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 203,
+      "change_id": "b66382a5-80e3-4509-a105-f5243160a74c",
+      "node_type": "outcome",
+      "title": "PJJ top 25 imported: 1775 jams, 39 tags, 93% linked to song_tracks",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T13:30:19.619994-05:00",
+      "updated_at": "2026-02-15T13:30:19.619994-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 204,
+      "change_id": "eed274d2-9d7a-4d65-992a-93d750afabaa",
+      "node_type": "action",
+      "title": "Committed PJJ import script",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T13:30:52.660337-05:00",
+      "updated_at": "2026-02-15T13:30:52.660337-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"d51b69c\",\"confidence\":95}"
+    },
+    {
+      "id": 205,
+      "change_id": "dbac6148-2044-4b1d-8243-3aa2465bf5ba",
+      "node_type": "action",
+      "title": "Add PJJ jam playback to Song Deep Dive chart",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T13:33:30.496599-05:00",
+      "updated_at": "2026-02-15T13:33:30.496599-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 206,
+      "change_id": "680212c8-8069-42cb-801d-1f9b0d120cb7",
+      "node_type": "outcome",
+      "title": "Jam playback committed — 1698 tracks with play buttons",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T13:37:27.818509-05:00",
+      "updated_at": "2026-02-15T13:37:27.818509-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"9f70a3d\",\"confidence\":95}"
+    },
+    {
+      "id": 207,
+      "change_id": "24072c67-21ab-4806-86a5-7d293f9ae103",
+      "node_type": "action",
+      "title": "Link all 144 PJJ songs",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T14:05:24.920522-05:00",
+      "updated_at": "2026-02-15T14:05:24.920522-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"fb07b86\",\"confidence\":95}"
+    },
+    {
+      "id": 208,
+      "change_id": "034faaf4-f7cd-494d-abf2-963fa849f348",
+      "node_type": "outcome",
+      "title": "All 144 PJJ songs linked: 2756 jams, 2621 song_tracks with jam_url",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T14:05:40.387295-05:00",
+      "updated_at": "2026-02-15T14:05:40.387295-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 209,
+      "change_id": "bb9e8c78-bc68-455d-8439-4a179adc0091",
+      "node_type": "goal",
+      "title": "Mobile Song Deep Dive",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T14:56:45.075980-05:00",
+      "updated_at": "2026-02-15T14:56:45.075980-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"now lets make a mobile friendly version of this...it should be optimized for iphones. it will be just the song deep dives, hopefully still have something resembling a chart, and allow the click and play based off these rankings etc too in an interactive way. you can kind of freestyle it\"}"
+    },
+    {
+      "id": 210,
+      "change_id": "aee34b14-2795-4f2e-9fa2-b9efce53a88c",
+      "node_type": "action",
+      "title": "Build SongDeepDiveMobile component",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T14:57:05.059256-05:00",
+      "updated_at": "2026-02-15T14:57:05.059256-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 211,
+      "change_id": "2b6cb6a3-4a56-4964-8e5b-3b9fc2187719",
+      "node_type": "action",
+      "title": "Hide desktop chrome on mobile, add year picker and Joyride tour to mobile component",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T15:10:38.849361-05:00",
+      "updated_at": "2026-02-15T15:10:38.849361-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"files\":[\"src/shell/components/App.tsx\",\"src/shell/components/SongDeepDiveMobile.tsx\"]}"
+    },
+    {
+      "id": 212,
+      "change_id": "36531762-4c23-4d50-a2d2-9a0073b4fb49",
+      "node_type": "outcome",
+      "title": "Mobile UI complete: desktop chrome hidden, year picker + Joyride tour added",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T15:11:12.256594-05:00",
+      "updated_at": "2026-02-15T15:11:12.256594-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"653ed09\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -4511,6 +4654,248 @@
       "weight": 1.0,
       "rationale": "Implementation complete",
       "created_at": "2026-02-14T23:40:36.144628-05:00"
+    },
+    {
+      "id": 213,
+      "from_node_id": 186,
+      "to_node_id": 200,
+      "from_change_id": "9176b49b-69bc-4368-b36f-22e6c1b62ca7",
+      "to_change_id": "8553b63e-6e18-4a7d-afca-ce878d0d1e2d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Enhancement plan complete",
+      "created_at": "2026-02-14T23:41:21.131984-05:00"
+    },
+    {
+      "id": 214,
+      "from_node_id": 201,
+      "to_node_id": 202,
+      "from_change_id": "bbca762b-bb76-4681-9aab-a8f31c9064a1",
+      "to_change_id": "45143b77-078e-49b7-9886-2eb7e2a92541",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-15T13:28:41.111960-05:00"
+    },
+    {
+      "id": 215,
+      "from_node_id": 202,
+      "to_node_id": 203,
+      "from_change_id": "45143b77-078e-49b7-9886-2eb7e2a92541",
+      "to_change_id": "b66382a5-80e3-4509-a105-f5243160a74c",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Import succeeded",
+      "created_at": "2026-02-15T13:30:23.450511-05:00"
+    },
+    {
+      "id": 216,
+      "from_node_id": 203,
+      "to_node_id": 204,
+      "from_change_id": "b66382a5-80e3-4509-a105-f5243160a74c",
+      "to_change_id": "eed274d2-9d7a-4d65-992a-93d750afabaa",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-02-15T13:30:57.082513-05:00"
+    },
+    {
+      "id": 217,
+      "from_node_id": 201,
+      "to_node_id": 205,
+      "from_change_id": "bbca762b-bb76-4681-9aab-a8f31c9064a1",
+      "to_change_id": "dbac6148-2044-4b1d-8243-3aa2465bf5ba",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "UI implementation",
+      "created_at": "2026-02-15T13:33:30.510998-05:00"
+    },
+    {
+      "id": 218,
+      "from_node_id": 205,
+      "to_node_id": 206,
+      "from_change_id": "dbac6148-2044-4b1d-8243-3aa2465bf5ba",
+      "to_change_id": "680212c8-8069-42cb-801d-1f9b0d120cb7",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Committed",
+      "created_at": "2026-02-15T13:37:27.832791-05:00"
+    },
+    {
+      "id": 219,
+      "from_node_id": 207,
+      "to_node_id": 208,
+      "from_change_id": "24072c67-21ab-4806-86a5-7d293f9ae103",
+      "to_change_id": "034faaf4-f7cd-494d-abf2-963fa849f348",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Completed",
+      "created_at": "2026-02-15T14:05:40.394290-05:00"
+    },
+    {
+      "id": 220,
+      "from_node_id": 209,
+      "to_node_id": 210,
+      "from_change_id": "bb9e8c78-bc68-455d-8439-4a179adc0091",
+      "to_change_id": "aee34b14-2795-4f2e-9fa2-b9efce53a88c",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-15T14:57:05.065509-05:00"
+    },
+    {
+      "id": 221,
+      "from_node_id": 1,
+      "to_node_id": 122,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "1b57c393-b7a7-400a-89d0-a50a68ef1025",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Visualization improvement",
+      "created_at": "2026-02-15T15:09:43.897840-05:00"
+    },
+    {
+      "id": 222,
+      "from_node_id": 1,
+      "to_node_id": 123,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "4e32b8ed-5d7c-426d-a359-d004733dfb3d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Visualization components",
+      "created_at": "2026-02-15T15:09:43.905542-05:00"
+    },
+    {
+      "id": 223,
+      "from_node_id": 1,
+      "to_node_id": 124,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "ca538eb2-0a04-4ebf-bdc5-780660984b94",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Song deep-dive feature",
+      "created_at": "2026-02-15T15:09:43.912213-05:00"
+    },
+    {
+      "id": 224,
+      "from_node_id": 1,
+      "to_node_id": 137,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "60b62863-6a63-4420-bbf0-bb1419e16350",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Deployment",
+      "created_at": "2026-02-15T15:09:43.918806-05:00"
+    },
+    {
+      "id": 225,
+      "from_node_id": 1,
+      "to_node_id": 143,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "b09b224d-96c9-4c7a-b8df-df92e64f6a4a",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "UX onboarding",
+      "created_at": "2026-02-15T15:09:43.924236-05:00"
+    },
+    {
+      "id": 226,
+      "from_node_id": 1,
+      "to_node_id": 149,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "fbdec6ae-2f12-4902-bc89-9d81c856f02c",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Shareable links",
+      "created_at": "2026-02-15T15:09:43.929930-05:00"
+    },
+    {
+      "id": 227,
+      "from_node_id": 1,
+      "to_node_id": 151,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "4b4f5df1-9059-4b7f-a00b-ae65e3c1700b",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "New visualization tabs",
+      "created_at": "2026-02-15T15:09:43.935923-05:00"
+    },
+    {
+      "id": 228,
+      "from_node_id": 1,
+      "to_node_id": 165,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "38b530ff-7757-4a7a-917e-7769dfc08097",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Sabermetrics feature",
+      "created_at": "2026-02-15T15:09:43.941983-05:00"
+    },
+    {
+      "id": 229,
+      "from_node_id": 1,
+      "to_node_id": 186,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "9176b49b-69bc-4368-b36f-22e6c1b62ca7",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "PhanGraphs enhancements",
+      "created_at": "2026-02-15T15:09:43.947816-05:00"
+    },
+    {
+      "id": 230,
+      "from_node_id": 1,
+      "to_node_id": 201,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "bbca762b-bb76-4681-9aab-a8f31c9064a1",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Jam data import",
+      "created_at": "2026-02-15T15:09:43.952860-05:00"
+    },
+    {
+      "id": 231,
+      "from_node_id": 1,
+      "to_node_id": 207,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "24072c67-21ab-4806-86a5-7d293f9ae103",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "PJJ song linking",
+      "created_at": "2026-02-15T15:09:43.957950-05:00"
+    },
+    {
+      "id": 232,
+      "from_node_id": 1,
+      "to_node_id": 209,
+      "from_change_id": "483320b9-c4df-47ff-ac12-58ab69b69ad3",
+      "to_change_id": "bb9e8c78-bc68-455d-8439-4a179adc0091",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Mobile support",
+      "created_at": "2026-02-15T15:09:43.963597-05:00"
+    },
+    {
+      "id": 233,
+      "from_node_id": 209,
+      "to_node_id": 211,
+      "from_change_id": "bb9e8c78-bc68-455d-8439-4a179adc0091",
+      "to_change_id": "2b6cb6a3-4a56-4964-8e5b-3b9fc2187719",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation of mobile-only UI",
+      "created_at": "2026-02-15T15:10:42.766237-05:00"
+    },
+    {
+      "id": 234,
+      "from_node_id": 211,
+      "to_node_id": 212,
+      "from_change_id": "2b6cb6a3-4a56-4964-8e5b-3b9fc2187719",
+      "to_change_id": "36531762-4c23-4d50-a2d2-9a0073b4fb49",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-15T15:11:12.263678-05:00"
     }
   ]
 }
