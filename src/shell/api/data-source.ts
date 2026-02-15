@@ -37,6 +37,12 @@ export async function fetchSongList(year: string): Promise<any[]> {
   return fetchJson(`/api/song-list${param}`) ?? []
 }
 
+export async function fetchShowHeat(year: string): Promise<any[]> {
+  if (isPublic) return staticQ.queryShowHeat(year)
+  const param = year === 'all' ? '' : `?year=${year}`
+  return fetchJson(`/api/show-heat${param}`) ?? []
+}
+
 export async function fetchSongHistory(song: string, year: string): Promise<any> {
   if (isPublic) return staticQ.querySongHistory(song, year)
   const yearParam = year === 'all' ? '' : `&year=${year}`

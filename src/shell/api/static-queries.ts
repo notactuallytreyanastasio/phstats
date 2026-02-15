@@ -96,6 +96,37 @@ export async function queryJamchartPositions(year: string): Promise<any[]> {
     .sort((a, b) => a.set_label.localeCompare(b.set_label) || a.position - b.position)
 }
 
+export async function queryShowHeat(year: string): Promise<any[]> {
+  const tracks = filterByYear(await loadTracks(), year)
+
+  const byShow = new Map<string, { total: number; jc: number; durMs: number; jamDurMs: number; venue: string; location: string }>()
+  for (const t of tracks) {
+    let entry = byShow.get(t.show_date)
+    if (!entry) {
+      entry = { total: 0, jc: 0, durMs: 0, jamDurMs: 0, venue: t.venue, location: t.location }
+      byShow.set(t.show_date, entry)
+    }
+    entry.total++
+    entry.durMs += t.duration_ms
+    if (t.is_jamchart) {
+      entry.jc++
+      entry.jamDurMs += t.duration_ms
+    }
+  }
+
+  return [...byShow.entries()]
+    .map(([date, v]) => ({
+      show_date: date,
+      total_tracks: v.total,
+      jamchart_count: v.jc,
+      total_duration_ms: v.durMs,
+      jam_duration_ms: v.jamDurMs,
+      venue: v.venue,
+      location: v.location,
+    }))
+    .sort((a, b) => a.show_date.localeCompare(b.show_date))
+}
+
 export async function querySongList(year: string): Promise<any[]> {
   const tracks = filterByYear(await loadTracks(), year)
 

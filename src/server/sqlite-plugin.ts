@@ -62,6 +62,11 @@ export function sqliteApiPlugin(): Plugin {
             const data = queryJamchartPositions(db, year)
             res.writeHead(200, { 'Content-Type': 'application/json' })
             res.end(JSON.stringify(data))
+          } else if (req.url.startsWith('/api/show-heat')) {
+            const year = url.searchParams.get('year') || 'all'
+            const data = queryShowHeat(db, year)
+            res.writeHead(200, { 'Content-Type': 'application/json' })
+            res.end(JSON.stringify(data))
           } else if (req.url.startsWith('/api/song-list')) {
             const year = url.searchParams.get('year') || 'all'
             const data = querySongList(db, year)
@@ -218,6 +223,24 @@ function queryJamchartPositions(db: Database.Database, year: string) {
     ${where}
     GROUP BY set_name, position
     ORDER BY set_name, position
+  `).all(...params)
+}
+
+function queryShowHeat(db: Database.Database, year: string) {
+  const where = year === 'all' ? '' : `WHERE substr(show_date, 1, 4) = ?`
+  const params = year === 'all' ? [] : [year]
+  return db.prepare(`
+    SELECT show_date,
+      COUNT(*) as total_tracks,
+      SUM(is_jamchart) as jamchart_count,
+      SUM(duration_ms) as total_duration_ms,
+      SUM(CASE WHEN is_jamchart THEN duration_ms ELSE 0 END) as jam_duration_ms,
+      MAX(venue) as venue,
+      MAX(location) as location
+    FROM song_tracks
+    ${where}
+    GROUP BY show_date
+    ORDER BY show_date
   `).all(...params)
 }
 

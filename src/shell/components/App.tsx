@@ -10,6 +10,7 @@ import SongGaps from './SongGaps'
 import JamVehicleScatter from './JamVehicleScatter'
 import JamchartPositionMap from './JamchartPositionMap'
 import JamchartRankings from './JamchartRankings'
+import ShowHeatCalendar from './ShowHeatCalendar'
 import SongDeepDive from './SongDeepDive'
 import * as dataSource from '../api/data-source'
 
@@ -79,7 +80,7 @@ interface JamPosition {
 }
 
 type VizTab = 'heatmap' | 'scatter' | 'timeline' | 'years' | 'radar' | 'gaps'
-type JamTab = 'vehicles' | 'positions' | 'rankings' | 'deep-dive'
+type JamTab = 'vehicles' | 'heat-calendar' | 'positions' | 'rankings' | 'deep-dive'
 
 const VIZ_TABS: { key: VizTab; label: string }[] = [
   { key: 'heatmap', label: 'Song Treemap' },
@@ -92,7 +93,8 @@ const VIZ_TABS: { key: VizTab; label: string }[] = [
 
 const JAM_TABS: { key: JamTab; label: string }[] = [
   { key: 'vehicles', label: 'Jam Vehicles' },
-  { key: 'positions', label: 'Set Position Map' },
+  { key: 'heat-calendar', label: 'Show Heat' },
+  { key: 'positions', label: 'Set Positions' },
   { key: 'rankings', label: 'Rankings' },
   { key: 'deep-dive', label: 'Song Deep Dive' },
 ]
@@ -145,8 +147,14 @@ function App() {
       placement: 'bottom',
     },
     {
+      target: '[data-tour="tab-heat-calendar"]',
+      title: 'Show Heat Calendar',
+      content: 'GitHub-style heatmap of every Phish 3.0 show. Each cell is a show date — darker red = more jamcharts that night. Instantly see which tours and runs were on fire. Color by jamchart count, rate, or total jam time.',
+      placement: 'bottom',
+    },
+    {
       target: '[data-tour="tab-positions"]',
-      title: 'Set Position Map',
+      title: 'Set Positions',
       content: 'Heatmap showing where in the setlist jams tend to land. Rows = sets, columns = slot position. Darker cells = more jamcharts in that spot.',
       placement: 'bottom',
     },
@@ -179,11 +187,12 @@ function App() {
   // Map step indices to the tab that should be active when that step shows
   const stepTabMap: Record<number, JamTab> = {
     2: 'vehicles',
-    3: 'positions',
-    4: 'rankings',
-    5: 'deep-dive',
+    3: 'heat-calendar',
+    4: 'positions',
+    5: 'rankings',
     6: 'deep-dive',
     7: 'deep-dive',
+    8: 'deep-dive',
   }
 
   function handleTourCallback(data: CallBackProps) {
@@ -492,6 +501,9 @@ function App() {
           <div style={{ overflowX: 'auto' }}>
             {activeJam === 'vehicles' && (
               <JamVehicleScatter songs={jamSongs} />
+            )}
+            {activeJam === 'heat-calendar' && (
+              <ShowHeatCalendar year={jamYear} />
             )}
             {activeJam === 'positions' && (
               <JamchartPositionMap data={jamPositions} />
