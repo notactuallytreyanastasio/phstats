@@ -323,6 +323,32 @@ function main() {
     console.log(`  ${s.jam_count.toString().padStart(4)}  ${s.pjj_name.padEnd(25)} → ${s.song_name}`)
   }
 
+  // Denormalize jam_url into song_tracks for direct access
+  const cols = db.prepare("PRAGMA table_info(song_tracks)").all() as { name: string }[]
+  if (!cols.some(c => c.name === 'jam_url')) {
+    db.exec(`ALTER TABLE song_tracks ADD COLUMN jam_url TEXT NOT NULL DEFAULT ''`)
+  } else {
+    db.exec(`UPDATE song_tracks SET jam_url = '' WHERE jam_url != ''`)
+  }
+  const denormalized = db.prepare(`
+    UPDATE song_tracks
+    SET jam_url = (
+      SELECT j.stream_url
+      FROM pjj_jams j
+      JOIN pjj_song_map m ON m.id = j.song_map_id
+      WHERE m.song_name = song_tracks.song_name
+        AND j.show_date = song_tracks.show_date
+      LIMIT 1
+    )
+    WHERE EXISTS (
+      SELECT 1 FROM pjj_jams j
+      JOIN pjj_song_map m ON m.id = j.song_map_id
+      WHERE m.song_name = song_tracks.song_name
+        AND j.show_date = song_tracks.show_date
+    )
+  `).run()
+  console.log(`\nDenormalized: ${denormalized.changes} song_tracks rows got jam_url`)
+
   db.close()
 }
 

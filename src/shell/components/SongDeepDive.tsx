@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react'
+import { useRef, useEffect, useState, useCallback } from 'react'
 import * as d3 from 'd3'
 import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
@@ -15,6 +15,7 @@ interface Track {
   jam_notes: string
   venue: string
   location: string
+  jam_url: string
 }
 
 interface SongHistory {
@@ -43,10 +44,12 @@ function fmtDuration(ms: number): string {
 export default function SongDeepDive({ year }: { year: string }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
+  const audioRef = useRef<HTMLAudioElement>(null)
   const [songList, setSongList] = useState<SongOption[]>([])
   const [selectedSong, setSelectedSong] = useState(() => getParam('song') || '')
   const [data, setData] = useState<SongHistory | null>(null)
   const [filter, setFilter] = useState('')
+  const [nowPlaying, setNowPlaying] = useState<{ url: string; date: string; song: string } | null>(null)
   const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>(() => {
     const s = getParam('sort')
     return s === 'jc' || s === 'played' ? s : 'avg'
@@ -55,6 +58,31 @@ export default function SongDeepDive({ year }: { year: string }) {
     const m = getParam('min')
     return m ? parseInt(m, 10) || 5 : 5
   })
+
+  const playJam = useCallback((url: string, date: string, song: string) => {
+    if (nowPlaying?.url === url) {
+      // Toggle pause/play
+      if (audioRef.current?.paused) {
+        audioRef.current.play()
+      } else {
+        audioRef.current?.pause()
+      }
+      return
+    }
+    setNowPlaying({ url, date, song })
+    if (audioRef.current) {
+      audioRef.current.src = url
+      audioRef.current.play()
+    }
+  }, [nowPlaying])
+
+  const stopPlayback = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.src = ''
+    }
+    setNowPlaying(null)
+  }, [])
 
   // Sync deep-dive state to URL params
   useEffect(() => {
@@ -169,6 +197,21 @@ export default function SongDeepDive({ year }: { year: string }) {
       .attr('stroke-width', t => t.is_jamchart ? 2 : 1.5)
       .style('cursor', 'pointer')
 
+    // Play icons on dots with jam URLs
+    const playTriangle = 'M-3,-4 L-3,4 L4,0 Z'
+    svg.selectAll('.jam-play')
+      .data(tracks.filter(t => t.jam_url))
+      .join('path')
+      .attr('class', 'jam-play')
+      .attr('d', playTriangle)
+      .attr('transform', t => {
+        const cx = x(parseDate(t.show_date)!)
+        const cy = y(t.duration_ms / 60000) + (t.is_jamchart ? 18 : 14)
+        return `translate(${cx},${cy})`
+      })
+      .attr('fill', '#22c55e').attr('opacity', 0.8)
+      .style('pointer-events', 'none')
+
     // Jamchart stars
     const starPath = 'M0,-8 L2,-3 L7,-3 L3,1 L5,6 L0,3 L-5,6 L-3,1 L-7,-3 L-2,-3 Z'
     svg.selectAll('.jc-star')
@@ -202,11 +245,15 @@ export default function SongDeepDive({ year }: { year: string }) {
         const jcBadge = t.is_jamchart
           ? '<strong style="color:#ef4444">&#9733; JAMCHART</strong><br/>'
           : ''
+        const jamBadge = t.jam_url
+          ? '<span style="color:#22c55e;font-size:11px">&#9654; Click to play jam clip</span><br/>'
+          : ''
         tip.innerHTML = `<strong>${esc(t.show_date)}</strong><br/>`
           + `${esc(t.venue)}<br/>`
           + `${esc(t.location)}<br/>`
           + `<br/>`
           + `${jcBadge}`
+          + `${jamBadge}`
           + `Duration: <strong>${dur}</strong><br/>`
           + `Set: ${esc(t.set_name)}, Position ${t.position}<br/>`
           + `Likes: ${t.likes}<br/>`
@@ -219,6 +266,11 @@ export default function SongDeepDive({ year }: { year: string }) {
       })
       .on('mouseleave', () => {
         if (tooltipRef.current) tooltipRef.current.style.display = 'none'
+      })
+      .on('click', (_event: MouseEvent, t) => {
+        if (t.jam_url) {
+          playJam(t.jam_url, t.show_date, t.song_name)
+        }
       })
 
     // X axis
@@ -272,6 +324,11 @@ export default function SongDeepDive({ year }: { year: string }) {
       .attr('fill', '#ef4444')
     svg.append('text').attr('x', legendX + 92).attr('y', legendY + 4)
       .style('font-size', '10px').style('fill', '#888').text('Jamchart')
+    svg.append('path').attr('d', playTriangle)
+      .attr('transform', `translate(${legendX + 150},${legendY}) scale(0.8)`)
+      .attr('fill', '#22c55e')
+    svg.append('text').attr('x', legendX + 160).attr('y', legendY + 4)
+      .style('font-size', '10px').style('fill', '#888').text('Has jam clip')
 
     // Annotate longest
     const longest = tracks.reduce((a, b) => a.duration_ms > b.duration_ms ? a : b)
@@ -304,7 +361,7 @@ export default function SongDeepDive({ year }: { year: string }) {
         `Total likes: ${totalLikes}`,
       ].join('    '))
 
-  }, [data])
+  }, [data, playJam])
 
   function battingAvg(s: SongOption): number {
     return s.times_played > 0 ? s.jamchart_count / s.times_played : 0
@@ -388,6 +445,34 @@ export default function SongDeepDive({ year }: { year: string }) {
         lineHeight: '1.5', pointerEvents: 'none', zIndex: 1000, maxWidth: 300,
         boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
       }} />
+      <audio ref={audioRef} onEnded={stopPlayback} />
+      {nowPlaying && (
+        <div style={{
+          position: 'fixed', bottom: 0, left: 0, right: 0,
+          background: '#1a1a2e', color: 'white', padding: '8px 16px',
+          display: 'flex', alignItems: 'center', gap: '12px',
+          boxShadow: '0 -2px 12px rgba(0,0,0,0.3)', zIndex: 1001,
+          fontSize: '13px',
+        }}>
+          <button
+            onClick={stopPlayback}
+            style={{
+              background: 'none', border: 'none', color: '#ef4444',
+              cursor: 'pointer', fontSize: '18px', padding: '0 4px',
+            }}
+            title="Stop"
+          >&#9632;</button>
+          <span style={{ color: '#22c55e' }}>&#9654;</span>
+          <span>
+            <strong>{nowPlaying.song}</strong>
+            {' '}
+            <span style={{ color: '#94a3b8' }}>{nowPlaying.date}</span>
+          </span>
+          <span style={{ color: '#64748b', fontSize: '11px', marginLeft: 'auto' }}>
+            via PhishJustJams
+          </span>
+        </div>
+      )}
     </div>
   )
 }

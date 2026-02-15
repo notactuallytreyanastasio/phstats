@@ -17,7 +17,7 @@ function main() {
 
   const tracks = db.prepare(`
     SELECT song_name, show_date, set_name, position, duration_ms,
-      likes, is_jamchart, jam_notes, venue, location
+      likes, is_jamchart, jam_notes, venue, location, jam_url
     FROM song_tracks
     ORDER BY show_date, set_name, position
   `).all()

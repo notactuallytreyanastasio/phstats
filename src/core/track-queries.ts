@@ -15,6 +15,7 @@ export interface TrackRow {
   jam_notes: string
   venue: string
   location: string
+  jam_url?: string
 }
 
 function filterByYear(tracks: TrackRow[], year: string): TrackRow[] {
