@@ -1,5 +1,77 @@
 [
   {
+    "hash": "6bcf996f29da0a7dffc6e4702b1271000d7c101c",
+    "short_hash": "6bcf996",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T22:45:15-05:00",
+    "message": "feat: WARSparkline D3 component in leaderboard\n\nTiny SVG sparkline showing WAR trend by year per song.\nGreen area fill for positive WAR, red for negative.\nEnd dot highlights most recent year.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "8c9e7a30d1e0769d08fd45cce2065e41f59218e4",
+    "short_hash": "8c9e7a3",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T22:44:02-05:00",
+    "message": "feat: React Router + PhanGraphs page with leaderboard\n\n- Install react-router-dom, add BrowserRouter to main.tsx\n- PhanGraphsPage with sortable leaderboard table, WAR heat coloring\n- usePhanGraphs hook: loads tracks, computes leaderboard, URL param sync\n- Filter controls: year range, set split, min plays/shows/JC\n- 404.html for GH Pages SPA routing\n- Nav link from main app to /phangraphs\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 7
+  },
+  {
+    "hash": "e1aa4634b56290796e50b97cb029bce4057ea5c0",
+    "short_hash": "e1aa463",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T22:41:39-05:00",
+    "message": "feat: Filters + leaderboard orchestrator (28 tests)\n\nFilters: year range, set split (set1/set2/set3/encore), positional\n(opener/closer via min/max position per set per show), qualification\nthresholds (min plays/shows/JC/minutes).\nLeaderboard: end-to-end pipeline TrackRow[] + filter → LeaderboardEntry[].\nBarrel export index.ts for all phangraphs modules.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 5
+  },
+  {
+    "hash": "911d51bd1698b063e0276c3ede4d17ccc055212e",
+    "short_hash": "911d51b",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T22:38:56-05:00",
+    "message": "feat: WAR + JIS computation (29 tests)\n\nWAR: 20th percentile replacement level per year, career/per-play/per-show WAR,\npeak year identification, yearly breakdown.\nJIS: Normalize per-performance PVS to 0-10 scale, per-song avg/peak/volatility.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "3dbddcf76ee9ec6e6f9918f14a5491393f8f65ec",
+    "short_hash": "3dbddcf",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T22:35:10-05:00",
+    "message": "test + implement PVS engine with all scoring components\n\nPerformance Value Score computed per-performance: z-score length\ncomponent (1.5x), jam bonus (JC+20min+25min), bustout value by\ngap tier, set leverage (opener/closer/encore with set multiplier),\nrun leverage (halloween/nye/dicks/festival/yemsg), rarity component.\nFull computeAllPVS orchestrator. 27 tests pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "449e99a93feadd7bb164cc937c66844df3a2b29c",
+    "short_hash": "449e99a",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T22:33:27-05:00",
+    "message": "test + implement rate-stats with median utility\n\nRate stats derived from counting stats: jam rate, 20+/25+ rate,\nbustout rate, plays/show, jam/show, avg/median length. Includes\nstandalone median function. 12 tests pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "94958fd7a71b638124b84d94228c7b6023e72089",
+    "short_hash": "94958fd",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T22:32:40-05:00",
+    "message": "test + implement counting-stats with bustout detection\n\nPer-song aggregation: shows appeared, times played, JC count,\n20+/25+ minute thresholds, total minutes, bustout counts by\nshow gap tiers (25+/50+/100+/250+), max/avg gap. 15 tests pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "2dc7a5b17d2cd29a2c5ba3d2e866c5b2564d7665",
+    "short_hash": "2dc7a5b",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T22:31:29-05:00",
+    "message": "test + implement run-classifier for show type detection\n\nClassify shows as halloween/nye/dicks/festival/yemsg/regular by\ndate and venue pattern matching. Priority chain ensures correct\nclassification (e.g. MSG on Dec 30 = NYE, not YEMSG). 20 tests pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "ee1f9c0e7ad6510cd2d7bda6b1cf92d8eee4a0ce",
+    "short_hash": "ee1f9c0",
+    "author": "Robert Grayson",
+    "date": "2026-02-14T22:30:33-05:00",
+    "message": "test + implement PhanGraphs types and show-index\n\nAdd type contracts for the entire PhanGraphs computation pipeline:\nShowIndex, RunType, BustoutTier, SongCountingStats, SongRateStats,\nPVS, WAR, JIS, LeaderboardEntry, PhanGraphsFilter. Implement\nbuildShowIndex for ordered show date indexing (gap computation).\n7 tests pass.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
     "hash": "9feacbf19a0de5b4c505226858d1c346c2a12149",
     "short_hash": "9feacbf",
     "author": "Robert Grayson",
