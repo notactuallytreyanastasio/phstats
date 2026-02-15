@@ -39,6 +39,16 @@ export const BUSTOUT_BONUS: Record<BustoutTier, number> = {
   historic: 2.5,
 }
 
+/** Tour identification */
+export interface TourInfo {
+  tourId: string
+  tourLabel: string
+  startDate: string
+  endDate: string
+  showCount: number
+  shows: string[]
+}
+
 /** Position within a multi-night venue run */
 export interface VenueRunInfo {
   venue: string
