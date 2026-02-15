@@ -73,14 +73,15 @@ async function main() {
     const shows = scrapeUserShows(showsHtml)
     console.log(`Found ${shows.length} shows`)
 
-    // Insert shows
+    // Insert shows — don't pass the scraper's sequential id; let SQLite auto-assign.
+    // UNIQUE(username, date) prevents duplicates across re-runs.
     const insertShow = db.prepare(`
-      INSERT OR REPLACE INTO shows (id, username, date, venue, city, state)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT OR IGNORE INTO shows (username, date, venue, city, state)
+      VALUES (?, ?, ?, ?, ?)
     `)
     const insertShows = db.transaction(() => {
       for (const show of shows) {
-        insertShow.run(show.id, USERNAME, show.date, show.venue, show.city, show.state)
+        insertShow.run(USERNAME, show.date, show.venue, show.city, show.state)
       }
     })
     insertShows()
