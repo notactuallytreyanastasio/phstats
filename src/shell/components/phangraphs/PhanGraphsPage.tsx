@@ -1,4 +1,5 @@
 import { usePhanGraphs } from '../../hooks/usePhanGraphs'
+import WARSparkline from './WARSparkline'
 import type { LeaderboardEntry, PhanGraphsFilter } from '../../../core/phangraphs/types'
 
 type SortColumn = 'war' | 'warPerPlay' | 'warPerShow' | 'avgJIS' | 'peakJIS' | 'timesPlayed' | 'jamRate' | 'jamchartCount'
@@ -144,6 +145,7 @@ function PhanGraphsPage() {
                   ))}
                   <th style={thStyle}>JIS Vol</th>
                   <th style={thStyle}>Peak Year</th>
+                  <th style={thStyle}>WAR Trend</th>
                 </tr>
               </thead>
               <tbody>
@@ -163,6 +165,9 @@ function PhanGraphsPage() {
                     <td style={tdStyle}>{entry.counting.jamchartCount}</td>
                     <td style={tdStyle}>{entry.jis.jisVolatility.toFixed(2)}</td>
                     <td style={tdStyle}>{entry.war.peakWARYear || '-'}</td>
+                    <td style={tdStyle}>
+                      <WARSparkline warByYear={entry.war.warByYear} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
