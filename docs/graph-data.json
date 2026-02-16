@@ -2364,6 +2364,149 @@
       "created_at": "2026-02-15T15:19:09.310250-05:00",
       "updated_at": "2026-02-15T15:19:09.310250-05:00",
       "metadata_json": "{\"branch\":\"main\",\"commit\":\"a18094b\",\"confidence\":95}"
+    },
+    {
+      "id": 216,
+      "change_id": "8753b14b-ec50-48ff-acf4-91c272e464de",
+      "node_type": "action",
+      "title": "Card back shows all jams scrollable, remove bottom section",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T15:21:10.846776-05:00",
+      "updated_at": "2026-02-15T15:21:10.846776-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85,\"files\":[\"src/shell/components/SongDeepDiveMobile.tsx\"]}"
+    },
+    {
+      "id": 217,
+      "change_id": "d115f9ec-5ded-4374-a636-9b0a068566e7",
+      "node_type": "outcome",
+      "title": "Card back scrollable with all jams, bottom section removed",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T15:24:03.229864-05:00",
+      "updated_at": "2026-02-15T15:24:03.229864-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"6b3e3e4\",\"confidence\":95}"
+    },
+    {
+      "id": 218,
+      "change_id": "662ecf19-5025-42bf-ac5f-cb99f09adfc4",
+      "node_type": "outcome",
+      "title": "Fixed card scroll + cleaned stale bundles",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T15:26:00.103136-05:00",
+      "updated_at": "2026-02-15T15:26:00.103136-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"307bd73\",\"confidence\":95}"
+    },
+    {
+      "id": 219,
+      "change_id": "4afcff52-67b8-4350-be08-fba19c71283b",
+      "node_type": "goal",
+      "title": "Port Song Deep Dive to Phoenix LiveView",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T16:51:16.434304-05:00",
+      "updated_at": "2026-02-15T16:51:16.434304-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85,\"prompt\":\"now, let's take all this deep dive song stuff with the jam integrations, and we are going to build an equivalent (styles and all) but with no react -- its going to be in ~/code/blog/ in Phoenix LiveView. I want it to be a piece on my personal site at /phish as a route\"}"
+    },
+    {
+      "id": 220,
+      "change_id": "0cf8baf3-d818-431b-af84-54135b0e64a9",
+      "node_type": "action",
+      "title": "Create migration, schema, seed, and context module",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T16:54:01.053371-05:00",
+      "updated_at": "2026-02-15T16:54:01.053371-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95,\"files\":[\"priv/repo/migrations/20260215215120_create_phish_tracks.exs\",\"lib/blog/phish/track.ex\",\"lib/blog/phish.ex\",\"priv/repo/seeds/phish_tracks.exs\"]}"
+    },
+    {
+      "id": 221,
+      "change_id": "37260817-49c4-4916-a4c3-1573fea5638a",
+      "node_type": "outcome",
+      "title": "Data layer complete: 13624 tracks seeded, context queries work",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T16:54:05.029569-05:00",
+      "updated_at": "2026-02-15T16:54:05.029569-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 222,
+      "change_id": "e3593175-8944-4689-b437-289780e89955",
+      "node_type": "action",
+      "title": "Create LiveView, route, template, JS hooks, CSS",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T16:54:15.599994-05:00",
+      "updated_at": "2026-02-15T16:54:15.599994-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":80,\"files\":[\"lib/blog_web/live/phish_live.ex\",\"lib/blog_web/live/phish_live.html.heex\",\"assets/js/hooks/phish_chart.js\",\"assets/js/hooks/phish_audio.js\",\"assets/css/app.css\",\"lib/blog_web/router.ex\"]}"
+    },
+    {
+      "id": 223,
+      "change_id": "aa8d563f-e91f-4428-b94b-2bd32858dcc3",
+      "node_type": "outcome",
+      "title": "LiveView renders at /phish - System 7 chrome, song picker populated, D3 hook wired",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T17:00:53.319798-05:00",
+      "updated_at": "2026-02-15T17:00:53.319798-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90}"
+    },
+    {
+      "id": 224,
+      "change_id": "c4025d0b-aab3-473a-9987-6cc263a32259",
+      "node_type": "goal",
+      "title": "Mobile card flip animation",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T17:31:36.002343-05:00",
+      "updated_at": "2026-02-15T17:31:36.002343-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"lets make the mobile card when tapped have a flip animation that makes it look like flipping a real card\"}"
+    },
+    {
+      "id": 225,
+      "change_id": "342334b1-dd83-413b-97d1-6a6b63a58e48",
+      "node_type": "action",
+      "title": "Add CSS 3D card flip animation",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-15T17:31:49.431595-05:00",
+      "updated_at": "2026-02-15T17:31:49.431595-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"files\":[\"src/shell/components/SongDeepDiveMobile.tsx\"]}"
+    },
+    {
+      "id": 226,
+      "change_id": "7211df65-437f-44ec-957c-b8ec095dcfbd",
+      "node_type": "goal",
+      "title": "Add card view toggle to desktop Song Deep Dive",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T11:18:53.791959-05:00",
+      "updated_at": "2026-02-16T11:18:53.791959-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"for desktop mode, make a button that gets rid of the graph in song deep dive and makes it be just like mobile with the flippable card for each song based on the criteria\"}"
+    },
+    {
+      "id": 227,
+      "change_id": "5790af4e-5ccc-42e7-9e3e-137c576d075f",
+      "node_type": "action",
+      "title": "Implement view toggle in SongDeepDive.tsx - add card view state and render mobile-style card when toggled",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T11:18:59.128072-05:00",
+      "updated_at": "2026-02-16T11:18:59.128072-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 228,
+      "change_id": "4ab38f7c-9aad-43f3-8cd4-91f40de4d1a6",
+      "node_type": "outcome",
+      "title": "Card view toggle implemented - Chart/Card button in controls, renders flippable baseball card with all stats, jam list, play buttons",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T11:23:24.328163-05:00",
+      "updated_at": "2026-02-16T11:23:24.328163-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -4962,6 +5105,116 @@
       "weight": 1.0,
       "rationale": "Implementation complete",
       "created_at": "2026-02-15T15:19:09.317319-05:00"
+    },
+    {
+      "id": 238,
+      "from_node_id": 213,
+      "to_node_id": 216,
+      "from_change_id": "7772174d-d87d-4368-9833-9cb5278b592a",
+      "to_change_id": "8753b14b-ec50-48ff-acf4-91c272e464de",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Refinement",
+      "created_at": "2026-02-15T15:21:10.853192-05:00"
+    },
+    {
+      "id": 239,
+      "from_node_id": 216,
+      "to_node_id": 217,
+      "from_change_id": "8753b14b-ec50-48ff-acf4-91c272e464de",
+      "to_change_id": "d115f9ec-5ded-4374-a636-9b0a068566e7",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-15T15:24:03.237714-05:00"
+    },
+    {
+      "id": 240,
+      "from_node_id": 216,
+      "to_node_id": 218,
+      "from_change_id": "8753b14b-ec50-48ff-acf4-91c272e464de",
+      "to_change_id": "662ecf19-5025-42bf-ac5f-cb99f09adfc4",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Deploy fix",
+      "created_at": "2026-02-15T15:26:00.109904-05:00"
+    },
+    {
+      "id": 241,
+      "from_node_id": 219,
+      "to_node_id": 220,
+      "from_change_id": "4afcff52-67b8-4350-be08-fba19c71283b",
+      "to_change_id": "0cf8baf3-d818-431b-af84-54135b0e64a9",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Data layer implementation",
+      "created_at": "2026-02-15T16:54:01.069498-05:00"
+    },
+    {
+      "id": 242,
+      "from_node_id": 220,
+      "to_node_id": 221,
+      "from_change_id": "0cf8baf3-d818-431b-af84-54135b0e64a9",
+      "to_change_id": "37260817-49c4-4916-a4c3-1573fea5638a",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-15T16:54:05.046219-05:00"
+    },
+    {
+      "id": 243,
+      "from_node_id": 219,
+      "to_node_id": 222,
+      "from_change_id": "4afcff52-67b8-4350-be08-fba19c71283b",
+      "to_change_id": "e3593175-8944-4689-b437-289780e89955",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "UI implementation",
+      "created_at": "2026-02-15T16:54:15.614111-05:00"
+    },
+    {
+      "id": 244,
+      "from_node_id": 222,
+      "to_node_id": 223,
+      "from_change_id": "e3593175-8944-4689-b437-289780e89955",
+      "to_change_id": "aa8d563f-e91f-4428-b94b-2bd32858dcc3",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "UI implementation complete",
+      "created_at": "2026-02-15T17:00:53.335121-05:00"
+    },
+    {
+      "id": 245,
+      "from_node_id": 224,
+      "to_node_id": 225,
+      "from_change_id": "c4025d0b-aab3-473a-9987-6cc263a32259",
+      "to_change_id": "342334b1-dd83-413b-97d1-6a6b63a58e48",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-15T17:31:49.449289-05:00"
+    },
+    {
+      "id": 246,
+      "from_node_id": 226,
+      "to_node_id": 227,
+      "from_change_id": "7211df65-437f-44ec-957c-b8ec095dcfbd",
+      "to_change_id": "5790af4e-5ccc-42e7-9e3e-137c576d075f",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-16T11:19:02.248435-05:00"
+    },
+    {
+      "id": 247,
+      "from_node_id": 227,
+      "to_node_id": 228,
+      "from_change_id": "5790af4e-5ccc-42e7-9e3e-137c576d075f",
+      "to_change_id": "4ab38f7c-9aad-43f3-8cd4-91f40de4d1a6",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-16T11:23:29.383762-05:00"
     }
   ]
 }

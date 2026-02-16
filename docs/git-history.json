@@ -1,5 +1,21 @@
 [
   {
+    "hash": "307bd73a4f6a2154939ee5841389cebb70ebee88",
+    "short_hash": "307bd73",
+    "author": "Robert Grayson",
+    "date": "2026-02-15T15:25:52-05:00",
+    "message": "fix: card back uses fixed height for scroll, clean stale JS bundles\n\n- Change maxHeight to height on card back so it always fills viewport\n  and inner content scrolls even with few items\n- Remove 2 stale JS bundles from docs/assets that could cause cache hits\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 6
+  },
+  {
+    "hash": "6b3e3e42e2d48655f7d640cec376a5adc9c402c8",
+    "short_hash": "6b3e3e4",
+    "author": "Robert Grayson",
+    "date": "2026-02-15T15:23:54-05:00",
+    "message": "deploy: update static site with scrollable card back\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
     "hash": "a18094bfdeea1227e63a31ec10215828751dba14",
     "short_hash": "a18094b",
     "author": "Robert Grayson",
