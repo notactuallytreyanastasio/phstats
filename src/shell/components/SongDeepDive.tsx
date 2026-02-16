@@ -787,7 +787,7 @@ export default function SongDeepDive({ year }: { year: string }) {
         `Total likes: ${totalLikes}`,
       ].join('    '))
 
-  }, [data])
+  }, [data, viewMode])
 
   function battingAvg(s: SongOption): number {
     return s.times_played > 0 ? s.jamchart_count / s.times_played : 0
