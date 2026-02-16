@@ -207,9 +207,13 @@ export default function SongDeepDive({ year }: { year: string }) {
       .attr('cx', t => x(parseDate(t.show_date)!))
       .attr('cy', t => y(t.duration_ms / 60000))
       .attr('r', t => t.is_jamchart ? 8 : 5)
-      .attr('fill', t => t.is_jamchart ? '#ef4444' : '#e5e7eb')
+      .attr('fill', t => {
+        if (!t.jam_url) return '#fff'
+        return t.is_jamchart ? '#ef4444' : '#e5e7eb'
+      })
       .attr('stroke', t => t.is_jamchart ? '#b91c1c' : '#999')
       .attr('stroke-width', t => t.is_jamchart ? 2 : 1.5)
+      .attr('stroke-dasharray', t => t.jam_url ? 'none' : '3,2')
       .style('cursor', 'pointer')
 
     // Jamchart stars
@@ -256,7 +260,9 @@ export default function SongDeepDive({ year }: { year: string }) {
           + (t.jam_notes
             ? `<br/><div style="border-top:1px solid #555;padding-top:6px;margin-top:4px;font-size:11px;color:#ccc;max-width:280px">${esc(t.jam_notes)}</div>`
             : '')
-          + `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #555;font-size:15px;font-weight:800;color:#22c55e;text-align:center;letter-spacing:0.5px">CLICK TO FIND JAM AND PLAY</div>`
+          + (t.jam_url
+            ? `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #555;font-size:15px;font-weight:800;color:#22c55e;text-align:center;letter-spacing:0.5px">CLICK TO FIND JAM AND PLAY</div>`
+            : `<div style="margin-top:8px;padding-top:8px;border-top:1px solid #555;font-size:12px;color:#64748b;text-align:center">No audio available</div>`)
         tip.style.display = 'block'
         tip.style.left = `${event.clientX + 12}px`
         tip.style.top = `${event.clientY - 10}px`
@@ -320,6 +326,10 @@ export default function SongDeepDive({ year }: { year: string }) {
       .attr('fill', '#ef4444')
     svg.append('text').attr('x', legendX + 92).attr('y', legendY + 4)
       .style('font-size', '10px').style('fill', '#888').text('Jamchart')
+    svg.append('circle').attr('cx', legendX + 148).attr('cy', legendY).attr('r', 4)
+      .attr('fill', '#fff').attr('stroke', '#999').attr('stroke-dasharray', '3,2')
+    svg.append('text').attr('x', legendX + 158).attr('y', legendY + 4)
+      .style('font-size', '10px').style('fill', '#888').text('No audio')
 
     // Annotate longest
     const longest = tracks.reduce((a, b) => a.duration_ms > b.duration_ms ? a : b)

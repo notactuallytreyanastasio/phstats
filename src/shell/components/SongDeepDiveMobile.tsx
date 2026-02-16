@@ -222,6 +222,9 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     ? (notableQuote.length > 80 ? notableQuote.slice(0, 80) + '...' : notableQuote)
     : null
 
+  // Audio availability
+  const audioCount = tracks.filter(t => t.jam_url).length
+
   // JC streak: consecutive jamcharts from most recent backwards
   let jcStreak = 0
   for (let i = tracks.length - 1; i >= 0; i--) {
@@ -477,6 +480,8 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
                 <span>Avg {(avgDur / 60000).toFixed(1)}m</span>
                 <span style={{ color: '#334155' }}>·</span>
                 <span>Peak {fmtDuration(longestMs)}</span>
+                <span style={{ color: '#334155' }}>·</span>
+                <span style={audioCount === 0 ? { color: '#ef4444' } : {}}>🎧 {audioCount}/{tracks.length}</span>
               </div>
               {/* Extended stats */}
               {longestTrack && (
