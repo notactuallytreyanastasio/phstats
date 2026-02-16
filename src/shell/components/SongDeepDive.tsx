@@ -187,21 +187,32 @@ function CardView({
     </button>
   )
 
+  const CARD_HEIGHT = 600
+
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto' }}>
-      <div style={{
-        position: 'relative',
-        height: cardFlipped ? 600 : 'auto',
-      }}>
+    <div style={{ maxWidth: 480, margin: '0 auto', perspective: '1200px' }}>
+      <div
+        style={{
+          position: 'relative',
+          height: CARD_HEIGHT,
+          transformStyle: 'preserve-3d',
+          transition: 'transform 0.6s ease',
+          transform: cardFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+        }}
+      >
         {/* FRONT */}
         <div
           onClick={() => setCardFlipped(true)}
           style={{
+            position: 'absolute', inset: 0,
+            backfaceVisibility: 'hidden',
+            WebkitBackfaceVisibility: 'hidden',
             padding: '20px', borderRadius: '16px',
             background: '#1a1a2e', color: 'white',
             border: '2px solid #334155', textAlign: 'center',
             cursor: 'pointer',
-            display: cardFlipped ? 'none' : 'block',
+            display: 'flex', flexDirection: 'column', justifyContent: 'center',
+            overflow: 'hidden',
           }}
         >
           <div style={{
@@ -309,12 +320,15 @@ function CardView({
 
         {/* BACK */}
         <div style={{
+          position: 'absolute', inset: 0,
+          backfaceVisibility: 'hidden',
+          WebkitBackfaceVisibility: 'hidden',
+          transform: 'rotateY(180deg)',
           borderRadius: '16px',
           background: '#1a1a2e', color: 'white',
           border: '2px solid #334155',
-          display: cardFlipped ? 'flex' : 'none',
+          display: 'flex',
           flexDirection: 'column' as const,
-          height: '100%',
           overflow: 'hidden',
         }}>
           <div
