@@ -222,28 +222,75 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     ? (notableQuote.length > 80 ? notableQuote.slice(0, 80) + '...' : notableQuote)
     : null
 
-  // Total jam time in hours
-  const totalHours = tracks.reduce((sum, t) => sum + (t.duration_ms || 0), 0) / 3_600_000
-
-  // Recent form: last 5 tracks
-  const last5 = tracks.slice(-5)
-  const last5Jc = last5.filter(t => t.is_jamchart).length
-
-  // Duration trend: compare last 5 avg to overall
-  const recentAvgDur = last5.length > 0
-    ? last5.reduce((sum, t) => sum + (t.duration_ms || 0), 0) / last5.length
-    : 0
-  const durTrend = avgDur === 0 || tracks.length < 6
-    ? null
-    : recentAvgDur > avgDur * 1.1 ? 'longer'
-    : recentAvgDur < avgDur * 0.9 ? 'shorter'
-    : 'stable'
-
   // JC streak: consecutive jamcharts from most recent backwards
   let jcStreak = 0
   for (let i = tracks.length - 1; i >= 0; i--) {
     if (tracks[i].is_jamchart) jcStreak++
     else break
+  }
+
+  // Set placement
+  const setGroups = new Map<string, { total: number; jc: number }>()
+  for (const t of tracks) {
+    const s = t.set_name || 'Unknown'
+    const entry = setGroups.get(s) || { total: 0, jc: 0 }
+    entry.total++
+    if (t.is_jamchart) entry.jc++
+    setGroups.set(s, entry)
+  }
+  let dominantSet = '', dominantSetPct = 0
+  for (const [s, { total }] of setGroups) {
+    const pct = Math.round(100 * total / tracks.length)
+    if (pct > dominantSetPct) { dominantSet = s; dominantSetPct = pct }
+  }
+  const fmtSet = (s: string) => {
+    if (s === 'SET 1') return 'Set 1'
+    if (s === 'SET 2') return 'Set 2'
+    if (s === 'SET 3') return 'Set 3'
+    if (s === 'ENCORE') return 'Encore'
+    if (s === 'ENCORE 2') return 'Encore 2'
+    return s
+  }
+  const jcTracks = tracks.filter(t => t.is_jamchart)
+  let jcSetNote: string | null = null
+  if (jcTracks.length >= 2) {
+    const jcSetGroups = new Map<string, number>()
+    for (const t of jcTracks) jcSetGroups.set(t.set_name, (jcSetGroups.get(t.set_name) || 0) + 1)
+    let topJcSet = '', topJcCount = 0
+    for (const [s, count] of jcSetGroups) {
+      if (count > topJcCount) { topJcSet = s; topJcCount = count }
+    }
+    if (Math.round(100 * topJcCount / jcTracks.length) >= 75) {
+      jcSetNote = `${topJcCount}/${jcTracks.length} JCs from ${fmtSet(topJcSet)}`
+    }
+  }
+
+  // Gap / last played
+  const lastPlayedDate = tracks.length > 0 ? tracks[tracks.length - 1].show_date : null
+  const daysSince = lastPlayedDate
+    ? Math.floor((Date.now() - new Date(lastPlayedDate).getTime()) / 86400000)
+    : null
+  const avgGapDays = tracks.length > 1
+    ? Math.round((new Date(tracks[tracks.length - 1].show_date).getTime() - new Date(tracks[0].show_date).getTime()) / 86400000 / (tracks.length - 1))
+    : null
+
+  // Best year by JC rate (min 2 plays)
+  const yearGroups = new Map<string, { total: number; jc: number }>()
+  for (const t of tracks) {
+    const yr = t.show_date.slice(0, 4)
+    const entry = yearGroups.get(yr) || { total: 0, jc: 0 }
+    entry.total++
+    if (t.is_jamchart) entry.jc++
+    yearGroups.set(yr, entry)
+  }
+  let bestYear = '', bestYearJc = 0, bestYearTotal = 0, bestYearPct = 0
+  for (const [yr, { total, jc }] of yearGroups) {
+    if (total >= 2) {
+      const pct = jc / total
+      if (pct > bestYearPct || (pct === bestYearPct && jc > bestYearJc)) {
+        bestYear = yr; bestYearJc = jc; bestYearTotal = total; bestYearPct = pct
+      }
+    }
   }
 
   const pill = (label: string, value: ListFilter, count: number) => (
@@ -452,36 +499,35 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
                   </div>
                 </div>
               )}
-              {/* Streaks */}
-              {jcStreak > 0 && (
+              {/* Set placement */}
+              {dominantSet && (
                 <div style={{ marginTop: '8px', textAlign: 'left' }}>
                   <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>
-                    🔥 JC Streak: {jcStreak}
+                    📊 {dominantSetPct}% {fmtSet(dominantSet)}{jcSetNote ? ` · ${jcSetNote}` : ''}
                   </div>
                 </div>
               )}
-              {last5.length > 0 && (
+              {/* Gap */}
+              {lastPlayedDate && (
                 <div style={{ marginTop: '4px', textAlign: 'left' }}>
                   <div style={{ fontSize: '10px', color: '#64748b' }}>
-                    Recent form: <strong style={{ color: '#e2e8f0' }}>{last5Jc}/{last5.length} JC</strong> (last {last5.length})
+                    Last: <strong style={{ color: '#e2e8f0' }}>{lastPlayedDate}</strong> ({daysSince}d ago){avgGapDays ? ` · avg every ${avgGapDays}d` : ''}
                   </div>
                 </div>
               )}
-              {/* Duration trend */}
-              {durTrend && (
-                <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #334155', textAlign: 'left' }}>
-                  <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>
-                    {durTrend === 'longer' ? '↑ Getting longer' : durTrend === 'shorter' ? '↓ Getting shorter' : '→ Steady duration'}
-                  </div>
-                  <div style={{ fontSize: '10px', color: '#64748b', marginTop: '1px' }}>
-                    Recent avg {(recentAvgDur / 60000).toFixed(1)}m vs overall {(avgDur / 60000).toFixed(1)}m
-                  </div>
-                </div>
-              )}
-              {totalHours > 0.1 && (
+              {/* Best year */}
+              {bestYear && bestYearJc > 0 && (
                 <div style={{ marginTop: '4px', textAlign: 'left' }}>
                   <div style={{ fontSize: '10px', color: '#64748b' }}>
-                    Total jam time: <strong style={{ color: '#e2e8f0' }}>{totalHours.toFixed(1)} hours</strong>
+                    Best year: <strong style={{ color: '#e2e8f0' }}>{bestYear}</strong> — {bestYearJc}/{bestYearTotal} JC
+                  </div>
+                </div>
+              )}
+              {/* JC Streak */}
+              {jcStreak > 0 && (
+                <div style={{ marginTop: '4px', textAlign: 'left' }}>
+                  <div style={{ fontSize: '10px', color: '#64748b' }}>
+                    🔥 JC Streak: <strong style={{ color: '#e2e8f0' }}>{jcStreak}</strong> in a row
                   </div>
                 </div>
               )}
