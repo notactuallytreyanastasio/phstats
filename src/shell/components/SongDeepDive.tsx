@@ -469,9 +469,17 @@ export default function SongDeepDive({ year }: { year: string }) {
   const [modalTrack, setModalTrack] = useState<Track | null>(null)
   const [nowPlaying, setNowPlaying] = useState<{ url: string; date: string; song: string } | null>(null)
   const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 })
-  const [viewMode, setViewMode] = useState<ViewMode>('chart')
-  const [tour, setTour] = useState<TourFilter>('all')
-  const [weekday, setWeekday] = useState<WeekdayFilter>('all')
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    return getParam('view') === 'card' ? 'card' : 'chart'
+  })
+  const [tour, setTour] = useState<TourFilter>(() => {
+    const t = getParam('tour')
+    return t && ['Winter', 'Spring', 'Summer', 'Fall', 'Holiday'].includes(t) ? t as TourFilter : 'all'
+  })
+  const [weekday, setWeekday] = useState<WeekdayFilter>(() => {
+    const d = getParam('day')
+    return d && ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].includes(d) ? d as WeekdayFilter : 'all'
+  })
   const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>(() => {
     const s = getParam('sort')
     return s === 'jc' || s === 'played' ? s : 'avg'
@@ -512,8 +520,11 @@ export default function SongDeepDive({ year }: { year: string }) {
       song: selectedSong || null,
       sort: sortBy === 'avg' ? null : sortBy,
       min: minPlayed === 5 ? null : String(minPlayed),
+      view: viewMode === 'card' ? 'card' : null,
+      tour: tour === 'all' ? null : tour,
+      day: weekday === 'all' ? null : weekday,
     })
-  }, [selectedSong, sortBy, minPlayed, songListLoaded])
+  }, [selectedSong, sortBy, minPlayed, songListLoaded, viewMode, tour, weekday])
 
   // Load all tracks for year, derive song list with tour/weekday filters
   const [allTracks, setAllTracks] = useState<Track[]>([])

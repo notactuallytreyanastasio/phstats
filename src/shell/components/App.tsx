@@ -153,6 +153,9 @@ function App() {
       updates.song = null
       updates.sort = null
       updates.min = null
+      updates.view = null
+      updates.tour = null
+      updates.day = null
     }
     if (prevTab === 'heat-calendar' && activeJam !== 'heat-calendar') {
       updates.color = null
