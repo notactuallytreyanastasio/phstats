@@ -74,6 +74,9 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     return m ? parseInt(m, 10) || 5 : 5
   })
   const [runTour, setRunTour] = useState(false)
+  const [swipeOffset, setSwipeOffset] = useState(0)
+  const [swipeTransition, setSwipeTransition] = useState(false)
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
 
   // Start tour for first-time mobile visitors once song list loads
   useEffect(() => {
@@ -144,6 +147,55 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     setNowPlaying(null)
     setHighlightJam(null)
   }, [])
+
+  const navigateSong = useCallback((direction: 'next' | 'prev') => {
+    if (sortedSongs.length === 0) return
+    const currentIdx = sortedSongs.findIndex(s => s.song_name === selectedSong)
+    const nextIdx = direction === 'next'
+      ? (currentIdx + 1) % sortedSongs.length
+      : (currentIdx - 1 + sortedSongs.length) % sortedSongs.length
+    setSwipeTransition(true)
+    setSwipeOffset(direction === 'next' ? -window.innerWidth : window.innerWidth)
+    setTimeout(() => {
+      setSelectedSong(sortedSongs[nextIdx].song_name)
+      setHighlightJam(null)
+      setSwipeOffset(direction === 'next' ? window.innerWidth : -window.innerWidth)
+      requestAnimationFrame(() => {
+        setSwipeTransition(true)
+        setSwipeOffset(0)
+        setTimeout(() => setSwipeTransition(false), 300)
+      })
+    }, 200)
+  }, [sortedSongs, selectedSong])
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() }
+  }, [])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return
+    const dx = e.touches[0].clientX - touchStartRef.current.x
+    const dy = e.touches[0].clientY - touchStartRef.current.y
+    // Only track horizontal swipes (not vertical scrolling)
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+      setSwipeOffset(dx * 0.4) // dampened follow
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return
+    const dx = e.changedTouches[0].clientX - touchStartRef.current.x
+    const dy = e.changedTouches[0].clientY - touchStartRef.current.y
+    const elapsed = Date.now() - touchStartRef.current.time
+    touchStartRef.current = null
+
+    // Require mostly horizontal swipe, min 60px or fast flick
+    if (Math.abs(dx) > Math.abs(dy) * 1.5 && (Math.abs(dx) > 60 || (Math.abs(dx) > 30 && elapsed < 300))) {
+      navigateSong(dx < 0 ? 'next' : 'prev')
+    } else {
+      setSwipeOffset(0)
+    }
+  }, [navigateSong])
 
   // Sync state to URL params
   useEffect(() => {
@@ -431,13 +483,31 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
         <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>Loading...</div>
       )}
 
+      {/* Song position indicator */}
+      {sortedSongs.length > 1 && selectedSong && (
+        <div style={{
+          display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px',
+          padding: '8px 12px 0', fontSize: '12px', color: '#94a3b8',
+        }}>
+          <span style={{ color: '#64748b' }}>
+            {sortedSongs.findIndex(s => s.song_name === selectedSong) + 1} / {sortedSongs.length}
+          </span>
+          <span style={{ color: '#475569', fontSize: '10px', letterSpacing: '1px' }}>SWIPE TO BROWSE</span>
+        </div>
+      )}
+
       {/* Baseball card — 3D flip */}
       {currentSongOption && data && (
         <div
           data-tour-m="baseball-card"
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
           style={{
             margin: '12px',
             perspective: '1200px',
+            transform: `translateX(${swipeOffset}px)`,
+            transition: swipeTransition ? 'transform 0.3s ease-out' : 'none',
           }}
         >
           <div style={{
