@@ -27,8 +27,8 @@ jobs:
 
       - run: npm ci
 
-      - name: Copy track data for static build
-        run: mkdir -p public/data && cp data/tracks.json public/data/tracks.json
+      - name: Copy data files for static build
+        run: mkdir -p public/data && cp data/tracks.json public/data/tracks.json && cp data/bookmarks.json public/data/bookmarks.json
 
       - name: Build static site
         run: npx vite build

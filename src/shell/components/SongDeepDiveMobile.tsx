@@ -1,8 +1,10 @@
-import { useRef, useEffect, useState, useCallback } from 'react'
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react'
 import Joyride, { STATUS } from 'react-joyride'
 import type { CallBackProps, Step } from 'react-joyride'
 import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
+import { getBookmarks, getBookmarksSync, addBookmark, removeBookmark } from '../api/bookmarks'
+import type { Bookmark } from '../api/bookmarks'
 
 interface Track {
   song_name: string
@@ -77,6 +79,36 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
   const [swipeOffset, setSwipeOffset] = useState(0)
   const [swipeTransition, setSwipeTransition] = useState(false)
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
+
+  // Bookmark state
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => getBookmarksSync())
+  const bookmarkedSet = useMemo(() => new Set(bookmarks.map(b => `${b.song}|${b.date}`)), [bookmarks])
+  const [showBookmarks, setShowBookmarks] = useState(false)
+
+  useEffect(() => {
+    getBookmarks().then(setBookmarks).catch(() => {})
+  }, [])
+
+  const toggleBookmark = useCallback((t: Track) => {
+    const key = `${t.song_name}|${t.show_date}`
+    if (bookmarkedSet.has(key)) {
+      removeBookmark(t.song_name, t.show_date)
+      setBookmarks(prev => prev.filter(b => !(b.song === t.song_name && b.date === t.show_date)))
+    } else {
+      const bm: Bookmark = {
+        song: t.song_name,
+        date: t.show_date,
+        jamUrl: t.jam_url,
+        venue: t.venue,
+        duration_ms: t.duration_ms,
+        isJamchart: !!t.is_jamchart,
+        jamNotes: t.jam_notes,
+        addedAt: Date.now(),
+      }
+      addBookmark(bm)
+      setBookmarks(prev => [bm, ...prev])
+    }
+  }, [bookmarkedSet])
 
   // Start tour for first-time mobile visitors once song list loads
   useEffect(() => {
@@ -415,6 +447,30 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
       }}>
         <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
           <span style={{ fontWeight: 800, fontSize: '16px', color: '#111' }}>phstats</span>
+          <button
+            onClick={() => setShowBookmarks(!showBookmarks)}
+            style={{
+              background: showBookmarks ? '#f59e0b' : 'none',
+              border: showBookmarks ? '1px solid #f59e0b' : '1px solid #d1d5db',
+              borderRadius: '6px', padding: '4px 10px',
+              color: showBookmarks ? '#1a1a2e' : '#f59e0b',
+              cursor: 'pointer', fontSize: '14px', fontWeight: 700,
+              position: 'relative',
+            }}
+          >
+            &#9733;
+            {bookmarks.length > 0 && (
+              <span style={{
+                position: 'absolute', top: '-6px', right: '-6px',
+                background: '#f59e0b', color: '#1a1a2e',
+                borderRadius: '50%', width: '16px', height: '16px',
+                fontSize: '9px', fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {bookmarks.length}
+              </span>
+            )}
+          </button>
           <select
             data-tour-m="year-picker"
             value={year}
@@ -478,6 +534,73 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
           </select>
         </div>
       </div>
+
+      {/* Bookmarks panel */}
+      {showBookmarks && (
+        <div style={{
+          background: '#1a1a2e', margin: '8px 12px', borderRadius: '12px',
+          border: '2px solid #334155', overflow: 'hidden',
+        }}>
+          <div style={{
+            padding: '10px 16px', borderBottom: '1px solid #334155',
+            color: '#f59e0b', fontWeight: 800, fontSize: '13px', letterSpacing: '0.5px',
+          }}>
+            &#9733; BOOKMARKED JAMS ({bookmarks.length})
+          </div>
+          {bookmarks.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '24px', color: '#64748b', fontSize: '13px' }}>
+              Tap the star next to any jam to bookmark it
+            </div>
+          ) : (
+            <div style={{ maxHeight: '50vh', overflowY: 'auto' }}>
+              {bookmarks.map(b => (
+                <div
+                  key={`${b.song}-${b.date}`}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: '8px',
+                    padding: '8px 16px', borderBottom: '1px solid #1e293b',
+                    borderLeft: b.isJamchart ? '3px solid #ef4444' : '3px solid transparent',
+                  }}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#e2e8f0' }}>
+                      {b.isJamchart && <span style={{ color: '#ef4444', marginRight: '3px' }}>&#9733;</span>}
+                      {b.song}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '1px' }}>
+                      {b.date} &middot; {b.venue} &middot; {fmtDuration(b.duration_ms)}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      removeBookmark(b.song, b.date)
+                      setBookmarks(prev => prev.filter(x => !(x.song === b.song && x.date === b.date)))
+                    }}
+                    style={{
+                      background: 'none', border: 'none', color: '#f59e0b',
+                      cursor: 'pointer', fontSize: '18px', padding: '2px',
+                    }}
+                  >&#9733;</button>
+                  {b.jamUrl && (
+                    <button
+                      onClick={() => playJam(b.jamUrl, b.date, b.song)}
+                      style={{
+                        background: nowPlaying?.url === b.jamUrl ? '#16a34a' : '#22c55e',
+                        color: 'white', border: 'none', borderRadius: '50%',
+                        width: '30px', height: '30px', fontSize: '12px',
+                        cursor: 'pointer', flexShrink: 0,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >
+                      {nowPlaying?.url === b.jamUrl ? '\u23F8' : '\u25B6'}
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Loading state */}
       {!data && selectedSong && (
@@ -755,20 +878,33 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
                           </div>
                         )}
                       </div>
-                      {t.jam_url && (
+                      <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
                         <button
-                          onClick={() => playJam(t.jam_url, t.show_date, t.song_name)}
+                          onClick={() => toggleBookmark(t)}
+                          title={bookmarkedSet.has(`${t.song_name}|${t.show_date}`) ? 'Remove bookmark' : 'Bookmark'}
                           style={{
-                            background: nowPlaying?.url === t.jam_url ? '#16a34a' : '#22c55e',
-                            color: 'white', border: 'none', borderRadius: '50%',
-                            width: '34px', height: '34px', fontSize: '14px',
-                            cursor: 'pointer', flexShrink: 0,
-                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            background: 'none', border: 'none',
+                            color: bookmarkedSet.has(`${t.song_name}|${t.show_date}`) ? '#f59e0b' : '#475569',
+                            cursor: 'pointer', fontSize: '20px', padding: '2px',
                           }}
                         >
-                          {nowPlaying?.url === t.jam_url ? '\u23F8' : '\u25B6'}
+                          {bookmarkedSet.has(`${t.song_name}|${t.show_date}`) ? '\u2605' : '\u2606'}
                         </button>
-                      )}
+                        {t.jam_url && (
+                          <button
+                            onClick={() => playJam(t.jam_url, t.show_date, t.song_name)}
+                            style={{
+                              background: nowPlaying?.url === t.jam_url ? '#16a34a' : '#22c55e',
+                              color: 'white', border: 'none', borderRadius: '50%',
+                              width: '34px', height: '34px', fontSize: '14px',
+                              cursor: 'pointer', flexShrink: 0,
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            }}
+                          >
+                            {nowPlaying?.url === t.jam_url ? '\u23F8' : '\u25B6'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )
                 })}

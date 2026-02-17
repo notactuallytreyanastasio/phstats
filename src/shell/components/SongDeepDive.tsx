@@ -3,6 +3,8 @@ import * as d3 from 'd3'
 import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
 import { tourFromDate, weekdayFromDate } from '../../core/phangraphs/date-utils'
+import { getBookmarks, getBookmarksSync, addBookmark, removeBookmark, isBookmarked } from '../api/bookmarks'
+import type { Bookmark } from '../api/bookmarks'
 
 type TourFilter = 'all' | 'Winter' | 'Spring' | 'Summer' | 'Fall' | 'Holiday'
 type WeekdayFilter = 'all' | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday'
@@ -45,7 +47,7 @@ function fmtDuration(ms: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-type ViewMode = 'chart' | 'card'
+type ViewMode = 'chart' | 'card' | 'bookmarks'
 type ListFilter = 'all' | 'jamcharts'
 
 const CARD_HEIGHT = 520
@@ -69,6 +71,7 @@ function SingleCard({
   songOption, data, isFlipped, onFlip,
   listFilter, setListFilter,
   playJam, nowPlaying, highlightDate,
+  bookmarkedSet, onToggleBookmark,
 }: {
   songOption: SongOption
   data: SongHistory | null
@@ -79,6 +82,8 @@ function SingleCard({
   playJam: (url: string, date: string, song: string) => void
   nowPlaying: { url: string; date: string; song: string } | null
   highlightDate: string | null
+  bookmarkedSet: Set<string>
+  onToggleBookmark: (track: Track) => void
 }) {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
   const highlightRef = useRef<HTMLDivElement>(null)
@@ -348,20 +353,34 @@ function SingleCard({
                       </div>
                     )}
                   </div>
-                  {t.jam_url && (
+                  <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
                     <button
-                      onClick={(e) => { e.stopPropagation(); playJam(t.jam_url, t.show_date, t.song_name) }}
+                      onClick={(e) => { e.stopPropagation(); onToggleBookmark(t) }}
+                      title={bookmarkedSet.has(`${t.song_name}|${t.show_date}`) ? 'Remove bookmark' : 'Bookmark this jam'}
                       style={{
-                        background: nowPlaying?.url === t.jam_url ? '#16a34a' : '#22c55e',
-                        color: 'white', border: 'none', borderRadius: '50%',
-                        width: '30px', height: '30px', fontSize: '12px',
-                        cursor: 'pointer', flexShrink: 0,
+                        background: 'none', border: 'none',
+                        color: bookmarkedSet.has(`${t.song_name}|${t.show_date}`) ? '#f59e0b' : '#475569',
+                        cursor: 'pointer', fontSize: '18px', padding: '2px',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                       }}
                     >
-                      {nowPlaying?.url === t.jam_url ? '\u23F8' : '\u25B6'}
+                      {bookmarkedSet.has(`${t.song_name}|${t.show_date}`) ? '\u2605' : '\u2606'}
                     </button>
-                  )}
+                    {t.jam_url && (
+                      <button
+                        onClick={(e) => { e.stopPropagation(); playJam(t.jam_url, t.show_date, t.song_name) }}
+                        style={{
+                          background: nowPlaying?.url === t.jam_url ? '#16a34a' : '#22c55e',
+                          color: 'white', border: 'none', borderRadius: '50%',
+                          width: '30px', height: '30px', fontSize: '12px',
+                          cursor: 'pointer', flexShrink: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >
+                        {nowPlaying?.url === t.jam_url ? '\u23F8' : '\u25B6'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               )
             })}
@@ -388,6 +407,7 @@ function filterTracksByTourDay(tracks: Track[], tour: TourFilter, weekday: Weekd
 
 function CardGrid({
   songs, year, tour, weekday, playJam, nowPlaying, highlightSong, highlightDate,
+  bookmarkedSet, onToggleBookmark,
 }: {
   songs: SongOption[]
   year: string
@@ -397,6 +417,8 @@ function CardGrid({
   nowPlaying: { url: string; date: string; song: string } | null
   highlightSong: string | null
   highlightDate: string | null
+  bookmarkedSet: Set<string>
+  onToggleBookmark: (track: Track) => void
 }) {
   const topSongs = songs.slice(0, GRID_SIZE)
   const [rawHistoryMap, setRawHistoryMap] = useState<Record<string, SongHistory>>({})
@@ -470,9 +492,120 @@ function CardGrid({
             playJam={playJam}
             nowPlaying={nowPlaying}
             highlightDate={highlightSong === s.song_name ? highlightDate : null}
+            bookmarkedSet={bookmarkedSet}
+            onToggleBookmark={onToggleBookmark}
           />
         </div>
       ))}
+    </div>
+  )
+}
+
+function BookmarksView({
+  bookmarks, playJam, nowPlaying, onRemove,
+}: {
+  bookmarks: Bookmark[]
+  playJam: (url: string, date: string, song: string) => void
+  nowPlaying: { url: string; date: string; song: string } | null
+  onRemove: (song: string, date: string) => void
+}) {
+  if (bookmarks.length === 0) {
+    return (
+      <div style={{
+        textAlign: 'center', padding: '3rem 1rem',
+        color: '#64748b', fontSize: '14px',
+      }}>
+        <div style={{ fontSize: '48px', marginBottom: '12px' }}>&#9734;</div>
+        <div style={{ fontWeight: 700, fontSize: '16px', color: '#94a3b8', marginBottom: '8px' }}>
+          No bookmarks yet
+        </div>
+        <div>Flip a card and tap the star next to any jam to bookmark it.</div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      background: '#1a1a2e', borderRadius: '12px', border: '2px solid #334155',
+      overflow: 'hidden',
+    }}>
+      <div style={{
+        padding: '12px 16px', borderBottom: '1px solid #334155',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      }}>
+        <span style={{ color: '#f59e0b', fontWeight: 800, fontSize: '14px', letterSpacing: '0.5px' }}>
+          &#9733; BOOKMARKED JAMS ({bookmarks.length})
+        </span>
+      </div>
+      <div style={{ maxHeight: '600px', overflowY: 'auto' }}>
+        {bookmarks.map(b => {
+          const isPlaying = nowPlaying?.url === b.jamUrl
+          return (
+            <div
+              key={`${b.song}-${b.date}`}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '12px',
+                padding: '10px 16px',
+                borderBottom: '1px solid #1e293b',
+                borderLeft: b.isJamchart ? '3px solid #ef4444' : '3px solid transparent',
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 700, color: '#e2e8f0' }}>
+                    {b.isJamchart && <span style={{ color: '#ef4444', marginRight: '4px' }}>&#9733;</span>}
+                    {b.song}
+                  </span>
+                  <span style={{
+                    fontSize: '14px', fontWeight: 900,
+                    color: b.isJamchart ? '#ef4444' : '#94a3b8',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}>
+                    {fmtDuration(b.duration_ms)}
+                  </span>
+                </div>
+                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px' }}>
+                  {b.date}
+                  <span style={{ color: '#475569', margin: '0 6px' }}>&middot;</span>
+                  {b.venue}
+                </div>
+                {b.jamNotes && (
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px', fontStyle: 'italic', lineHeight: 1.3 }}>
+                    {b.jamNotes}
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '6px', flexShrink: 0, alignItems: 'center' }}>
+                <button
+                  onClick={() => onRemove(b.song, b.date)}
+                  title="Remove bookmark"
+                  style={{
+                    background: 'none', border: 'none',
+                    color: '#f59e0b', cursor: 'pointer',
+                    fontSize: '18px', padding: '2px',
+                  }}
+                >
+                  &#9733;
+                </button>
+                {b.jamUrl && (
+                  <button
+                    onClick={() => playJam(b.jamUrl, b.date, b.song)}
+                    style={{
+                      background: isPlaying ? '#16a34a' : '#22c55e',
+                      color: 'white', border: 'none', borderRadius: '50%',
+                      width: '34px', height: '34px', fontSize: '14px',
+                      cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    {isPlaying ? '\u23F8' : '\u25B6'}
+                  </button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
@@ -490,10 +623,43 @@ export default function SongDeepDive({ year }: { year: string }) {
   const [nowPlaying, setNowPlaying] = useState<{ url: string; date: string; song: string } | null>(null)
   const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 })
   const [highlightJam, setHighlightJam] = useState<string | null>(() => getParam('jam') || null)
+
+  // Bookmark state
+  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => getBookmarksSync())
+  const bookmarkedSet = useMemo(() => new Set(bookmarks.map(b => `${b.song}|${b.date}`)), [bookmarks])
+
+  // Load merged bookmarks (localStorage + static build) on mount
+  useEffect(() => {
+    getBookmarks().then(setBookmarks).catch(() => {})
+  }, [])
+
+  const toggleBookmark = useCallback((t: Track) => {
+    const key = `${t.song_name}|${t.show_date}`
+    if (bookmarkedSet.has(key)) {
+      removeBookmark(t.song_name, t.show_date)
+      setBookmarks(prev => prev.filter(b => !(b.song === t.song_name && b.date === t.show_date)))
+    } else {
+      const bm: Bookmark = {
+        song: t.song_name,
+        date: t.show_date,
+        jamUrl: t.jam_url,
+        venue: t.venue,
+        duration_ms: t.duration_ms,
+        isJamchart: !!t.is_jamchart,
+        jamNotes: t.jam_notes,
+        addedAt: Date.now(),
+      }
+      addBookmark(bm)
+      setBookmarks(prev => [bm, ...prev])
+    }
+  }, [bookmarkedSet])
+
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     // Auto-switch to card view if a jam is highlighted from URL
     if (getParam('jam')) return 'card'
-    return getParam('view') === 'card' ? 'card' : 'chart'
+    const v = getParam('view')
+    if (v === 'card' || v === 'bookmarks') return v
+    return 'chart'
   })
   const [tour, setTour] = useState<TourFilter>(() => {
     const t = getParam('tour')
@@ -545,7 +711,7 @@ export default function SongDeepDive({ year }: { year: string }) {
       song: selectedSong || null,
       sort: sortBy === 'avg' ? null : sortBy,
       min: minPlayed === 5 ? null : String(minPlayed),
-      view: viewMode === 'card' ? 'card' : null,
+      view: viewMode === 'chart' ? null : viewMode,
       tour: tour === 'all' ? null : tour,
       day: weekday === 'all' ? null : weekday,
       jam: highlightJam || null,
@@ -866,19 +1032,46 @@ export default function SongDeepDive({ year }: { year: string }) {
         Duration timeline {year === 'all' ? 'for any Phish 3.0 song' : `for ${year}`}. Larger red dots with stars = jamchart selections. Hover for details, click for more.
       </p>
       <div data-tour="deep-dive-controls" style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <button
-          onClick={() => setViewMode(viewMode === 'chart' ? 'card' : 'chart')}
-          style={{
-            padding: '0.5rem 1.2rem', fontSize: '0.95rem',
-            background: viewMode === 'card' ? '#1a1a2e' : 'none',
-            border: viewMode === 'card' ? '2px solid #ef4444' : '2px solid #ccc',
-            borderRadius: '8px',
-            color: viewMode === 'card' ? '#ef4444' : '#444',
-            cursor: 'pointer', fontWeight: 700,
-          }}
-        >
-          {viewMode === 'chart' ? 'Baseball Card View' : 'Chart View'}
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            onClick={() => setViewMode(viewMode === 'chart' ? 'card' : 'chart')}
+            style={{
+              padding: '0.5rem 1.2rem', fontSize: '0.95rem',
+              background: viewMode === 'card' ? '#1a1a2e' : 'none',
+              border: viewMode === 'card' ? '2px solid #ef4444' : '2px solid #ccc',
+              borderRadius: '8px',
+              color: viewMode === 'card' ? '#ef4444' : '#444',
+              cursor: 'pointer', fontWeight: 700,
+            }}
+          >
+            {viewMode === 'chart' ? 'Baseball Card View' : viewMode === 'card' ? 'Chart View' : 'Baseball Card View'}
+          </button>
+          <button
+            onClick={() => setViewMode(viewMode === 'bookmarks' ? 'card' : 'bookmarks')}
+            style={{
+              padding: '0.5rem 1.2rem', fontSize: '0.95rem',
+              background: viewMode === 'bookmarks' ? '#1a1a2e' : 'none',
+              border: viewMode === 'bookmarks' ? '2px solid #f59e0b' : '2px solid #ccc',
+              borderRadius: '8px',
+              color: viewMode === 'bookmarks' ? '#f59e0b' : '#444',
+              cursor: 'pointer', fontWeight: 700,
+              position: 'relative',
+            }}
+          >
+            Bookmarks
+            {bookmarks.length > 0 && (
+              <span style={{
+                position: 'absolute', top: '-8px', right: '-8px',
+                background: '#f59e0b', color: '#1a1a2e',
+                borderRadius: '50%', width: '20px', height: '20px',
+                fontSize: '11px', fontWeight: 800,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {bookmarks.length}
+              </span>
+            )}
+          </button>
+        </div>
         <label style={{ fontSize: '0.85rem' }}>
           Song:
           <input
@@ -962,7 +1155,7 @@ export default function SongDeepDive({ year }: { year: string }) {
       <div data-tour="deep-dive-chart" style={{ overflowX: 'auto' }}>
         <svg ref={svgRef} style={{ width: '100%', maxWidth: 960 }} />
       </div>
-      ) : (
+      ) : viewMode === 'card' ? (
         <CardGrid
           songs={sortedSongs}
           year={year}
@@ -972,6 +1165,18 @@ export default function SongDeepDive({ year }: { year: string }) {
           nowPlaying={nowPlaying}
           highlightSong={highlightJam ? selectedSong : null}
           highlightDate={highlightJam}
+          bookmarkedSet={bookmarkedSet}
+          onToggleBookmark={toggleBookmark}
+        />
+      ) : (
+        <BookmarksView
+          bookmarks={bookmarks}
+          playJam={playJam}
+          nowPlaying={nowPlaying}
+          onRemove={(song, date) => {
+            removeBookmark(song, date)
+            setBookmarks(prev => prev.filter(b => !(b.song === song && b.date === date)))
+          }}
         />
       )}
       {/* Hover tooltip — info only */}
