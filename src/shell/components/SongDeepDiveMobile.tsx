@@ -62,7 +62,9 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
   const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 })
   const [listFilter, setListFilter] = useState<ListFilter>('jamcharts')
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
-  const [cardFlipped, setCardFlipped] = useState(false)
+  const [highlightJam, setHighlightJam] = useState<string | null>(() => getParam('jam') || null)
+  const [cardFlipped, setCardFlipped] = useState(() => !!getParam('jam'))
+  const highlightRef = useRef<HTMLDivElement>(null)
   const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>(() => {
     const s = getParam('sort')
     return s === 'jc' || s === 'played' ? s : 'avg'
@@ -127,6 +129,7 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
       return
     }
     setNowPlaying({ url, date, song })
+    setHighlightJam(date)
     if (audioRef.current) {
       audioRef.current.src = url
       audioRef.current.play()
@@ -139,6 +142,7 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
       audioRef.current.src = ''
     }
     setNowPlaying(null)
+    setHighlightJam(null)
   }, [])
 
   // Sync state to URL params
@@ -148,8 +152,9 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
       song: selectedSong || null,
       sort: sortBy === 'avg' ? null : sortBy,
       min: minPlayed === 5 ? null : String(minPlayed),
+      jam: highlightJam || null,
     })
-  }, [selectedSong, sortBy, minPlayed, songListLoaded])
+  }, [selectedSong, sortBy, minPlayed, songListLoaded, highlightJam])
 
   // Load song list
   useEffect(() => {
@@ -179,11 +184,19 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     if (!selectedSong) return
     setData(null)
     setExpandedIdx(null)
-    setCardFlipped(false)
+    // Keep card flipped if we have a highlighted jam to show
+    if (!highlightJam) setCardFlipped(false)
     dataSource.fetchSongHistory(selectedSong, year)
       .then(setData)
       .catch(() => {})
-  }, [selectedSong, year])
+  }, [selectedSong, year]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Scroll to highlighted jam when card flips and data loads
+  useEffect(() => {
+    if (cardFlipped && highlightJam && highlightRef.current) {
+      setTimeout(() => highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 300)
+    }
+  }, [cardFlipped, highlightJam, data])
 
   // Song list filtering & sorting
   const filteredSongs = songList
@@ -607,14 +620,18 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
                 {filteredTracks.map((t, i) => {
                   const isJc = !!t.is_jamchart
                   const isExpanded = expandedIdx === i
+                  const isHighlighted = highlightJam === t.show_date
                   return (
                     <div
+                      ref={isHighlighted ? highlightRef : undefined}
                       key={`${t.show_date}-${t.set_name}-${t.position}`}
                       style={{
                         display: 'flex', alignItems: 'center', gap: '8px',
                         padding: '8px 16px',
                         borderBottom: '1px solid #1e293b',
-                        borderLeft: isJc ? '3px solid #ef4444' : '3px solid transparent',
+                        borderLeft: isHighlighted ? '3px solid #22c55e' : isJc ? '3px solid #ef4444' : '3px solid transparent',
+                        background: isHighlighted ? 'rgba(34, 197, 94, 0.12)' : undefined,
+                        boxShadow: isHighlighted ? 'inset 0 0 12px rgba(34, 197, 94, 0.15)' : undefined,
                       }}
                     >
                       <div

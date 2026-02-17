@@ -68,7 +68,7 @@ function fmtSet(s: string) {
 function SingleCard({
   songOption, data, isFlipped, onFlip,
   listFilter, setListFilter,
-  playJam, nowPlaying,
+  playJam, nowPlaying, highlightDate,
 }: {
   songOption: SongOption
   data: SongHistory | null
@@ -78,8 +78,17 @@ function SingleCard({
   setListFilter: (v: ListFilter) => void
   playJam: (url: string, date: string, song: string) => void
   nowPlaying: { url: string; date: string; song: string } | null
+  highlightDate: string | null
 }) {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
+  const highlightRef = useRef<HTMLDivElement>(null)
+
+  // Scroll to highlighted jam when card flips open
+  useEffect(() => {
+    if (isFlipped && highlightDate && highlightRef.current) {
+      setTimeout(() => highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400)
+    }
+  }, [isFlipped, highlightDate])
 
   if (!data) {
     return (
@@ -278,14 +287,18 @@ function SingleCard({
             {filteredTracks.map((t, i) => {
               const isJc = !!t.is_jamchart
               const isExp = expandedIdx === i
+              const isHighlighted = highlightDate === t.show_date
               return (
                 <div
+                  ref={isHighlighted ? highlightRef : undefined}
                   key={`${t.show_date}-${t.set_name}-${t.position}`}
                   style={{
                     display: 'flex', alignItems: 'center', gap: '6px',
                     padding: '6px 12px',
                     borderBottom: '1px solid #1e293b',
-                    borderLeft: isJc ? '3px solid #ef4444' : '3px solid transparent',
+                    borderLeft: isHighlighted ? '3px solid #22c55e' : isJc ? '3px solid #ef4444' : '3px solid transparent',
+                    background: isHighlighted ? 'rgba(34, 197, 94, 0.12)' : undefined,
+                    boxShadow: isHighlighted ? 'inset 0 0 12px rgba(34, 197, 94, 0.15)' : undefined,
                   }}
                 >
                   <div
@@ -374,7 +387,7 @@ function filterTracksByTourDay(tracks: Track[], tour: TourFilter, weekday: Weekd
 }
 
 function CardGrid({
-  songs, year, tour, weekday, playJam, nowPlaying,
+  songs, year, tour, weekday, playJam, nowPlaying, highlightSong, highlightDate,
 }: {
   songs: SongOption[]
   year: string
@@ -382,10 +395,16 @@ function CardGrid({
   weekday: WeekdayFilter
   playJam: (url: string, date: string, song: string) => void
   nowPlaying: { url: string; date: string; song: string } | null
+  highlightSong: string | null
+  highlightDate: string | null
 }) {
   const topSongs = songs.slice(0, GRID_SIZE)
   const [rawHistoryMap, setRawHistoryMap] = useState<Record<string, SongHistory>>({})
-  const [flippedSet, setFlippedSet] = useState<Set<string>>(new Set())
+  const [flippedSet, setFlippedSet] = useState<Set<string>>(() => {
+    // Auto-flip the highlighted song's card on initial load
+    if (highlightSong && highlightDate) return new Set([highlightSong])
+    return new Set()
+  })
   const [listFilters, setListFilters] = useState<Record<string, ListFilter>>({})
 
   // Fetch history for all top songs
@@ -450,6 +469,7 @@ function CardGrid({
             setListFilter={(v) => setListFilters(prev => ({ ...prev, [s.song_name]: v }))}
             playJam={playJam}
             nowPlaying={nowPlaying}
+            highlightDate={highlightSong === s.song_name ? highlightDate : null}
           />
         </div>
       ))}
@@ -469,7 +489,10 @@ export default function SongDeepDive({ year }: { year: string }) {
   const [modalTrack, setModalTrack] = useState<Track | null>(null)
   const [nowPlaying, setNowPlaying] = useState<{ url: string; date: string; song: string } | null>(null)
   const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 })
+  const [highlightJam, setHighlightJam] = useState<string | null>(() => getParam('jam') || null)
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    // Auto-switch to card view if a jam is highlighted from URL
+    if (getParam('jam')) return 'card'
     return getParam('view') === 'card' ? 'card' : 'chart'
   })
   const [tour, setTour] = useState<TourFilter>(() => {
@@ -499,6 +522,7 @@ export default function SongDeepDive({ year }: { year: string }) {
       return
     }
     setNowPlaying({ url, date, song })
+    setHighlightJam(date)
     if (audioRef.current) {
       audioRef.current.src = url
       audioRef.current.play()
@@ -511,6 +535,7 @@ export default function SongDeepDive({ year }: { year: string }) {
       audioRef.current.src = ''
     }
     setNowPlaying(null)
+    setHighlightJam(null)
   }, [])
 
   // Sync deep-dive state to URL params (only after song list loads to avoid clobbering shared link params)
@@ -523,8 +548,9 @@ export default function SongDeepDive({ year }: { year: string }) {
       view: viewMode === 'card' ? 'card' : null,
       tour: tour === 'all' ? null : tour,
       day: weekday === 'all' ? null : weekday,
+      jam: highlightJam || null,
     })
-  }, [selectedSong, sortBy, minPlayed, songListLoaded, viewMode, tour, weekday])
+  }, [selectedSong, sortBy, minPlayed, songListLoaded, viewMode, tour, weekday, highlightJam])
 
   // Load all tracks for year, derive song list with tour/weekday filters
   const [allTracks, setAllTracks] = useState<Track[]>([])
@@ -944,6 +970,8 @@ export default function SongDeepDive({ year }: { year: string }) {
           weekday={weekday}
           playJam={playJam}
           nowPlaying={nowPlaying}
+          highlightSong={highlightJam ? selectedSong : null}
+          highlightDate={highlightJam}
         />
       )}
       {/* Hover tooltip — info only */}
