@@ -1,6 +1,6 @@
 import { usePhanGraphs } from '../../hooks/usePhanGraphs'
 import WARSparkline from './WARSparkline'
-import type { AggregatedLeaderboardEntry, PhanGraphsFilter, RunPositionFilter } from '../../../core/phangraphs/types'
+import type { AggregatedLeaderboardEntry, PhanGraphsFilter, RunPositionFilter, TourFilter, WeekdayFilter } from '../../../core/phangraphs/types'
 
 type SortColumn = 'war' | 'warPerPlay' | 'warPerShow' | 'avgJIS' | 'peakJIS' | 'timesPlayed' | 'jamRate' | 'jamchartCount'
 
@@ -120,6 +120,17 @@ function PhanGraphsPage() {
             <option value="closer">Closers</option>
           </select>
         </label>
+        <label>
+          Tour:
+          <select value={filter.tour} onChange={e => setFilter({ ...filter, tour: e.target.value as TourFilter })} style={selectStyle}>
+            <option value="all">All</option>
+            <option value="Winter">Winter</option>
+            <option value="Spring">Spring</option>
+            <option value="Summer">Summer</option>
+            <option value="Fall">Fall</option>
+            <option value="Holiday">Holiday</option>
+          </select>
+        </label>
       </div>
 
       {/* Row 2: Venue, State, Country, Run Position */}
@@ -161,6 +172,19 @@ function PhanGraphsPage() {
             <option value="n4">N4</option>
             <option value="n5">N5</option>
             <option value="closer">Run Closer</option>
+          </select>
+        </label>
+        <label>
+          Day:
+          <select value={filter.weekday} onChange={e => setFilter({ ...filter, weekday: e.target.value as WeekdayFilter })} style={selectStyle}>
+            <option value="all">All</option>
+            <option value="Sunday">Sun</option>
+            <option value="Monday">Mon</option>
+            <option value="Tuesday">Tue</option>
+            <option value="Wednesday">Wed</option>
+            <option value="Thursday">Thu</option>
+            <option value="Friday">Fri</option>
+            <option value="Saturday">Sat</option>
           </select>
         </label>
       </div>

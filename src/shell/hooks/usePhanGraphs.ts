@@ -22,6 +22,8 @@ function initFilter(): PhanGraphsFilter {
     state: getParam('st') || null,
     country: (getParam('cty') as PhanGraphsFilter['country']) || DEFAULT_FILTER.country,
     runPosition: (getParam('rp') as PhanGraphsFilter['runPosition']) || DEFAULT_FILTER.runPosition,
+    tour: (getParam('tour') as PhanGraphsFilter['tour']) || DEFAULT_FILTER.tour,
+    weekday: (getParam('wd') as PhanGraphsFilter['weekday']) || DEFAULT_FILTER.weekday,
     aggregation: (getParam('agg') as PhanGraphsFilter['aggregation']) || DEFAULT_FILTER.aggregation,
   }
 }
@@ -65,6 +67,8 @@ export function usePhanGraphs() {
       st: filter.state,
       cty: filter.country !== 'all' ? filter.country : null,
       rp: filter.runPosition !== 'all' ? filter.runPosition : null,
+      tour: filter.tour !== 'all' ? filter.tour : null,
+      wd: filter.weekday !== 'all' ? filter.weekday : null,
       agg: filter.aggregation !== 'career' ? filter.aggregation : null,
       col: sortCol !== 'war' ? sortCol : null,
       dir: sortDir !== 'desc' ? sortDir : null,

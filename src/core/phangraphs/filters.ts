@@ -9,6 +9,7 @@ import type { TrackRow } from '../track-queries'
 import type { PhanGraphsFilter, LeaderboardEntry } from './types'
 import { parseState, isUSLocation } from './location-utils'
 import { classifyVenueRuns } from './venue-runs'
+import { tourFromDate, weekdayFromDate } from './date-utils'
 
 export function filterTracks(tracks: TrackRow[], filter: PhanGraphsFilter): TrackRow[] {
   let result = tracks
@@ -61,6 +62,16 @@ export function filterTracks(tracks: TrackRow[], filter: PhanGraphsFilter): Trac
       const us = isUSLocation(t.location)
       return filter.country === 'us' ? us : !us
     })
+  }
+
+  // Tour (season) filter
+  if (filter.tour !== 'all') {
+    result = result.filter(t => tourFromDate(t.show_date) === filter.tour)
+  }
+
+  // Weekday filter
+  if (filter.weekday !== 'all') {
+    result = result.filter(t => weekdayFromDate(t.show_date) === filter.weekday)
   }
 
   // Run position filter

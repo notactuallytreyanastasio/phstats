@@ -158,6 +158,12 @@ export interface AggregatedLeaderboardEntry extends LeaderboardEntry {
 /** Run position filter value */
 export type RunPositionFilter = 'all' | 'n1' | 'n2' | 'n3' | 'n4' | 'n5' | 'opener' | 'closer'
 
+/** Tour season filter value */
+export type TourFilter = 'all' | 'Winter' | 'Spring' | 'Summer' | 'Fall' | 'Holiday'
+
+/** Weekday filter value */
+export type WeekdayFilter = 'all' | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday'
+
 /** Filter state for PhanGraphs queries */
 export interface PhanGraphsFilter {
   yearStart: number
@@ -171,6 +177,8 @@ export interface PhanGraphsFilter {
   state: string | null
   country: 'all' | 'us' | 'international'
   runPosition: RunPositionFilter
+  tour: TourFilter
+  weekday: WeekdayFilter
   aggregation: 'career' | 'byYear' | 'byTour'
 }
 
@@ -187,5 +195,7 @@ export const DEFAULT_FILTER: PhanGraphsFilter = {
   state: null,
   country: 'all',
   runPosition: 'all',
+  tour: 'all',
+  weekday: 'all',
   aggregation: 'career',
 }
