@@ -815,6 +815,19 @@ export default function SongDeepDive({ year }: { year: string }) {
         Duration timeline {year === 'all' ? 'for any Phish 3.0 song' : `for ${year}`}. Larger red dots with stars = jamchart selections. Hover for details, click for more.
       </p>
       <div data-tour="deep-dive-controls" style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+        <button
+          onClick={() => { setViewMode(viewMode === 'chart' ? 'card' : 'chart'); setCardFlipped(false) }}
+          style={{
+            padding: '0.5rem 1.2rem', fontSize: '0.95rem',
+            background: viewMode === 'card' ? '#1a1a2e' : 'none',
+            border: viewMode === 'card' ? '2px solid #ef4444' : '2px solid #ccc',
+            borderRadius: '8px',
+            color: viewMode === 'card' ? '#ef4444' : '#444',
+            cursor: 'pointer', fontWeight: 700,
+          }}
+        >
+          {viewMode === 'chart' ? 'Baseball Card View' : 'Chart View'}
+        </button>
         <label style={{ fontSize: '0.85rem' }}>
           Song:
           <input
@@ -861,20 +874,6 @@ export default function SongDeepDive({ year }: { year: string }) {
           ))}
         </select>
         {data === null && selectedSong && <span style={{ color: '#999', fontSize: '0.8rem' }}>Loading...</span>}
-        <button
-          onClick={() => { setViewMode(viewMode === 'chart' ? 'card' : 'chart'); setCardFlipped(false) }}
-          style={{
-            padding: '0.3rem 0.8rem', fontSize: '0.8rem',
-            background: viewMode === 'card' ? '#1a1a2e' : 'none',
-            border: viewMode === 'card' ? '2px solid #ef4444' : '1px solid #ccc',
-            borderRadius: '6px',
-            color: viewMode === 'card' ? '#ef4444' : '#666',
-            cursor: 'pointer', fontWeight: viewMode === 'card' ? 700 : 400,
-            marginLeft: 'auto',
-          }}
-        >
-          {viewMode === 'chart' ? 'Card View' : 'Chart View'}
-        </button>
       </div>
       {viewMode === 'chart' ? (
       <div data-tour="deep-dive-chart" style={{ overflowX: 'auto' }}>
