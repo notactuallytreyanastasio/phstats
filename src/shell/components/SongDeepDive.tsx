@@ -420,12 +420,6 @@ function CardView({
                         marginTop: '4px',
                         fontSize: '11px', color: '#94a3b8', lineHeight: '1.4',
                         fontStyle: 'italic',
-                        ...(!isExpanded ? {
-                          display: '-webkit-box',
-                          WebkitLineClamp: 1,
-                          WebkitBoxOrient: 'vertical' as const,
-                          overflow: 'hidden',
-                        } : {}),
                       }}>
                         {t.jam_notes}
                       </div>
