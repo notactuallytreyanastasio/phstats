@@ -1,7 +1,11 @@
-import { useRef, useEffect, useState, useCallback } from 'react'
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react'
 import * as d3 from 'd3'
 import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
+import { tourFromDate, weekdayFromDate } from '../../core/phangraphs/date-utils'
+
+type TourFilter = 'all' | 'Winter' | 'Spring' | 'Summer' | 'Fall' | 'Holiday'
+type WeekdayFilter = 'all' | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday'
 
 interface Track {
   song_name: string
@@ -362,32 +366,53 @@ function SingleCard({
 
 const GRID_SIZE = 12
 
+function filterTracksByTourDay(tracks: Track[], tour: TourFilter, weekday: WeekdayFilter): Track[] {
+  let result = tracks
+  if (tour !== 'all') result = result.filter(t => tourFromDate(t.show_date) === tour)
+  if (weekday !== 'all') result = result.filter(t => weekdayFromDate(t.show_date) === weekday)
+  return result
+}
+
 function CardGrid({
-  songs, year, playJam, nowPlaying,
+  songs, year, tour, weekday, playJam, nowPlaying,
 }: {
   songs: SongOption[]
   year: string
+  tour: TourFilter
+  weekday: WeekdayFilter
   playJam: (url: string, date: string, song: string) => void
   nowPlaying: { url: string; date: string; song: string } | null
 }) {
   const topSongs = songs.slice(0, GRID_SIZE)
-  const [historyMap, setHistoryMap] = useState<Record<string, SongHistory>>({})
+  const [rawHistoryMap, setRawHistoryMap] = useState<Record<string, SongHistory>>({})
   const [flippedSet, setFlippedSet] = useState<Set<string>>(new Set())
   const [listFilters, setListFilters] = useState<Record<string, ListFilter>>({})
 
   // Fetch history for all top songs
   useEffect(() => {
-    setHistoryMap({})
+    setRawHistoryMap({})
     setFlippedSet(new Set())
     const names = topSongs.map(s => s.song_name)
     names.forEach(name => {
       dataSource.fetchSongHistory(name, year)
         .then(data => {
-          setHistoryMap(prev => ({ ...prev, [name]: data }))
+          setRawHistoryMap(prev => ({ ...prev, [name]: data }))
         })
         .catch(() => {})
     })
   }, [year, topSongs.map(s => s.song_name).join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Apply tour/weekday filters to fetched histories
+  const historyMap = useMemo(() => {
+    const filtered: Record<string, SongHistory> = {}
+    for (const [name, hist] of Object.entries(rawHistoryMap)) {
+      filtered[name] = {
+        song_name: hist.song_name,
+        tracks: filterTracksByTourDay(hist.tracks, tour, weekday),
+      }
+    }
+    return filtered
+  }, [rawHistoryMap, tour, weekday])
 
   const toggleFlip = (name: string) => {
     setFlippedSet(prev => {
@@ -445,6 +470,8 @@ export default function SongDeepDive({ year }: { year: string }) {
   const [nowPlaying, setNowPlaying] = useState<{ url: string; date: string; song: string } | null>(null)
   const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 })
   const [viewMode, setViewMode] = useState<ViewMode>('chart')
+  const [tour, setTour] = useState<TourFilter>('all')
+  const [weekday, setWeekday] = useState<WeekdayFilter>('all')
   const [sortBy, setSortBy] = useState<'avg' | 'jc' | 'played'>(() => {
     const s = getParam('sort')
     return s === 'jc' || s === 'played' ? s : 'avg'
@@ -488,40 +515,60 @@ export default function SongDeepDive({ year }: { year: string }) {
     })
   }, [selectedSong, sortBy, minPlayed, songListLoaded])
 
-  // Reload song list when year changes
+  // Load all tracks for year, derive song list with tour/weekday filters
+  const [allTracks, setAllTracks] = useState<Track[]>([])
   useEffect(() => {
-    dataSource.fetchSongList(year)
-      .then((list: SongOption[]) => {
-        setSongList(list)
-        if (list.length > 0) {
-          const urlSong = selectedSong
-          const match = list.find((s: SongOption) => s.song_name === urlSong)
-          if (match) {
-            // Song from URL exists — if it would be hidden by minPlayed filter, lower the threshold
-            if (match.times_played < minPlayed) {
-              setMinPlayed(Math.max(1, match.times_played))
-            }
-          } else if (!urlSong) {
-            // No song in URL — pick the first by default sort
-            setSelectedSong(list[0].song_name)
-          } else {
-            // URL song doesn't exist in this year's data — fall back to first
-            setSelectedSong(list[0].song_name)
-          }
-        }
-        setSongListLoaded(true)
-      })
-      .catch(() => { setSongListLoaded(true) })
-  }, [year]) // eslint-disable-line react-hooks/exhaustive-deps
+    dataSource.fetchAllTracks(year)
+      .then((tracks: Track[]) => setAllTracks(tracks))
+      .catch(() => setAllTracks([]))
+  }, [year])
 
-  // Fetch history when selection or year changes
+  useEffect(() => {
+    const filtered = filterTracksByTourDay(allTracks, tour, weekday)
+    const byName = new Map<string, { count: number; jc: number }>()
+    for (const t of filtered) {
+      let entry = byName.get(t.song_name)
+      if (!entry) { entry = { count: 0, jc: 0 }; byName.set(t.song_name, entry) }
+      entry.count++
+      if (t.is_jamchart) entry.jc++
+    }
+    const list: SongOption[] = [...byName.entries()]
+      .map(([name, v]) => ({
+        song_name: name,
+        times_played: v.count,
+        jamchart_count: v.jc,
+        jamchart_pct: v.count > 0 ? Math.round(1000 * v.jc / v.count) / 10 : 0,
+      }))
+      .sort((a, b) => b.jamchart_count - a.jamchart_count || b.times_played - a.times_played)
+
+    setSongList(list)
+    if (list.length > 0) {
+      const urlSong = selectedSong
+      const match = list.find(s => s.song_name === urlSong)
+      if (match) {
+        if (match.times_played < minPlayed) setMinPlayed(Math.max(1, match.times_played))
+      } else if (!urlSong) {
+        setSelectedSong(list[0].song_name)
+      } else {
+        setSelectedSong(list[0].song_name)
+      }
+    }
+    setSongListLoaded(true)
+  }, [allTracks, tour, weekday]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch history when selection or year changes, apply tour/weekday filters
   useEffect(() => {
     if (!selectedSong) return
     setData(null)
     dataSource.fetchSongHistory(selectedSong, year)
-      .then(setData)
+      .then((raw: SongHistory) => {
+        setData({
+          song_name: raw.song_name,
+          tracks: filterTracksByTourDay(raw.tracks, tour, weekday),
+        })
+      })
       .catch(() => {})
-  }, [selectedSong, year])
+  }, [selectedSong, year, tour, weekday])
 
   // D3 chart
   useEffect(() => {
@@ -818,6 +865,38 @@ export default function SongDeepDive({ year }: { year: string }) {
           <span style={{ minWidth: 20, textAlign: 'center' }}>{minPlayed}</span>
         </label>
         <label style={{ fontSize: '0.85rem' }}>
+          Tour:
+          <select
+            value={tour}
+            onChange={e => setTour(e.target.value as TourFilter)}
+            style={{ marginLeft: '0.5rem', padding: '0.3rem', fontSize: '0.85rem' }}
+          >
+            <option value="all">All</option>
+            <option value="Winter">Winter</option>
+            <option value="Spring">Spring</option>
+            <option value="Summer">Summer</option>
+            <option value="Fall">Fall</option>
+            <option value="Holiday">Holiday</option>
+          </select>
+        </label>
+        <label style={{ fontSize: '0.85rem' }}>
+          Day:
+          <select
+            value={weekday}
+            onChange={e => setWeekday(e.target.value as WeekdayFilter)}
+            style={{ marginLeft: '0.5rem', padding: '0.3rem', fontSize: '0.85rem' }}
+          >
+            <option value="all">All</option>
+            <option value="Sunday">Sun</option>
+            <option value="Monday">Mon</option>
+            <option value="Tuesday">Tue</option>
+            <option value="Wednesday">Wed</option>
+            <option value="Thursday">Thu</option>
+            <option value="Friday">Fri</option>
+            <option value="Saturday">Sat</option>
+          </select>
+        </label>
+        <label style={{ fontSize: '0.85rem' }}>
           Sort:
           <select
             value={sortBy}
@@ -850,6 +929,8 @@ export default function SongDeepDive({ year }: { year: string }) {
         <CardGrid
           songs={sortedSongs}
           year={year}
+          tour={tour}
+          weekday={weekday}
           playJam={playJam}
           nowPlaying={nowPlaying}
         />

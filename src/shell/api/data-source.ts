@@ -60,6 +60,17 @@ export async function fetchJamEvolution(): Promise<any[]> {
   return fetchJson('/api/jam-evolution') ?? []
 }
 
+export async function fetchAllTracks(year: string): Promise<any[]> {
+  if (isPublic) {
+    const { loadTracks } = await import('./static-queries')
+    const all = await loadTracks()
+    if (year === 'all') return all
+    return all.filter((t: any) => t.show_date.startsWith(year))
+  }
+  const param = year === 'all' ? '' : `?year=${year}`
+  return fetchJson(`/api/all-tracks${param}`) ?? []
+}
+
 export async function fetchSongPairings(year: string, minShows: number = 3): Promise<any[]> {
   if (isPublic) return staticQ.querySongPairings(year, minShows)
   const params = new URLSearchParams()
