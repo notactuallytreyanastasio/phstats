@@ -148,55 +148,6 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     setHighlightJam(null)
   }, [])
 
-  const navigateSong = useCallback((direction: 'next' | 'prev') => {
-    if (sortedSongs.length === 0) return
-    const currentIdx = sortedSongs.findIndex(s => s.song_name === selectedSong)
-    const nextIdx = direction === 'next'
-      ? (currentIdx + 1) % sortedSongs.length
-      : (currentIdx - 1 + sortedSongs.length) % sortedSongs.length
-    setSwipeTransition(true)
-    setSwipeOffset(direction === 'next' ? -window.innerWidth : window.innerWidth)
-    setTimeout(() => {
-      setSelectedSong(sortedSongs[nextIdx].song_name)
-      setHighlightJam(null)
-      setSwipeOffset(direction === 'next' ? window.innerWidth : -window.innerWidth)
-      requestAnimationFrame(() => {
-        setSwipeTransition(true)
-        setSwipeOffset(0)
-        setTimeout(() => setSwipeTransition(false), 300)
-      })
-    }, 200)
-  }, [sortedSongs, selectedSong])
-
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() }
-  }, [])
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current) return
-    const dx = e.touches[0].clientX - touchStartRef.current.x
-    const dy = e.touches[0].clientY - touchStartRef.current.y
-    // Only track horizontal swipes (not vertical scrolling)
-    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
-      setSwipeOffset(dx * 0.4) // dampened follow
-    }
-  }, [])
-
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current) return
-    const dx = e.changedTouches[0].clientX - touchStartRef.current.x
-    const dy = e.changedTouches[0].clientY - touchStartRef.current.y
-    const elapsed = Date.now() - touchStartRef.current.time
-    touchStartRef.current = null
-
-    // Require mostly horizontal swipe, min 60px or fast flick
-    if (Math.abs(dx) > Math.abs(dy) * 1.5 && (Math.abs(dx) > 60 || (Math.abs(dx) > 30 && elapsed < 300))) {
-      navigateSong(dx < 0 ? 'next' : 'prev')
-    } else {
-      setSwipeOffset(0)
-    }
-  }, [navigateSong])
-
   // Sync state to URL params
   useEffect(() => {
     if (!songListLoaded) return
@@ -259,6 +210,56 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
     if (sortBy === 'jc') return b.jamchart_count - a.jamchart_count || battingAvg(b) - battingAvg(a)
     return b.times_played - a.times_played
   })
+
+  // Swipe navigation between songs
+  const navigateSong = useCallback((direction: 'next' | 'prev') => {
+    if (sortedSongs.length === 0) return
+    const currentIdx = sortedSongs.findIndex(s => s.song_name === selectedSong)
+    const nextIdx = direction === 'next'
+      ? (currentIdx + 1) % sortedSongs.length
+      : (currentIdx - 1 + sortedSongs.length) % sortedSongs.length
+    setSwipeTransition(true)
+    setSwipeOffset(direction === 'next' ? -window.innerWidth : window.innerWidth)
+    setTimeout(() => {
+      setSelectedSong(sortedSongs[nextIdx].song_name)
+      setHighlightJam(null)
+      setSwipeOffset(direction === 'next' ? window.innerWidth : -window.innerWidth)
+      requestAnimationFrame(() => {
+        setSwipeTransition(true)
+        setSwipeOffset(0)
+        setTimeout(() => setSwipeTransition(false), 300)
+      })
+    }, 200)
+  }, [sortedSongs, selectedSong])
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() }
+  }, [])
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return
+    const dx = e.touches[0].clientX - touchStartRef.current.x
+    const dy = e.touches[0].clientY - touchStartRef.current.y
+    // Only track horizontal swipes (not vertical scrolling)
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 10) {
+      setSwipeOffset(dx * 0.4) // dampened follow
+    }
+  }, [])
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current) return
+    const dx = e.changedTouches[0].clientX - touchStartRef.current.x
+    const dy = e.changedTouches[0].clientY - touchStartRef.current.y
+    const elapsed = Date.now() - touchStartRef.current.time
+    touchStartRef.current = null
+
+    // Require mostly horizontal swipe, min 60px or fast flick
+    if (Math.abs(dx) > Math.abs(dy) * 1.5 && (Math.abs(dx) > 60 || (Math.abs(dx) > 30 && elapsed < 300))) {
+      navigateSong(dx < 0 ? 'next' : 'prev')
+    } else {
+      setSwipeOffset(0)
+    }
+  }, [navigateSong])
 
   // Current song stats
   const currentSongOption = songList.find(s => s.song_name === selectedSong)
