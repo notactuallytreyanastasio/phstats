@@ -2507,6 +2507,204 @@
       "created_at": "2026-02-16T11:23:24.328163-05:00",
       "updated_at": "2026-02-16T11:23:24.328163-05:00",
       "metadata_json": "{\"branch\":\"main\",\"confidence\":95}"
+    },
+    {
+      "id": 229,
+      "change_id": "c033763d-072d-43a4-8608-6339cf706543",
+      "node_type": "goal",
+      "title": "Add tour and weekday filters to PhanGraphs",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T21:11:45.890889-05:00",
+      "updated_at": "2026-02-16T21:11:45.890889-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"can we take @sortede_tracks_with_tour_and_stuff.json and then add in the ability to slice and dice by tour inside of each year we cover \\n\\nshould be able to get it in the db and link it up right?\\n\\nlest also slice and slice by weekday like that using this data too\"}"
+    },
+    {
+      "id": 230,
+      "change_id": "ac765316-8cb8-4031-8360-abb6737958bf",
+      "node_type": "action",
+      "title": "Implemented tour and weekday filters",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T21:13:37.184490-05:00",
+      "updated_at": "2026-02-16T21:13:37.184490-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":95,\"files\":[\"src/core/phangraphs/date-utils.ts\",\"src/core/phangraphs/types.ts\",\"src/core/phangraphs/filters.ts\",\"src/shell/components/phangraphs/PhanGraphsPage.tsx\",\"src/shell/hooks/usePhanGraphs.ts\"]}"
+    },
+    {
+      "id": 231,
+      "change_id": "02a9d7c2-87b0-483c-83ce-9498d2b8fc55",
+      "node_type": "outcome",
+      "title": "Tour and weekday filters committed",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T21:36:28.036943-05:00",
+      "updated_at": "2026-02-16T21:36:28.036943-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"a9b957d\",\"confidence\":95}"
+    },
+    {
+      "id": 232,
+      "change_id": "e1a01f0d-92ff-4f83-912b-68c9fa46a155",
+      "node_type": "goal",
+      "title": "Desktop card grid - tabletop of flippable baseball cards",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T21:52:54.521070-05:00",
+      "updated_at": "2026-02-16T21:52:54.521070-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":90,\"prompt\":\"lets make it so on dekstop we have a grid of cards for the top batting averages from the current filters you have, and then make it so its no scroll but its like you have a tabletop of cards that you can pick between to flip and listen\"}"
+    },
+    {
+      "id": 233,
+      "change_id": "2590faf9-47f5-428c-b7d5-594156a616c9",
+      "node_type": "action",
+      "title": "Refactor CardView into single-card + grid layout with multi-song fetch",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T21:52:57.964393-05:00",
+      "updated_at": "2026-02-16T21:52:57.964393-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 234,
+      "change_id": "18903f65-99b0-4962-b11c-6c6254239b6c",
+      "node_type": "outcome",
+      "title": "Card grid tabletop deployed - top 12 songs as independently flippable cards in responsive grid",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T21:55:55.791275-05:00",
+      "updated_at": "2026-02-16T21:55:55.791275-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"32f12b7\",\"confidence\":95}"
+    },
+    {
+      "id": 235,
+      "change_id": "de04df58-858b-444c-93fc-3a7537f5ad7f",
+      "node_type": "action",
+      "title": "Add tour and day-of-week filter dropdowns to Song Deep Dive controls",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T22:32:06.926123-05:00",
+      "updated_at": "2026-02-16T22:32:06.926123-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"confidence\":85}"
+    },
+    {
+      "id": 236,
+      "change_id": "a03a6fed-8a40-415c-93cd-587b213bed0d",
+      "node_type": "outcome",
+      "title": "Tour and day-of-week filters deployed - both affect song list stats and card grid data",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T22:34:26.716379-05:00",
+      "updated_at": "2026-02-16T22:34:26.716379-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"57fabb4\",\"confidence\":95}"
+    },
+    {
+      "id": 237,
+      "change_id": "3f424445-abde-483a-a0f4-c488b3d6fd2f",
+      "node_type": "action",
+      "title": "Add CSS 3D flip animation and match card front/back height",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T23:04:54.161790-05:00",
+      "updated_at": "2026-02-16T23:04:54.161790-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"c270687\",\"confidence\":95}"
+    },
+    {
+      "id": 238,
+      "change_id": "9f8bcf94-122c-4d2e-9549-0d5aaebeb4ab",
+      "node_type": "action",
+      "title": "Fix D3 chart redraw when switching back from card view",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T23:05:07.314470-05:00",
+      "updated_at": "2026-02-16T23:05:07.314470-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"2dd5bc4\",\"confidence\":95}"
+    },
+    {
+      "id": 239,
+      "change_id": "be7f2dee-3f46-4bb3-8170-7a2ae27f8b13",
+      "node_type": "action",
+      "title": "Move Baseball Card View button to left, make bigger",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T23:05:07.333847-05:00",
+      "updated_at": "2026-02-16T23:05:07.333847-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"72643e4\",\"confidence\":95}"
+    },
+    {
+      "id": 240,
+      "change_id": "104dae6f-5d4f-49ac-85de-322a91600801",
+      "node_type": "action",
+      "title": "Show full jam notes on desktop card back",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T23:05:07.352834-05:00",
+      "updated_at": "2026-02-16T23:05:07.352834-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"195715a\",\"confidence\":95}"
+    },
+    {
+      "id": 241,
+      "change_id": "644f9370-4dc2-4f3d-b307-5f91e8882e4d",
+      "node_type": "action",
+      "title": "URL parameterize card view, tour, and day-of-week",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T23:05:07.369472-05:00",
+      "updated_at": "2026-02-16T23:05:07.369472-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"784bad5\",\"confidence\":95}"
+    },
+    {
+      "id": 242,
+      "change_id": "66dae385-5969-42da-959d-9466b8cc82d1",
+      "node_type": "outcome",
+      "title": "3D flip + equal height deployed",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T23:05:07.386499-05:00",
+      "updated_at": "2026-02-16T23:05:07.386499-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"c270687\",\"confidence\":95}"
+    },
+    {
+      "id": 243,
+      "change_id": "c65d756b-5f43-4a42-a14f-2be8788637f6",
+      "node_type": "outcome",
+      "title": "Chart redraw fix deployed",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T23:05:07.403191-05:00",
+      "updated_at": "2026-02-16T23:05:07.403191-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"2dd5bc4\",\"confidence\":95}"
+    },
+    {
+      "id": 244,
+      "change_id": "222f4e2c-460e-4107-80da-2ebd46426c19",
+      "node_type": "outcome",
+      "title": "Button rename deployed",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T23:05:07.423036-05:00",
+      "updated_at": "2026-02-16T23:05:07.423036-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"72643e4\",\"confidence\":95}"
+    },
+    {
+      "id": 245,
+      "change_id": "091d6bf5-8bdd-4979-977d-4a32beef0957",
+      "node_type": "outcome",
+      "title": "Full jam notes deployed",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T23:05:07.438354-05:00",
+      "updated_at": "2026-02-16T23:05:07.438354-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"195715a\",\"confidence\":95}"
+    },
+    {
+      "id": 246,
+      "change_id": "7d665378-3597-4209-bec1-38f970fa72bc",
+      "node_type": "outcome",
+      "title": "URL params for view/tour/day deployed",
+      "description": null,
+      "status": "pending",
+      "created_at": "2026-02-16T23:05:07.457287-05:00",
+      "updated_at": "2026-02-16T23:05:07.457287-05:00",
+      "metadata_json": "{\"branch\":\"main\",\"commit\":\"784bad5\",\"confidence\":95}"
     }
   ],
   "edges": [
@@ -5215,6 +5413,182 @@
       "weight": 1.0,
       "rationale": "Implementation complete",
       "created_at": "2026-02-16T11:23:29.383762-05:00"
+    },
+    {
+      "id": 248,
+      "from_node_id": 229,
+      "to_node_id": 230,
+      "from_change_id": "c033763d-072d-43a4-8608-6339cf706543",
+      "to_change_id": "ac765316-8cb8-4031-8360-abb6737958bf",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-16T21:13:37.191781-05:00"
+    },
+    {
+      "id": 249,
+      "from_node_id": 230,
+      "to_node_id": 231,
+      "from_change_id": "ac765316-8cb8-4031-8360-abb6737958bf",
+      "to_change_id": "02a9d7c2-87b0-483c-83ce-9498d2b8fc55",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-16T21:36:28.046783-05:00"
+    },
+    {
+      "id": 250,
+      "from_node_id": 232,
+      "to_node_id": 233,
+      "from_change_id": "e1a01f0d-92ff-4f83-912b-68c9fa46a155",
+      "to_change_id": "2590faf9-47f5-428c-b7d5-594156a616c9",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation",
+      "created_at": "2026-02-16T21:53:01.270729-05:00"
+    },
+    {
+      "id": 251,
+      "from_node_id": 233,
+      "to_node_id": 234,
+      "from_change_id": "2590faf9-47f5-428c-b7d5-594156a616c9",
+      "to_change_id": "18903f65-99b0-4962-b11c-6c6254239b6c",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Implementation complete",
+      "created_at": "2026-02-16T21:55:58.744966-05:00"
+    },
+    {
+      "id": 252,
+      "from_node_id": 232,
+      "to_node_id": 235,
+      "from_change_id": "e1a01f0d-92ff-4f83-912b-68c9fa46a155",
+      "to_change_id": "de04df58-858b-444c-93fc-3a7537f5ad7f",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Additional filters",
+      "created_at": "2026-02-16T22:32:11.093962-05:00"
+    },
+    {
+      "id": 253,
+      "from_node_id": 235,
+      "to_node_id": 236,
+      "from_change_id": "de04df58-858b-444c-93fc-3a7537f5ad7f",
+      "to_change_id": "a03a6fed-8a40-415c-93cd-587b213bed0d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Deployed",
+      "created_at": "2026-02-16T22:34:30.151595-05:00"
+    },
+    {
+      "id": 254,
+      "from_node_id": 226,
+      "to_node_id": 237,
+      "from_change_id": "7211df65-437f-44ec-957c-b8ec095dcfbd",
+      "to_change_id": "3f424445-abde-483a-a0f4-c488b3d6fd2f",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Fix: 3D flip animation + equal card height",
+      "created_at": "2026-02-16T23:05:07.298047-05:00"
+    },
+    {
+      "id": 255,
+      "from_node_id": 226,
+      "to_node_id": 238,
+      "from_change_id": "7211df65-437f-44ec-957c-b8ec095dcfbd",
+      "to_change_id": "9f8bcf94-122c-4d2e-9549-0d5aaebeb4ab",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Fix: chart vanished when toggling back",
+      "created_at": "2026-02-16T23:05:07.322032-05:00"
+    },
+    {
+      "id": 256,
+      "from_node_id": 226,
+      "to_node_id": 239,
+      "from_change_id": "7211df65-437f-44ec-957c-b8ec095dcfbd",
+      "to_change_id": "be7f2dee-3f46-4bb3-8170-7a2ae27f8b13",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "UX: bigger button on left",
+      "created_at": "2026-02-16T23:05:07.340490-05:00"
+    },
+    {
+      "id": 257,
+      "from_node_id": 226,
+      "to_node_id": 240,
+      "from_change_id": "7211df65-437f-44ec-957c-b8ec095dcfbd",
+      "to_change_id": "104dae6f-5d4f-49ac-85de-322a91600801",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Fix: remove line clamp on card back",
+      "created_at": "2026-02-16T23:05:07.358938-05:00"
+    },
+    {
+      "id": 258,
+      "from_node_id": 232,
+      "to_node_id": 241,
+      "from_change_id": "e1a01f0d-92ff-4f83-912b-68c9fa46a155",
+      "to_change_id": "644f9370-4dc2-4f3d-b307-5f91e8882e4d",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Shareable links for all new filters",
+      "created_at": "2026-02-16T23:05:07.375907-05:00"
+    },
+    {
+      "id": 259,
+      "from_node_id": 237,
+      "to_node_id": 242,
+      "from_change_id": "3f424445-abde-483a-a0f4-c488b3d6fd2f",
+      "to_change_id": "66dae385-5969-42da-959d-9466b8cc82d1",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Deployed",
+      "created_at": "2026-02-16T23:05:07.392875-05:00"
+    },
+    {
+      "id": 260,
+      "from_node_id": 238,
+      "to_node_id": 243,
+      "from_change_id": "9f8bcf94-122c-4d2e-9549-0d5aaebeb4ab",
+      "to_change_id": "c65d756b-5f43-4a42-a14f-2be8788637f6",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Deployed",
+      "created_at": "2026-02-16T23:05:07.411858-05:00"
+    },
+    {
+      "id": 261,
+      "from_node_id": 239,
+      "to_node_id": 244,
+      "from_change_id": "be7f2dee-3f46-4bb3-8170-7a2ae27f8b13",
+      "to_change_id": "222f4e2c-460e-4107-80da-2ebd46426c19",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Deployed",
+      "created_at": "2026-02-16T23:05:07.428796-05:00"
+    },
+    {
+      "id": 262,
+      "from_node_id": 240,
+      "to_node_id": 245,
+      "from_change_id": "104dae6f-5d4f-49ac-85de-322a91600801",
+      "to_change_id": "091d6bf5-8bdd-4979-977d-4a32beef0957",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Deployed",
+      "created_at": "2026-02-16T23:05:07.444450-05:00"
+    },
+    {
+      "id": 263,
+      "from_node_id": 241,
+      "to_node_id": 246,
+      "from_change_id": "644f9370-4dc2-4f3d-b307-5f91e8882e4d",
+      "to_change_id": "7d665378-3597-4209-bec1-38f970fa72bc",
+      "edge_type": "leads_to",
+      "weight": 1.0,
+      "rationale": "Deployed",
+      "created_at": "2026-02-16T23:05:07.463874-05:00"
     }
   ]
 }

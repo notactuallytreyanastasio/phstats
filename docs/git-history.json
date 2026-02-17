@@ -1,5 +1,69 @@
 [
   {
+    "hash": "784bad5c3a284e97f16d3cea994d067da83421f4",
+    "short_hash": "784bad5",
+    "author": "Robert Grayson",
+    "date": "2026-02-16T22:35:46-05:00",
+    "message": "feat: parameterize card view, tour, and day-of-week in URL\n\nview=card, tour=Summer, day=Friday now persist in URL params\nfor shareable links. Defaults (chart/all/all) omit the param.\nApp.tsx cleans up new params when navigating away from deep-dive.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 5
+  },
+  {
+    "hash": "57fabb415190182bbb598dcd9d1603d82a6c3816",
+    "short_hash": "57fabb4",
+    "author": "Robert Grayson",
+    "date": "2026-02-16T22:34:22-05:00",
+    "message": "feat: add tour and day-of-week filters to Song Deep Dive\n\nNew Tour dropdown (All/Winter/Spring/Summer/Fall/Holiday) and Day\ndropdown (All/Sun-Sat) filter both the song list stats and card\ngrid track data. Uses existing tourFromDate and weekdayFromDate\nfrom date-utils. Loads all tracks client-side and re-derives song\nstats when filters change.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 5
+  },
+  {
+    "hash": "32f12b7f2969de38af2722a4d5ad27a37b1a03c3",
+    "short_hash": "32f12b7",
+    "author": "Robert Grayson",
+    "date": "2026-02-16T21:55:51-05:00",
+    "message": "feat: card grid tabletop - top 12 songs as flippable baseball cards\n\nReplaces single-card view with a grid of the top 12 songs from\ncurrent filters. Each card independently flippable with 3D animation.\nCards show stats on front, scrollable jam list with play buttons\non back. Ranked badges show position.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 5
+  },
+  {
+    "hash": "195715a3d3aed3ca5426f1e1e6f95d1c75928b4a",
+    "short_hash": "195715a",
+    "author": "Robert Grayson",
+    "date": "2026-02-16T21:40:03-05:00",
+    "message": "fix: show full jam notes on desktop baseball card back\n\nRemove line clamp truncation so jam chart notes display in full\non the back of the card.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "72643e40c58df670a41652a73357888fbc90d36c",
+    "short_hash": "72643e4",
+    "author": "Robert Grayson",
+    "date": "2026-02-16T21:36:51-05:00",
+    "message": "fix: move Baseball Card View button to left, make bigger\n\nRenamed to \"Baseball Card View\", moved to the start of the controls\nrow, and increased size/weight for better visibility.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "a9b957d089a4211e9939c5297ecd4f6e62722744",
+    "short_hash": "a9b957d",
+    "author": "Robert Grayson",
+    "date": "2026-02-16T21:36:23-05:00",
+    "message": "feat: add tour season and weekday filters to PhanGraphs\n\nDerive tour (Winter/Spring/Summer/Fall/Holiday) and weekday from show_date,\nno DB changes needed. Adds dropdowns to filter bar with URL param sync.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 6
+  },
+  {
+    "hash": "2dd5bc412c9ea1a6cc16b6b4debb86c00f04717e",
+    "short_hash": "2dd5bc4",
+    "author": "Robert Grayson",
+    "date": "2026-02-16T12:47:13-05:00",
+    "message": "fix: re-render D3 chart when switching back from card view\n\nAdd viewMode to the D3 useEffect dependency array so the chart\nredraws when toggling from card view back to chart view.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "c270687f4c2ae9d171dbdf00dc890951a448a4f6",
+    "short_hash": "c270687",
+    "author": "Robert Grayson",
+    "date": "2026-02-16T12:29:33-05:00",
+    "message": "fix: add 3D flip animation and match card front/back height\n\nUses CSS preserve-3d + backface-visibility for a real card flip\nanimation. Both faces are position:absolute at a fixed 600px height\nso front and back are the same size.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
     "hash": "307bd73a4f6a2154939ee5841389cebb70ebee88",
     "short_hash": "307bd73",
     "author": "Robert Grayson",
