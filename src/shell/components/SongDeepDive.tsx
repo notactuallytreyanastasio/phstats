@@ -910,7 +910,27 @@ export default function SongDeepDive({ year }: { year: string }) {
             >
               ← All Songs
             </button>
-            <h2 style={{ margin: 0, fontSize: '1.3rem', color: '#1e293b' }}>{selectedSong}</h2>
+            <h2 style={{ margin: 0, fontSize: '1.3rem', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              {selectedSong}
+              {(() => {
+                const songStats = songList.find(s => s.song_name === selectedSong)
+                if (!songStats) return null
+                const avg = songStats.times_played > 0 ? songStats.jamchart_count / songStats.times_played : 0
+                const isHot = avg >= 0.3
+                const isWarm = avg >= 0.15
+                return (
+                  <span style={{
+                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                    width: '56px', height: '56px', borderRadius: '50%',
+                    background: isHot ? COLORS.headerBgJc : isWarm ? COLORS.gold : COLORS.headerBg,
+                    color: '#fff', fontSize: '16px', fontWeight: 900, fontFamily: 'monospace',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  }}>
+                    {fmtAvg(songStats)}
+                  </span>
+                )
+              })()}
+            </h2>
           </div>
         )}
       </div>
