@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback, useMemo } from 'react'
+import { useRef, useEffect, useState, useCallback } from 'react'
 import * as d3 from 'd3'
 import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
@@ -46,24 +46,6 @@ function fmtDuration(ms: number): string {
 }
 
 type ViewMode = 'chart' | 'card'
-type ListFilter = 'all' | 'jamcharts'
-
-const CARD_HEIGHT = 420
-
-function fmtAvgVal(s: SongOption): string {
-  if (s.times_played === 0) return '.000'
-  const avg = s.jamchart_count / s.times_played
-  return avg >= 1 ? '1.000' : ('.' + Math.round(avg * 1000).toString().padStart(3, '0'))
-}
-
-function fmtSet(s: string) {
-  if (s === 'SET 1') return 'S1'
-  if (s === 'SET 2') return 'S2'
-  if (s === 'SET 3') return 'S3'
-  if (s === 'ENCORE') return 'Enc'
-  if (s === 'ENCORE 2') return 'E2'
-  return s
-}
 
 function buildShareUrl(song: string, jamDate?: string, view: 'chart' | 'card' = 'card'): string {
   const params = new URLSearchParams(window.location.search)
@@ -89,343 +71,6 @@ function copyToClipboard(text: string): Promise<void> {
   return Promise.resolve()
 }
 
-function SingleCard({
-  songOption, data, isFlipped, onFlip,
-  listFilter, setListFilter,
-  playJam, nowPlaying, highlightDate,
-}: {
-  songOption: SongOption
-  data: SongHistory | null
-  isFlipped: boolean
-  onFlip: () => void
-  listFilter: ListFilter
-  setListFilter: (v: ListFilter) => void
-  playJam: (url: string, date: string, song: string) => void
-  nowPlaying: { url: string; date: string; song: string } | null
-  highlightDate: string | null
-}) {
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
-  const highlightRef = useRef<HTMLDivElement>(null)
-  const [shareToast, setShareToast] = useState<string | null>(null)
-
-  const shareJam = (song: string, date: string) => {
-    const url = buildShareUrl(song, date)
-    copyToClipboard(url).then(() => {
-      setShareToast(date)
-      setTimeout(() => setShareToast(null), 2000)
-    })
-  }
-
-  // Scroll to highlighted jam when card flips open
-  useEffect(() => {
-    if (isFlipped && highlightDate && highlightRef.current) {
-      setTimeout(() => highlightRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400)
-    }
-  }, [isFlipped, highlightDate])
-
-  if (!data) {
-    return (
-      <div style={{
-        height: CARD_HEIGHT, borderRadius: '12px',
-        background: '#1a1a2e', border: '2px solid #334155',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        color: '#64748b', fontSize: '13px',
-      }}>
-        Loading...
-      </div>
-    )
-  }
-
-  const tracks = data.tracks
-  const jcCount = tracks.filter(t => t.is_jamchart).length
-  const avgDur = tracks.length > 0
-    ? tracks.reduce((sum, t) => sum + t.duration_ms, 0) / tracks.length : 0
-  const longestMs = tracks.length > 0 ? Math.max(...tracks.map(t => t.duration_ms)) : 0
-  const longestTrack = tracks.length > 0
-    ? tracks.reduce((a, b) => (a.duration_ms > b.duration_ms ? a : b)) : null
-  const audioCount = tracks.filter(t => t.jam_url).length
-
-  // Best year
-  const yearGroups = new Map<string, { total: number; jc: number }>()
-  for (const t of tracks) {
-    const yr = t.show_date.slice(0, 4)
-    const e = yearGroups.get(yr) || { total: 0, jc: 0 }
-    e.total++; if (t.is_jamchart) e.jc++
-    yearGroups.set(yr, e)
-  }
-  let bestYear = '', bestYearJc = 0, bestYearTotal = 0, bestYearPct = 0
-  for (const [yr, { total, jc }] of yearGroups) {
-    if (total >= 2) {
-      const pct = jc / total
-      if (pct > bestYearPct || (pct === bestYearPct && jc > bestYearJc)) {
-        bestYear = yr; bestYearJc = jc; bestYearTotal = total; bestYearPct = pct
-      }
-    }
-  }
-
-  // Set placement
-  const setGroups = new Map<string, number>()
-  for (const t of tracks) setGroups.set(t.set_name || '?', (setGroups.get(t.set_name || '?') || 0) + 1)
-  let topSet = '', topSetPct = 0
-  for (const [s, n] of setGroups) {
-    const pct = Math.round(100 * n / tracks.length)
-    if (pct > topSetPct) { topSet = s; topSetPct = pct }
-  }
-
-  // JC streak
-  let jcStreak = 0
-  for (let i = tracks.length - 1; i >= 0; i--) {
-    if (tracks[i].is_jamchart) jcStreak++; else break
-  }
-
-  const filteredTracks = tracks.filter(t => listFilter === 'jamcharts' ? t.is_jamchart : true)
-
-  const pill = (label: string, value: ListFilter, count: number) => (
-    <button
-      key={value}
-      onClick={(e) => { e.stopPropagation(); setListFilter(value) }}
-      style={{
-        padding: '4px 10px', borderRadius: '14px',
-        border: listFilter === value ? '2px solid #ef4444' : '1px solid #334155',
-        background: listFilter === value ? '#ef4444' : '#1e293b',
-        color: listFilter === value ? 'white' : '#94a3b8',
-        fontSize: '11px', fontWeight: listFilter === value ? 700 : 400,
-        cursor: 'pointer',
-      }}
-    >
-      {label} ({count})
-    </button>
-  )
-
-  return (
-    <div style={{ perspective: '1000px', height: CARD_HEIGHT }}>
-      <div style={{
-        position: 'relative', height: '100%',
-        transformStyle: 'preserve-3d',
-        transition: 'transform 0.6s ease',
-        transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-      }}>
-        {/* FRONT */}
-        <div
-          onClick={onFlip}
-          style={{
-            position: 'absolute', inset: 0,
-            backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
-            padding: '16px', borderRadius: '12px',
-            background: '#1a1a2e', color: 'white',
-            border: '2px solid #334155', textAlign: 'center',
-            cursor: 'pointer',
-            display: 'flex', flexDirection: 'column', justifyContent: 'center',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{
-            fontSize: '15px', fontWeight: 800, letterSpacing: '0.5px',
-            textTransform: 'uppercase', marginBottom: '2px',
-            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-          }}>
-            {data.song_name}
-          </div>
-          <div style={{ width: '30px', height: '2px', background: '#ef4444', margin: '0 auto 10px' }} />
-          <div style={{
-            fontSize: '40px', fontWeight: 900, lineHeight: 1,
-            color: '#ef4444', marginBottom: '2px',
-            fontVariantNumeric: 'tabular-nums',
-          }}>
-            {fmtAvgVal(songOption)}
-          </div>
-          <div style={{
-            fontSize: '9px', fontWeight: 600, letterSpacing: '2px',
-            color: '#64748b', textTransform: 'uppercase', marginBottom: '10px',
-          }}>
-            BATTING AVG
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', fontSize: '12px', color: '#94a3b8' }}>
-            <span><strong style={{ color: '#ef4444' }}>{songOption.jamchart_count}</strong> JC</span>
-            <span style={{ color: '#334155' }}>&middot;</span>
-            <span><strong style={{ color: 'white' }}>{songOption.times_played}</strong>&times;</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-            <span>Avg {(avgDur / 60000).toFixed(1)}m</span>
-            <span>&middot;</span>
-            <span>Peak {fmtDuration(longestMs)}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-            <span style={audioCount === 0 ? { color: '#ef4444' } : {}}>&#127911; {audioCount}/{tracks.length}</span>
-            {topSet && <span>&middot; {topSetPct}% {fmtSet(topSet)}</span>}
-          </div>
-          {longestTrack && (
-            <div style={{ marginTop: '8px', paddingTop: '6px', borderTop: '1px solid #334155', textAlign: 'left' }}>
-              <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700 }}>
-                <span style={{ color: '#ef4444' }}>&#9733;</span> Longest: {fmtDuration(longestTrack.duration_ms)}
-              </div>
-              <div style={{ fontSize: '9px', color: '#64748b', marginTop: '1px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {longestTrack.show_date} &middot; {longestTrack.venue}
-              </div>
-            </div>
-          )}
-          {bestYear && bestYearJc > 0 && (
-            <div style={{ marginTop: '4px', textAlign: 'left' }}>
-              <div style={{ fontSize: '9px', color: '#64748b' }}>
-                Best: <strong style={{ color: '#e2e8f0' }}>{bestYear}</strong> &mdash; {bestYearJc}/{bestYearTotal} JC
-              </div>
-            </div>
-          )}
-          {jcStreak > 0 && (
-            <div style={{ marginTop: '2px', textAlign: 'left' }}>
-              <div style={{ fontSize: '9px', color: '#64748b' }}>
-                &#128293; Streak: <strong style={{ color: '#e2e8f0' }}>{jcStreak}</strong> in a row
-              </div>
-            </div>
-          )}
-          <div style={{
-            fontSize: '10px', color: '#22c55e', marginTop: '10px',
-            letterSpacing: '1px', textTransform: 'uppercase', fontWeight: 700,
-          }}>
-            CLICK TO FLIP
-          </div>
-        </div>
-
-        {/* BACK */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
-          transform: 'rotateY(180deg)',
-          borderRadius: '12px', background: '#1a1a2e', color: 'white',
-          border: '2px solid #334155',
-          display: 'flex', flexDirection: 'column' as const, overflow: 'hidden',
-        }}>
-          <div onClick={onFlip} style={{
-            padding: '8px 12px', borderBottom: '1px solid #334155',
-            cursor: 'pointer', textAlign: 'center', flexShrink: 0,
-          }}>
-            <div style={{ fontSize: '12px', fontWeight: 800, letterSpacing: '0.5px', color: '#e2e8f0', textTransform: 'uppercase' }}>
-              {data.song_name}
-              <span style={{ color: '#ef4444', marginLeft: '6px' }}>{fmtAvgVal(songOption)}</span>
-            </div>
-            <div style={{ fontSize: '9px', color: '#475569', marginTop: '2px', letterSpacing: '1px', textTransform: 'uppercase' }}>
-              CLICK TO FLIP BACK
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '6px', padding: '6px 12px', borderBottom: '1px solid #334155', flexShrink: 0 }}>
-            {pill('All', 'all', tracks.length)}
-            {pill('JC', 'jamcharts', jcCount)}
-            <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#64748b', alignSelf: 'center' }}>
-              {filteredTracks.length}
-            </span>
-          </div>
-
-          <div style={{ overflowY: 'auto', flex: 1, padding: '2px 0' }}>
-            {filteredTracks.map((t, i) => {
-              const isJc = !!t.is_jamchart
-              const isExp = expandedIdx === i
-              const isHighlighted = highlightDate === t.show_date
-              return (
-                <div
-                  ref={isHighlighted ? highlightRef : undefined}
-                  key={`${t.show_date}-${t.set_name}-${t.position}`}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '6px',
-                    padding: '6px 12px',
-                    borderBottom: '1px solid #1e293b',
-                    borderLeft: isHighlighted ? '3px solid #22c55e' : isJc ? '3px solid #ef4444' : '3px solid transparent',
-                    background: isHighlighted ? 'rgba(34, 197, 94, 0.12)' : undefined,
-                    boxShadow: isHighlighted ? 'inset 0 0 12px rgba(34, 197, 94, 0.15)' : undefined,
-                  }}
-                >
-                  <div
-                    style={{ flex: 1, minWidth: 0, cursor: t.jam_notes ? 'pointer' : 'default' }}
-                    onClick={(e) => { e.stopPropagation(); t.jam_notes ? setExpandedIdx(isExp ? null : i) : undefined }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#e2e8f0' }}>
-                        {isJc && <span style={{ color: '#ef4444', marginRight: '3px' }}>&#9733;</span>}
-                        {t.show_date}
-                      </span>
-                      <span style={{
-                        fontSize: '13px', fontWeight: 900,
-                        color: isJc ? '#ef4444' : '#94a3b8',
-                        fontVariantNumeric: 'tabular-nums',
-                      }}>
-                        {fmtDuration(t.duration_ms)}
-                      </span>
-                    </div>
-                    {longestMs > 0 && t.duration_ms > 0 && (
-                      <div style={{ height: 2, background: '#334155', borderRadius: 1, marginTop: '2px' }}>
-                        <div style={{
-                          height: '100%', borderRadius: 1,
-                          width: `${Math.round(100 * t.duration_ms / longestMs)}%`,
-                          background: isJc ? '#ef4444' : '#475569',
-                        }} />
-                      </div>
-                    )}
-                    <div style={{
-                      fontSize: '10px', color: '#64748b', marginTop: '1px',
-                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                    }}>
-                      {t.venue}
-                    </div>
-                    {t.jam_notes && (
-                      <div style={{
-                        marginTop: '3px', fontSize: '10px', color: '#94a3b8',
-                        lineHeight: '1.3', fontStyle: 'italic',
-                        ...(!isExp ? {
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical' as const,
-                          overflow: 'hidden',
-                        } : {}),
-                      }}>
-                        {t.jam_notes}
-                      </div>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); shareJam(t.song_name, t.show_date) }}
-                      title="Share this jam"
-                      style={{
-                        background: 'none', border: 'none',
-                        color: shareToast === t.show_date ? '#22c55e' : '#475569',
-                        cursor: 'pointer', fontSize: '14px', padding: '2px',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      }}
-                    >
-                      {shareToast === t.show_date ? '\u2713' : '\u21AA'}
-                    </button>
-                    {t.jam_url && (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); playJam(t.jam_url, t.show_date, t.song_name) }}
-                        style={{
-                          background: nowPlaying?.url === t.jam_url ? '#16a34a' : '#22c55e',
-                          color: 'white', border: 'none', borderRadius: '50%',
-                          width: '30px', height: '30px', fontSize: '12px',
-                          cursor: 'pointer', flexShrink: 0,
-                          display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        }}
-                      >
-                        {nowPlaying?.url === t.jam_url ? '\u23F8' : '\u25B6'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-            {filteredTracks.length === 0 && (
-              <div style={{ textAlign: 'center', padding: '16px', color: '#64748b', fontSize: '11px' }}>
-                No performances match filter
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-const GRID_SIZE = 12
-
 function filterTracksByTourDay(tracks: Track[], tour: TourFilter, weekday: WeekdayFilter): Track[] {
   let result = tracks
   if (tour !== 'all') result = result.filter(t => tourFromDate(t.show_date) === tour)
@@ -433,93 +78,136 @@ function filterTracksByTourDay(tracks: Track[], tour: TourFilter, weekday: Weekd
   return result
 }
 
-function CardGrid({
-  songs, year, tour, weekday, playJam, nowPlaying, highlightSong, highlightDate,
+function JamCardGrid({
+  songName,
+  tracks,
+  playJam,
+  nowPlaying,
 }: {
-  songs: SongOption[]
-  year: string
-  tour: TourFilter
-  weekday: WeekdayFilter
+  songName: string
+  tracks: Track[]
   playJam: (url: string, date: string, song: string) => void
   nowPlaying: { url: string; date: string; song: string } | null
-  highlightSong: string | null
-  highlightDate: string | null
 }) {
-  const topSongs = songs.slice(0, GRID_SIZE)
-  const [rawHistoryMap, setRawHistoryMap] = useState<Record<string, SongHistory>>({})
-  const [flippedSet, setFlippedSet] = useState<Set<string>>(() => {
-    // Auto-flip the highlighted song's card on initial load
-    if (highlightSong && highlightDate) return new Set([highlightSong])
-    return new Set()
-  })
-  const [listFilters, setListFilters] = useState<Record<string, ListFilter>>({})
+  const [shareToast, setShareToast] = useState<string | null>(null)
 
-  // Fetch history for all top songs
-  useEffect(() => {
-    setRawHistoryMap({})
-    setFlippedSet(new Set())
-    const names = topSongs.map(s => s.song_name)
-    names.forEach(name => {
-      dataSource.fetchSongHistory(name, year)
-        .then(data => {
-          setRawHistoryMap(prev => ({ ...prev, [name]: data }))
-        })
-        .catch(() => {})
+  const shareJam = (date: string) => {
+    const url = buildShareUrl(songName, date, 'card')
+    copyToClipboard(url).then(() => {
+      setShareToast(date)
+      setTimeout(() => setShareToast(null), 2000)
     })
-  }, [year, topSongs.map(s => s.song_name).join(',')]) // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
-  // Apply tour/weekday filters to fetched histories
-  const historyMap = useMemo(() => {
-    const filtered: Record<string, SongHistory> = {}
-    for (const [name, hist] of Object.entries(rawHistoryMap)) {
-      filtered[name] = {
-        song_name: hist.song_name,
-        tracks: filterTracksByTourDay(hist.tracks, tour, weekday),
-      }
-    }
-    return filtered
-  }, [rawHistoryMap, tour, weekday])
-
-  const toggleFlip = (name: string) => {
-    setFlippedSet(prev => {
-      const next = new Set(prev)
-      if (next.has(name)) next.delete(name)
-      else next.add(name)
-      return next
-    })
+  if (tracks.length === 0) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
+        No jams found for this song with current filters.
+      </div>
+    )
   }
 
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
       gap: '16px',
     }}>
-      {topSongs.map((s, i) => (
-        <div key={s.song_name} style={{ position: 'relative' }}>
-          <div style={{
-            position: 'absolute', top: '-8px', left: '-4px', zIndex: 2,
-            background: '#ef4444', color: 'white',
-            width: '24px', height: '24px', borderRadius: '50%',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '11px', fontWeight: 800,
-            boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
-          }}>
-            {i + 1}
+      {tracks.map((t) => {
+        const isPlaying = nowPlaying?.date === t.show_date && nowPlaying?.song === songName
+        const isJc = !!t.is_jamchart
+        const isShared = shareToast === t.show_date
+
+        return (
+          <div
+            key={`${t.show_date}-${t.set_name}-${t.position}`}
+            style={{
+              background: '#fff',
+              border: isJc ? '2px solid #ef4444' : '1px solid #e5e7eb',
+              borderRadius: '12px',
+              padding: '16px',
+              boxShadow: isPlaying ? '0 0 0 3px rgba(34, 197, 94, 0.4)' : '0 2px 8px rgba(0,0,0,0.06)',
+            }}
+          >
+            {/* Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
+              <div>
+                <div style={{ fontSize: '18px', fontWeight: 800, color: '#111' }}>
+                  {isJc && <span style={{ color: '#ef4444', marginRight: '6px' }}>&#9733;</span>}
+                  {t.show_date}
+                </div>
+                <div style={{ color: '#555', fontSize: '13px', marginTop: '2px' }}>{t.venue}</div>
+                <div style={{ color: '#888', fontSize: '12px' }}>{t.location}</div>
+              </div>
+              <div style={{
+                fontSize: '20px', fontWeight: 900, color: isJc ? '#ef4444' : '#333',
+                fontVariantNumeric: 'tabular-nums',
+              }}>
+                {fmtDuration(t.duration_ms)}
+              </div>
+            </div>
+
+            {/* Stats row */}
+            <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', fontSize: '12px', color: '#666' }}>
+              <span><strong>Set:</strong> {t.set_name}</span>
+              <span><strong>Position:</strong> #{t.position}</span>
+              <span><strong>Likes:</strong> {t.likes}</span>
+            </div>
+
+            {/* Notes */}
+            {t.jam_notes && (
+              <div style={{
+                background: '#f9fafb',
+                borderRadius: '8px',
+                padding: '12px',
+                marginBottom: '12px',
+                fontSize: '13px',
+                color: '#444',
+                lineHeight: '1.5',
+                fontStyle: 'italic',
+                borderLeft: '3px solid #ef4444',
+              }}>
+                {t.jam_notes}
+              </div>
+            )}
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {t.jam_url ? (
+                <button
+                  onClick={() => playJam(t.jam_url, t.show_date, songName)}
+                  style={{
+                    flex: 1, padding: '10px', background: isPlaying ? '#16a34a' : '#22c55e',
+                    color: 'white', border: 'none', borderRadius: '8px',
+                    fontSize: '14px', fontWeight: 700, cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                  }}
+                >
+                  <span>&#9654;</span> {isPlaying ? 'Playing...' : 'Play'}
+                </button>
+              ) : (
+                <div style={{
+                  flex: 1, padding: '10px', background: '#f3f4f6',
+                  borderRadius: '8px', textAlign: 'center',
+                  fontSize: '13px', color: '#9ca3af',
+                }}>
+                  No audio
+                </div>
+              )}
+              <button
+                onClick={() => shareJam(t.show_date)}
+                style={{
+                  padding: '10px 16px', background: isShared ? '#22c55e' : '#3b82f6',
+                  color: 'white', border: 'none', borderRadius: '8px',
+                  fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                }}
+              >
+                {isShared ? '✓' : '↪'}
+              </button>
+            </div>
           </div>
-          <SingleCard
-            songOption={s}
-            data={historyMap[s.song_name] ?? null}
-            isFlipped={flippedSet.has(s.song_name)}
-            onFlip={() => toggleFlip(s.song_name)}
-            listFilter={listFilters[s.song_name] ?? 'jamcharts'}
-            setListFilter={(v) => setListFilters(prev => ({ ...prev, [s.song_name]: v }))}
-            playJam={playJam}
-            nowPlaying={nowPlaying}
-            highlightDate={highlightSong === s.song_name ? highlightDate : null}
-          />
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
@@ -1153,17 +841,17 @@ export default function SongDeepDive({ year }: { year: string }) {
             </div>
           )}
         </div>
-      ) : (
-        <CardGrid
-          songs={sortedSongs}
-          year={year}
-          tour={tour}
-          weekday={weekday}
+      ) : data && data.tracks.length > 0 ? (
+        <JamCardGrid
+          songName={selectedSong}
+          tracks={data.tracks}
           playJam={playJam}
           nowPlaying={nowPlaying}
-          highlightSong={highlightJam ? selectedSong : null}
-          highlightDate={highlightJam}
         />
+      ) : (
+        <div style={{ textAlign: 'center', padding: '40px', color: '#888' }}>
+          {data === null ? 'Loading jams...' : 'No jams found for this song.'}
+        </div>
       )}
       {/* Hover tooltip — info only */}
       <div ref={tooltipRef} style={{
