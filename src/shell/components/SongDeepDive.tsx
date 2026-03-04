@@ -127,6 +127,8 @@ function JamCardGrid({
               borderRadius: '8px',
               overflow: 'hidden',
               boxShadow: isPlaying ? '0 0 0 4px rgba(34, 197, 94, 0.5)' : '0 4px 12px rgba(0,0,0,0.15)',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
             {/* Header - dark panel */}
@@ -183,8 +185,8 @@ function JamCardGrid({
               </div>
             )}
 
-            {/* Actions */}
-            <div style={{ display: 'flex', gap: '8px', padding: '12px', background: '#f5f0e6' }}>
+            {/* Actions - pinned to bottom */}
+            <div style={{ display: 'flex', gap: '8px', padding: '12px', background: '#f5f0e6', marginTop: 'auto' }}>
               {t.jam_url ? (
                 <button
                   onClick={() => playJam(t.jam_url, t.show_date, songName)}
