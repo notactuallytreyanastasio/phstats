@@ -5,7 +5,7 @@ import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
 
 function App() {
-  const [jamYear, setJamYear] = useState(() => getParam('year') || 'all')
+  const [jamYear, setJamYear] = useState(() => getParam('year') || '')
   const [jamYears, setJamYears] = useState<number[]>([])
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
 
@@ -17,15 +17,35 @@ function App() {
 
   // Sync year to URL
   useEffect(() => {
-    setParams({ year: jamYear === 'all' ? null : jamYear })
+    if (jamYear) {
+      setParams({ year: jamYear === 'all' ? null : jamYear })
+    }
   }, [jamYear])
 
-  // Fetch available years on mount
+  // Fetch available years on mount, pick random year if none specified
   useEffect(() => {
     dataSource.fetchJamchartYears()
-      .then(setJamYears)
-      .catch(() => {})
+      .then(years => {
+        setJamYears(years)
+        // If no year in URL, pick a random one for variety
+        if (!getParam('year') && years.length > 0) {
+          const randomYear = years[Math.floor(Math.random() * years.length)]
+          setJamYear(String(randomYear))
+        } else if (!jamYear) {
+          setJamYear('all')
+        }
+      })
+      .catch(() => setJamYear('all'))
   }, [])
+
+  // Don't render until year is determined
+  if (!jamYear) {
+    return (
+      <div style={{ padding: '2rem', fontFamily: 'system-ui', textAlign: 'center', color: '#64748b' }}>
+        Loading...
+      </div>
+    )
+  }
 
   return (
     <div style={{ padding: isMobile ? '0' : '2rem', fontFamily: 'system-ui', maxWidth: '1400px', margin: '0 auto' }}>
