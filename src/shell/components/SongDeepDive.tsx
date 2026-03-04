@@ -47,19 +47,19 @@ function fmtDuration(ms: number): string {
 
 type ViewMode = 'browse' | 'chart' | 'card'
 
-// Smoother light color palette
+// Vintage baseball card palette - cream, gold, black
 const COLORS = {
-  cardBg: '#f8fafc',
-  cardBorder: '#cbd5e1',
-  cardBorderAccent: '#3b82f6',
-  headerBg: '#1e40af',
-  headerBgJc: '#dc2626',
-  statsBg: '#475569',
-  notesBg: '#334155',
-  textLight: '#f1f5f9',
-  textMuted: '#94a3b8',
-  gold: '#fbbf24',
-  accent: '#3b82f6',
+  cardBg: '#f5f0e1',        // cream
+  cardBorder: '#c9a227',    // gold
+  cardBorderMuted: '#d4c4a1', // muted gold/tan
+  headerBg: '#1a1a1a',      // black
+  headerBgJc: '#b91c1c',    // deep red for jamcharts
+  statsBg: '#2d2d2d',       // dark gray
+  notesBg: '#1a1a1a',       // black
+  textLight: '#fff',
+  textMuted: '#d4c4a1',     // tan
+  gold: '#c9a227',          // gold accent
+  accent: '#c9a227',        // gold
 }
 
 function buildShareUrl(song: string, jamDate?: string, view: 'chart' | 'card' = 'card'): string {
@@ -229,7 +229,7 @@ function JamCardGrid({
                   fontSize: '13px', fontWeight: 700, cursor: 'pointer',
                 }}
               >
-                {isShared ? '✓' : '↪'}
+                {isShared ? 'Copied!' : 'Copy'}
               </button>
             </div>
           </div>
@@ -239,83 +239,210 @@ function JamCardGrid({
   )
 }
 
+const CARD_HEIGHT = 380
+
 function SongBrowseGrid({
   songs,
+  year,
   onSelectSong,
   fmtAvg,
+  playJam,
+  nowPlaying,
 }: {
   songs: SongOption[]
+  year: string
   onSelectSong: (name: string) => void
   fmtAvg: (s: SongOption) => string
+  playJam: (url: string, date: string, song: string) => void
+  nowPlaying: { url: string; date: string; song: string } | null
 }) {
+  const [flippedCard, setFlippedCard] = useState<string | null>(null)
+  const [cardData, setCardData] = useState<Record<string, SongHistory>>({})
+
+  // Fetch data when a card is flipped
+  useEffect(() => {
+    if (flippedCard && !cardData[flippedCard]) {
+      dataSource.fetchSongHistory(flippedCard, year)
+        .then(data => setCardData(prev => ({ ...prev, [flippedCard]: data })))
+        .catch(() => {})
+    }
+  }, [flippedCard, year, cardData])
+
+  const handleCardClick = (songName: string) => {
+    if (flippedCard === songName) {
+      // Already flipped, go to detail view
+      onSelectSong(songName)
+    } else {
+      // Flip the card
+      setFlippedCard(songName)
+    }
+  }
+
   return (
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-      gap: '12px',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+      gap: '16px',
     }}>
       {songs.map((s, i) => {
         const avg = s.times_played > 0 ? s.jamchart_count / s.times_played : 0
         const isHot = avg >= 0.3
         const isWarm = avg >= 0.15 && avg < 0.3
+        const isFlipped = flippedCard === s.song_name
+        const history = cardData[s.song_name]
 
         return (
-          <div
-            key={s.song_name}
-            onClick={() => onSelectSong(s.song_name)}
-            style={{
-              position: 'relative',
-              background: COLORS.cardBg,
-              border: `2px solid ${isHot ? COLORS.headerBgJc : isWarm ? COLORS.gold : COLORS.cardBorder}`,
-              borderRadius: '10px',
-              padding: '16px',
-              cursor: 'pointer',
-              transition: 'transform 0.15s, box-shadow 0.15s',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.transform = 'translateY(-2px)'
-              e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.12)'
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.transform = 'translateY(0)'
-              e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'
-            }}
-          >
-            {/* Rank badge */}
+          <div key={s.song_name} style={{ perspective: '1000px', height: CARD_HEIGHT }}>
             <div style={{
-              position: 'absolute', top: '-10px', left: '-10px',
-              background: isHot ? COLORS.headerBgJc : isWarm ? COLORS.gold : COLORS.accent,
-              color: '#fff', width: '26px', height: '26px', borderRadius: '50%',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '12px', fontWeight: 800, boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              position: 'relative', width: '100%', height: '100%',
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.5s ease',
+              transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
             }}>
-              {i + 1}
-            </div>
+              {/* FRONT */}
+              <div
+                onClick={() => handleCardClick(s.song_name)}
+                style={{
+                  position: 'absolute', inset: 0,
+                  backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+                  background: COLORS.cardBg,
+                  border: `3px solid ${isHot ? COLORS.headerBgJc : isWarm ? COLORS.gold : COLORS.cardBorder}`,
+                  borderRadius: '8px',
+                  padding: '20px',
+                  cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                  textAlign: 'center',
+                }}
+              >
+                {/* Rank badge */}
+                <div style={{
+                  position: 'absolute', top: '-10px', left: '-10px',
+                  background: isHot ? COLORS.headerBgJc : isWarm ? COLORS.gold : COLORS.accent,
+                  color: '#fff', width: '28px', height: '28px', borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '13px', fontWeight: 800, boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                }}>
+                  {i + 1}
+                </div>
 
-            {/* Batting average - big display */}
-            <div style={{
-              fontSize: '32px', fontWeight: 900,
-              color: isHot ? COLORS.headerBgJc : isWarm ? '#b45309' : COLORS.headerBg,
-              fontFamily: 'monospace',
-              letterSpacing: '-1px',
-              marginBottom: '8px',
-            }}>
-              {fmtAvg(s)}
-            </div>
+                {/* Batting average */}
+                <div style={{
+                  fontSize: '52px', fontWeight: 900,
+                  color: isHot ? COLORS.headerBgJc : isWarm ? COLORS.gold : COLORS.headerBg,
+                  fontFamily: 'monospace',
+                  letterSpacing: '-2px',
+                  marginBottom: '12px',
+                }}>
+                  {fmtAvg(s)}
+                </div>
 
-            {/* Song name */}
-            <div style={{
-              fontSize: '14px', fontWeight: 700, color: '#1e293b',
-              marginBottom: '6px',
-              overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-            }}>
-              {s.song_name}
-            </div>
+                {/* Song name */}
+                <div style={{
+                  fontSize: '16px', fontWeight: 800, color: COLORS.headerBg,
+                  marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px',
+                }}>
+                  {s.song_name}
+                </div>
 
-            {/* Stats */}
-            <div style={{ fontSize: '12px', color: '#64748b' }}>
-              <span style={{ color: COLORS.headerBgJc, fontWeight: 700 }}>{s.jamchart_count}</span> JC / {s.times_played} played
+                {/* Stats */}
+                <div style={{ fontSize: '13px', color: '#6b5b3d', marginBottom: '16px' }}>
+                  <span style={{ color: COLORS.headerBgJc, fontWeight: 700 }}>{s.jamchart_count}</span> jamcharts / {s.times_played} played
+                </div>
+
+                <div style={{ fontSize: '11px', color: COLORS.gold, fontWeight: 600, textTransform: 'uppercase' }}>
+                  Click to flip
+                </div>
+              </div>
+
+              {/* BACK */}
+              <div
+                onClick={() => setFlippedCard(null)}
+                style={{
+                  position: 'absolute', inset: 0,
+                  backfaceVisibility: 'hidden', WebkitBackfaceVisibility: 'hidden',
+                  transform: 'rotateY(180deg)',
+                  background: COLORS.cardBg,
+                  border: `3px solid ${COLORS.gold}`,
+                  borderRadius: '8px',
+                  display: 'flex', flexDirection: 'column',
+                  overflow: 'hidden',
+                }}
+              >
+                {/* Header */}
+                <div style={{
+                  background: COLORS.headerBg, padding: '10px 14px',
+                  borderBottom: `2px solid ${COLORS.gold}`,
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                }}>
+                  <div style={{ color: '#fff', fontWeight: 800, fontSize: '14px' }}>{s.song_name}</div>
+                  <div style={{ color: COLORS.gold, fontWeight: 800, fontSize: '16px', fontFamily: 'monospace' }}>{fmtAvg(s)}</div>
+                </div>
+
+                {/* Jam list */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
+                  {!history ? (
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#6b5b3d' }}>Loading...</div>
+                  ) : history.tracks.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#6b5b3d' }}>No jams found</div>
+                  ) : (
+                    history.tracks.slice(0, 15).map(t => {
+                      const isJc = !!t.is_jamchart
+                      const isPlaying = nowPlaying?.url === t.jam_url
+                      return (
+                        <div
+                          key={`${t.show_date}-${t.position}`}
+                          onClick={e => { e.stopPropagation(); if (t.jam_url) playJam(t.jam_url, t.show_date, s.song_name) }}
+                          style={{
+                            padding: '8px 10px', marginBottom: '4px',
+                            background: isPlaying ? '#d4edda' : isJc ? '#fff5f5' : '#fff',
+                            border: `1px solid ${isJc ? COLORS.headerBgJc : '#ddd'}`,
+                            borderRadius: '4px', cursor: t.jam_url ? 'pointer' : 'default',
+                            borderLeft: isJc ? `3px solid ${COLORS.headerBgJc}` : undefined,
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                            <span style={{ fontWeight: 700, color: COLORS.headerBg }}>
+                              {isJc && <span style={{ color: COLORS.headerBgJc }}>★ </span>}
+                              {t.show_date}
+                            </span>
+                            <span style={{ color: isJc ? COLORS.headerBgJc : '#666', fontWeight: 700 }}>
+                              {fmtDuration(t.duration_ms)}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>{t.venue}</div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+
+                {/* Footer */}
+                <div style={{
+                  padding: '10px', borderTop: `2px solid ${COLORS.gold}`,
+                  display: 'flex', gap: '8px',
+                }}>
+                  <button
+                    onClick={e => { e.stopPropagation(); onSelectSong(s.song_name) }}
+                    style={{
+                      flex: 1, padding: '8px', background: COLORS.headerBg, color: COLORS.gold,
+                      border: `2px solid ${COLORS.gold}`, borderRadius: '4px',
+                      fontWeight: 700, cursor: 'pointer', fontSize: '12px',
+                    }}
+                  >
+                    View All Jams →
+                  </button>
+                  <button
+                    onClick={e => { e.stopPropagation(); setFlippedCard(null) }}
+                    style={{
+                      padding: '8px 12px', background: COLORS.cardBg, color: COLORS.headerBg,
+                      border: `2px solid ${COLORS.gold}`, borderRadius: '4px',
+                      fontWeight: 600, cursor: 'pointer', fontSize: '12px',
+                    }}
+                  >
+                    Flip
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )
@@ -775,7 +902,7 @@ export default function SongDeepDive({ year }: { year: string }) {
               onClick={() => { setSelectedSong(''); setViewMode('browse') }}
               style={{
                 padding: '0.4rem 0.8rem', fontSize: '0.85rem',
-                background: 'none', border: '1px solid #cbd5e1',
+                background: 'none', border: `1px solid ${COLORS.gold}`,
                 borderRadius: '6px', color: '#64748b', cursor: 'pointer',
               }}
             >
@@ -793,10 +920,10 @@ export default function SongDeepDive({ year }: { year: string }) {
             onClick={() => setViewMode(viewMode === 'chart' ? 'card' : 'chart')}
             style={{
               padding: '0.5rem 1rem', fontSize: '0.9rem',
-              background: viewMode === 'card' ? COLORS.headerBg : 'none',
-              border: `2px solid ${viewMode === 'card' ? COLORS.headerBg : '#cbd5e1'}`,
-              borderRadius: '8px',
-              color: viewMode === 'card' ? '#fff' : '#475569',
+              background: viewMode === 'card' ? COLORS.headerBg : COLORS.cardBg,
+              border: `2px solid ${COLORS.gold}`,
+              borderRadius: '4px',
+              color: viewMode === 'card' ? '#fff' : COLORS.headerBg,
               cursor: 'pointer', fontWeight: 600,
             }}
           >
@@ -811,14 +938,15 @@ export default function SongDeepDive({ year }: { year: string }) {
             onChange={e => setFilter(e.target.value)}
             style={{
               padding: '0.5rem 0.75rem', fontSize: '0.9rem', width: 200,
-              border: '1px solid #cbd5e1', borderRadius: '8px',
+              border: `2px solid ${COLORS.gold}`, borderRadius: '4px',
+              background: COLORS.cardBg,
             }}
           />
           {filter && sortedSongs.length > 0 && viewMode === 'browse' && (
             <div style={{
               position: 'absolute', top: '100%', left: 0, right: 0,
-              background: '#fff', border: '1px solid #cbd5e1', borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 200, overflow: 'auto',
+              background: COLORS.cardBg, border: `2px solid ${COLORS.gold}`, borderRadius: '4px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 100, maxHeight: 200, overflow: 'auto',
             }}>
               {sortedSongs.slice(0, 8).map(s => (
                 <div
@@ -826,13 +954,13 @@ export default function SongDeepDive({ year }: { year: string }) {
                   onClick={() => handleSelectSong(s.song_name)}
                   style={{
                     padding: '0.5rem 0.75rem', cursor: 'pointer',
-                    borderBottom: '1px solid #f1f5f9',
+                    borderBottom: `1px solid ${COLORS.cardBorderMuted}`,
                   }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f8fafc'}
-                  onMouseLeave={e => e.currentTarget.style.background = '#fff'}
+                  onMouseEnter={e => e.currentTarget.style.background = '#ebe5d5'}
+                  onMouseLeave={e => e.currentTarget.style.background = COLORS.cardBg}
                 >
-                  <span style={{ fontWeight: 600 }}>{s.song_name}</span>
-                  <span style={{ color: '#64748b', marginLeft: '8px', fontSize: '0.85rem' }}>
+                  <span style={{ fontWeight: 600, color: COLORS.headerBg }}>{s.song_name}</span>
+                  <span style={{ color: '#6b5b3d', marginLeft: '8px', fontSize: '0.85rem' }}>
                     {fmtAvg(s)} avg
                   </span>
                 </div>
@@ -857,7 +985,7 @@ export default function SongDeepDive({ year }: { year: string }) {
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value as 'avg' | 'jc' | 'played')}
-            style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: `1px solid ${COLORS.gold}` }}
           >
             <option value="avg">Batting Avg</option>
             <option value="jc">Jamchart Count</option>
@@ -869,7 +997,7 @@ export default function SongDeepDive({ year }: { year: string }) {
           <select
             value={tour}
             onChange={e => setTour(e.target.value as TourFilter)}
-            style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: `1px solid ${COLORS.gold}` }}
           >
             <option value="all">All</option>
             <option value="Summer">Summer</option>
@@ -884,7 +1012,7 @@ export default function SongDeepDive({ year }: { year: string }) {
           <select
             value={weekday}
             onChange={e => setWeekday(e.target.value as WeekdayFilter)}
-            style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: `1px solid ${COLORS.gold}` }}
           >
             <option value="all">All</option>
             <option value="Friday">Fri</option>
@@ -900,7 +1028,7 @@ export default function SongDeepDive({ year }: { year: string }) {
           <select
             value={selectedSong}
             onChange={e => handleSelectSong(e.target.value)}
-            style={{ padding: '0.4rem', fontSize: '0.85rem', maxWidth: 300, borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            style={{ padding: '0.4rem', fontSize: '0.85rem', maxWidth: 300, borderRadius: '6px', border: `1px solid ${COLORS.gold}` }}
           >
             {sortedSongs.map(s => (
               <option key={s.song_name} value={s.song_name}>
@@ -914,7 +1042,7 @@ export default function SongDeepDive({ year }: { year: string }) {
 
       {/* Main content */}
       {viewMode === 'browse' ? (
-        <SongBrowseGrid songs={sortedSongs} onSelectSong={handleSelectSong} fmtAvg={fmtAvg} />
+        <SongBrowseGrid songs={sortedSongs} year={year} onSelectSong={handleSelectSong} fmtAvg={fmtAvg} playJam={playJam} nowPlaying={nowPlaying} />
       ) : viewMode === 'chart' ? (
         <div ref={chartContainerRef} data-tour="deep-dive-chart" style={{ display: 'flex', gap: '16px', minHeight: 420 }}>
           {/* Chart area */}
@@ -993,7 +1121,7 @@ export default function SongDeepDive({ year }: { year: string }) {
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                     }}
                   >
-                    {sidebarShareToast ? '\u2713 Copied!' : '\u21AA Share'}
+                    {sidebarShareToast ? '\u2713 Copied!' : 'Copy Link'}
                   </button>
                 </div>
                 {sidebarTrack.jam_url ? (
@@ -1119,7 +1247,7 @@ export default function SongDeepDive({ year }: { year: string }) {
                   transition: 'background 0.2s',
                 }}
               >
-                {playbarShareToast ? '\u2713 Copied!' : '\u21AA Share'}
+                {playbarShareToast ? '\u2713 Copied!' : 'Copy Link'}
               </button>
               <span style={{ color: '#475569', fontSize: '12px' }}>
                 via PhishJustJams
