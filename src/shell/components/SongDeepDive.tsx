@@ -65,10 +65,10 @@ function fmtSet(s: string) {
   return s
 }
 
-function buildShareUrl(song: string, jamDate?: string): string {
+function buildShareUrl(song: string, jamDate?: string, view: 'chart' | 'card' = 'card'): string {
   const params = new URLSearchParams(window.location.search)
   params.set('song', song)
-  params.set('view', 'card')
+  params.set('view', view)
   if (jamDate) params.set('jam', jamDate)
   return window.location.origin + window.location.pathname + '?' + params.toString()
 }
@@ -541,19 +541,26 @@ export default function SongDeepDive({ year }: { year: string }) {
   const [highlightJam, setHighlightJam] = useState<string | null>(() => getParam('jam') || null)
   const [playbarShareToast, setPlaybarShareToast] = useState(false)
   const [chartWidth, setChartWidth] = useState(800)
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    // Auto-switch to card view if a jam is highlighted from URL
+    if (getParam('jam')) return 'card'
+    const v = getParam('view')
+    if (v === 'card') return v
+    return 'chart'
+  })
 
   const shareNowPlaying = useCallback(() => {
     if (!nowPlaying) return
-    const url = buildShareUrl(nowPlaying.song, nowPlaying.date)
+    const url = buildShareUrl(nowPlaying.song, nowPlaying.date, viewMode)
     copyToClipboard(url).then(() => {
       setPlaybarShareToast(true)
       setTimeout(() => setPlaybarShareToast(false), 2000)
     })
-  }, [nowPlaying])
+  }, [nowPlaying, viewMode])
 
   const shareSidebarTrack = useCallback(() => {
     if (!sidebarTrack) return
-    const url = buildShareUrl(sidebarTrack.song_name, sidebarTrack.show_date)
+    const url = buildShareUrl(sidebarTrack.song_name, sidebarTrack.show_date, 'chart')
     copyToClipboard(url).then(() => {
       setSidebarShareToast(true)
       setTimeout(() => setSidebarShareToast(false), 2000)
@@ -575,13 +582,6 @@ export default function SongDeepDive({ year }: { year: string }) {
     return () => observer.disconnect()
   }, [sidebarTrack])
 
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    // Auto-switch to card view if a jam is highlighted from URL
-    if (getParam('jam')) return 'card'
-    const v = getParam('view')
-    if (v === 'card') return v
-    return 'chart'
-  })
   const [tour, setTour] = useState<TourFilter>(() => {
     const t = getParam('tour')
     return t && ['Winter', 'Spring', 'Summer', 'Fall', 'Holiday'].includes(t) ? t as TourFilter : 'all'
