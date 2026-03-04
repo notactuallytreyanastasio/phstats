@@ -220,17 +220,19 @@ function JamCardGrid({
                   No audio
                 </div>
               )}
-              <button
-                onClick={() => shareJam(t.show_date)}
-                style={{
-                  padding: '12px 16px', background: isShared ? '#22c55e' : COLORS.accent,
-                  color: '#fff', border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '13px', fontWeight: 700, cursor: 'pointer',
-                }}
-              >
-                {isShared ? 'Copied!' : 'Copy'}
-              </button>
+              {t.jam_url && (
+                <button
+                  onClick={() => shareJam(t.show_date)}
+                  style={{
+                    padding: '12px 16px', background: isShared ? '#22c55e' : COLORS.accent,
+                    color: '#fff', border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '13px', fontWeight: 700, cursor: 'pointer',
+                  }}
+                >
+                  {isShared ? 'Copied!' : 'Copy'}
+                </button>
+              )}
             </div>
           </div>
         )
