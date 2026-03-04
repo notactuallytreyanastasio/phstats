@@ -26,10 +26,20 @@ function App() {
   useEffect(() => {
     dataSource.fetchJamchartYears()
       .then(years => {
-        setJamYears(years)
+        // Filter out 2020 (COVID, no shows)
+        const filteredYears = years.filter(y => y !== 2020)
+        setJamYears(filteredYears)
+
         // If no year in URL, pick a random one for variety
-        if (!getParam('year') && years.length > 0) {
-          const randomYear = years[Math.floor(Math.random() * years.length)]
+        if (!getParam('year') && filteredYears.length > 0) {
+          // Don't default to 2026 until after May 1st, 2026
+          const now = new Date()
+          const may2026 = new Date(2026, 4, 1) // May 1st, 2026
+          const eligibleYears = now < may2026
+            ? filteredYears.filter(y => y !== 2026)
+            : filteredYears
+
+          const randomYear = eligibleYears[Math.floor(Math.random() * eligibleYears.length)]
           setJamYear(String(randomYear))
         } else if (!jamYear) {
           setJamYear('all')
