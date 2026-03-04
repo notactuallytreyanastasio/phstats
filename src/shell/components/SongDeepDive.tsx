@@ -526,7 +526,9 @@ export default function SongDeepDive({ year }: { year: string }) {
   })
   const [minPlayed, setMinPlayed] = useState(() => {
     const m = getParam('min')
-    return m ? parseInt(m, 10) || 5 : 5
+    // Default to 1 for browse mode (show all songs), 5 otherwise
+    if (m) return parseInt(m, 10) || 5
+    return getParam('song') ? 5 : 1
   })
 
   const playJam = useCallback((url: string, date: string, song: string) => {

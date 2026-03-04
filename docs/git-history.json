@@ -1,5 +1,85 @@
 [
   {
+    "hash": "f156cab9edb7259afeb6bbc28b0fd5e5862484d7",
+    "short_hash": "f156cab",
+    "author": "Robert Grayson",
+    "date": "2026-03-04T16:21:50-05:00",
+    "message": "fix: remove dark theme from chart view sidebar\n\nReverts the dark theme colors I accidentally added to the chart sidebar.\nNow using light background with appropriate text colors.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+    "files_changed": 4
+  },
+  {
+    "hash": "496bcd8278e4a5ba1db7587fbc5bedf99724aa5e",
+    "short_hash": "496bcd8",
+    "author": "Robert Grayson",
+    "date": "2026-03-04T15:42:54-05:00",
+    "message": "build: rebuild for GitHub Pages with chart sidebar\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "97bacce3a272dc1c1a5da7cd48879210a15f9de0",
+    "short_hash": "97bacce",
+    "author": "Robert Grayson",
+    "date": "2026-03-04T15:41:57-05:00",
+    "message": "feat: redesign chart view with sidebar layout\n\n- Replace modal with persistent sidebar panel\n- Chart dynamically resizes based on sidebar state\n- Dark theme matching mobile aesthetic\n- Sidebar shows jam details, notes, share button, play button\n- Cleaner stats display with better typography\n- Chart area has dark background with rounded corners\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "b682aabc38cf0766eb2c7250241109b834851a05",
+    "short_hash": "b682aab",
+    "author": "Robert Grayson",
+    "date": "2026-03-04T15:36:18-05:00",
+    "message": "build: rebuild for GitHub Pages with share buttons\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "4a5474e03930e792697837da976a2644de12eb92",
+    "short_hash": "4a5474e",
+    "author": "Robert Grayson",
+    "date": "2026-03-04T15:33:41-05:00",
+    "message": "refactor: remove bookmarks functionality\n\n- Remove bookmark state, imports, and UI from desktop SongDeepDive\n- Remove bookmark state, imports, and UI from mobile SongDeepDiveMobile\n- Remove BookmarksView component entirely\n- Simplify view mode toggle (only chart/card now)\n- Reduces bundle size by ~9KB\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
+    "hash": "fbf5e24760618ebe906ce73db3c76db512c959a2",
+    "short_hash": "fbf5e24",
+    "author": "Robert Grayson",
+    "date": "2026-03-04T15:27:52-05:00",
+    "message": "feat: add share buttons + smaller baseball cards\n\n- Add share button to play bar (copies shareable URL to clipboard)\n- Add share button to each jam row in card back view\n- Reduce card height from 520px to 420px for more compact display\n- Fix type-only import in track-queries.test.ts\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+    "files_changed": 3
+  },
+  {
+    "hash": "50e6c5d6c0a03564396ccbb9b3c773dd8dd29b55",
+    "short_hash": "50e6c5d",
+    "author": "Robert Grayson",
+    "date": "2026-02-17T01:35:57-05:00",
+    "message": "feat: strip site to Song Deep Dive only, add bookmark pipeline\n\nRemove 13 unused visualization components (JamVehicleScatter,\nJamchartPositionMap, JamchartRankings, ShowHeatCalendar, VenueRankings,\nJamEvolution, SongPairings, SongHeatmap, SongScatter, ShowTimeline,\nYearCompare, RadarChart, SongGaps). Simplify App.tsx from 700 to 75\nlines. Clean up data-source.ts and static-queries.ts.\n\nAdd bookmark system: localStorage for instant UX + GitHub Contents API\npipeline (client -> localStorage -> GH API POST -> commit -> rebuild).\nBookmark star button on every track row in both desktop and mobile card\nviews. Bookmarks view with play buttons and remove functionality.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 26
+  },
+  {
+    "hash": "50e6c5d6c0a03564396ccbb9b3c773dd8dd29b55",
+    "short_hash": "50e6c5d",
+    "author": "Robert Grayson",
+    "date": "2026-02-17T01:35:57-05:00",
+    "message": "feat: strip site to Song Deep Dive only, add bookmark pipeline\n\nRemove 13 unused visualization components (JamVehicleScatter,\nJamchartPositionMap, JamchartRankings, ShowHeatCalendar, VenueRankings,\nJamEvolution, SongPairings, SongHeatmap, SongScatter, ShowTimeline,\nYearCompare, RadarChart, SongGaps). Simplify App.tsx from 700 to 75\nlines. Clean up data-source.ts and static-queries.ts.\n\nAdd bookmark system: localStorage for instant UX + GitHub Contents API\npipeline (client -> localStorage -> GH API POST -> commit -> rebuild).\nBookmark star button on every track row in both desktop and mobile card\nviews. Bookmarks view with play buttons and remove functionality.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 26
+  },
+  {
+    "hash": "1cd0086ac22a094f23b27a176077a87619105317",
+    "short_hash": "1cd0086",
+    "author": "Robert Grayson",
+    "date": "2026-02-17T00:38:43-05:00",
+    "message": "feat: add swipe left/right navigation between songs on mobile\n\nSwipe the baseball card to browse the filtered song list. Shows position\nindicator (e.g. \"3/24 SWIPE TO BROWSE\"). Slide animation with dampened\ntouch-follow. Wraps around at list boundaries.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 1
+  },
+  {
+    "hash": "b0fc9d6e13c8cd1c5bc114bfd0ce564e16500685",
+    "short_hash": "b0fc9d6",
+    "author": "Robert Grayson",
+    "date": "2026-02-17T00:29:48-05:00",
+    "message": "feat: shareable jam URL param with highlight-on-load\n\nWhen a jam plays, ?jam=YYYY-MM-DD is added to the URL. Opening a shared\nlink flips the card open, highlights the jam row with a green glow, and\nscrolls to it — but does not autoplay. Works on both desktop and mobile.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>",
+    "files_changed": 2
+  },
+  {
     "hash": "784bad5c3a284e97f16d3cea994d067da83421f4",
     "short_hash": "784bad5",
     "author": "Robert Grayson",
