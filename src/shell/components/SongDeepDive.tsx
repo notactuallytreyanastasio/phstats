@@ -122,74 +122,87 @@ function JamCardGrid({
           <div
             key={`${t.show_date}-${t.set_name}-${t.position}`}
             style={{
-              background: '#fff',
-              border: isJc ? '2px solid #ef4444' : '1px solid #e5e7eb',
-              borderRadius: '12px',
-              padding: '16px',
-              boxShadow: isPlaying ? '0 0 0 3px rgba(34, 197, 94, 0.4)' : '0 2px 8px rgba(0,0,0,0.06)',
+              background: '#f5f0e6',
+              border: isJc ? '4px solid #b8860b' : '3px solid #8b7355',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              boxShadow: isPlaying ? '0 0 0 4px rgba(34, 197, 94, 0.5)' : '0 4px 12px rgba(0,0,0,0.15)',
             }}
           >
-            {/* Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
-              <div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#111' }}>
-                  {isJc && <span style={{ color: '#ef4444', marginRight: '6px' }}>&#9733;</span>}
-                  {t.show_date}
+            {/* Header - dark panel */}
+            <div style={{
+              background: isJc ? '#1a1a2e' : '#2d3748',
+              padding: '14px 16px',
+              borderBottom: '2px solid #b8860b',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                <div>
+                  <div style={{ fontSize: '20px', fontWeight: 900, color: '#fff' }}>
+                    {isJc && <span style={{ color: '#ffd700', marginRight: '6px' }}>&#9733;</span>}
+                    {t.show_date}
+                  </div>
+                  <div style={{ color: '#e2e8f0', fontSize: '13px', marginTop: '4px' }}>{t.venue}</div>
+                  <div style={{ color: '#a0aec0', fontSize: '12px' }}>{t.location}</div>
                 </div>
-                <div style={{ color: '#555', fontSize: '13px', marginTop: '2px' }}>{t.venue}</div>
-                <div style={{ color: '#888', fontSize: '12px' }}>{t.location}</div>
-              </div>
-              <div style={{
-                fontSize: '20px', fontWeight: 900, color: isJc ? '#ef4444' : '#333',
-                fontVariantNumeric: 'tabular-nums',
-              }}>
-                {fmtDuration(t.duration_ms)}
+                <div style={{
+                  fontSize: '24px', fontWeight: 900, color: isJc ? '#ffd700' : '#fff',
+                  fontVariantNumeric: 'tabular-nums',
+                  textShadow: '1px 1px 2px rgba(0,0,0,0.3)',
+                }}>
+                  {fmtDuration(t.duration_ms)}
+                </div>
               </div>
             </div>
 
-            {/* Stats row */}
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', fontSize: '12px', color: '#666' }}>
-              <span><strong>Set:</strong> {t.set_name}</span>
-              <span><strong>Position:</strong> #{t.position}</span>
-              <span><strong>Likes:</strong> {t.likes}</span>
+            {/* Stats row - dark strip */}
+            <div style={{
+              display: 'flex', gap: '16px', padding: '10px 16px',
+              fontSize: '12px', color: '#fff', fontWeight: 600,
+              background: '#4a5568',
+              borderBottom: '2px solid #b8860b',
+            }}>
+              <span>Set: {t.set_name}</span>
+              <span>Position: #{t.position}</span>
+              <span>Likes: {t.likes}</span>
             </div>
 
-            {/* Notes */}
+            {/* Notes - dark panel with bright text */}
             {t.jam_notes && (
               <div style={{
-                background: '#f9fafb',
-                borderRadius: '8px',
+                background: '#1a1a2e',
+                margin: '12px',
+                borderRadius: '6px',
                 padding: '12px',
-                marginBottom: '12px',
                 fontSize: '13px',
-                color: '#444',
-                lineHeight: '1.5',
+                color: '#e2e8f0',
+                lineHeight: '1.6',
                 fontStyle: 'italic',
-                borderLeft: '3px solid #ef4444',
+                border: '1px solid #4a5568',
               }}>
                 {t.jam_notes}
               </div>
             )}
 
             {/* Actions */}
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', padding: '12px', background: '#f5f0e6' }}>
               {t.jam_url ? (
                 <button
                   onClick={() => playJam(t.jam_url, t.show_date, songName)}
                   style={{
-                    flex: 1, padding: '10px', background: isPlaying ? '#16a34a' : '#22c55e',
-                    color: 'white', border: 'none', borderRadius: '8px',
-                    fontSize: '14px', fontWeight: 700, cursor: 'pointer',
+                    flex: 1, padding: '12px', background: isPlaying ? '#16a34a' : '#1a1a2e',
+                    color: isPlaying ? '#fff' : '#ffd700', border: '2px solid #b8860b',
+                    borderRadius: '6px',
+                    fontSize: '14px', fontWeight: 800, cursor: 'pointer',
                     display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                   }}
                 >
-                  <span>&#9654;</span> {isPlaying ? 'Playing...' : 'Play'}
+                  <span>&#9654;</span> {isPlaying ? 'Playing...' : 'Play Jam'}
                 </button>
               ) : (
                 <div style={{
-                  flex: 1, padding: '10px', background: '#f3f4f6',
-                  borderRadius: '8px', textAlign: 'center',
-                  fontSize: '13px', color: '#9ca3af',
+                  flex: 1, padding: '12px', background: '#e8e0d0',
+                  borderRadius: '6px', textAlign: 'center', border: '2px solid #8b7355',
+                  fontSize: '13px', color: '#8b7355', fontWeight: 600,
                 }}>
                   No audio
                 </div>
@@ -197,9 +210,10 @@ function JamCardGrid({
               <button
                 onClick={() => shareJam(t.show_date)}
                 style={{
-                  padding: '10px 16px', background: isShared ? '#22c55e' : '#3b82f6',
-                  color: 'white', border: 'none', borderRadius: '8px',
-                  fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                  padding: '12px 16px', background: isShared ? '#22c55e' : '#1a1a2e',
+                  color: isShared ? '#fff' : '#ffd700', border: '2px solid #b8860b',
+                  borderRadius: '6px',
+                  fontSize: '13px', fontWeight: 700, cursor: 'pointer',
                 }}
               >
                 {isShared ? '✓' : '↪'}
