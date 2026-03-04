@@ -1046,13 +1046,13 @@ export default function SongDeepDive({ year }: { year: string }) {
         {data === null && selectedSong && <span style={{ color: '#999', fontSize: '0.8rem' }}>Loading...</span>}
       </div>
       {viewMode === 'chart' ? (
-        <div ref={chartContainerRef} data-tour="deep-dive-chart" style={{ display: 'flex', gap: '16px', background: '#0f172a', borderRadius: '12px', padding: '16px', minHeight: 450 }}>
+        <div ref={chartContainerRef} data-tour="deep-dive-chart" style={{ display: 'flex', gap: '16px', minHeight: 420 }}>
           {/* Chart area */}
           <div style={{ flex: 1, minWidth: 0 }}>
-            <svg ref={svgRef} style={{ width: '100%', background: '#1e293b', borderRadius: '8px' }} />
+            <svg ref={svgRef} style={{ width: '100%' }} />
             {!sidebarTrack && data && data.tracks.length > 0 && (
-              <div style={{ textAlign: 'center', marginTop: '12px', color: '#64748b', fontSize: '13px' }}>
-                Click any dot on the chart to see jam details
+              <div style={{ textAlign: 'center', marginTop: '8px', color: '#888', fontSize: '13px' }}>
+                Click any dot to see jam details
               </div>
             )}
           </div>
@@ -1060,52 +1060,53 @@ export default function SongDeepDive({ year }: { year: string }) {
           {sidebarTrack && (
             <div style={{
               width: '320px', flexShrink: 0,
-              background: '#1a1a2e', borderRadius: '12px',
-              border: '2px solid #334155', overflow: 'hidden',
+              background: '#fff', borderRadius: '8px',
+              border: '1px solid #e5e7eb', overflow: 'hidden',
               display: 'flex', flexDirection: 'column',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             }}>
               {/* Header */}
-              <div style={{ padding: '16px', borderBottom: '1px solid #334155' }}>
+              <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
                   <div>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#e2e8f0' }}>{sidebarTrack.show_date}</div>
-                    <div style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px' }}>{sidebarTrack.venue}</div>
-                    <div style={{ color: '#64748b', fontSize: '13px' }}>{sidebarTrack.location}</div>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#111' }}>{sidebarTrack.show_date}</div>
+                    <div style={{ color: '#555', fontSize: '14px', marginTop: '4px' }}>{sidebarTrack.venue}</div>
+                    <div style={{ color: '#888', fontSize: '13px' }}>{sidebarTrack.location}</div>
                   </div>
                   <button
                     onClick={() => setSidebarTrack(null)}
                     style={{
-                      background: '#334155', border: 'none', color: '#94a3b8',
+                      background: '#f3f4f6', border: 'none', color: '#666',
                       cursor: 'pointer', fontSize: '16px', padding: '4px 8px', borderRadius: '4px',
                     }}
                   >&times;</button>
                 </div>
               </div>
               {/* Stats */}
-              <div style={{ padding: '16px', borderBottom: '1px solid #334155' }}>
+              <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
                 {sidebarTrack.is_jamchart && (
                   <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '14px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '18px' }}>&#9733;</span> JAMCHART
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ color: '#64748b', fontSize: '13px' }}>Duration</span>
-                  <span style={{ color: '#e2e8f0', fontWeight: 700, fontSize: '18px', fontVariantNumeric: 'tabular-nums' }}>{fmtDuration(sidebarTrack.duration_ms)}</span>
+                  <span style={{ color: '#888', fontSize: '13px' }}>Duration</span>
+                  <span style={{ color: '#111', fontWeight: 700, fontSize: '18px', fontVariantNumeric: 'tabular-nums' }}>{fmtDuration(sidebarTrack.duration_ms)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                  <span style={{ color: '#64748b', fontSize: '13px' }}>Set / Position</span>
-                  <span style={{ color: '#94a3b8', fontSize: '14px' }}>{sidebarTrack.set_name} #{sidebarTrack.position}</span>
+                  <span style={{ color: '#888', fontSize: '13px' }}>Set / Position</span>
+                  <span style={{ color: '#333', fontSize: '14px' }}>{sidebarTrack.set_name} #{sidebarTrack.position}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: '#64748b', fontSize: '13px' }}>Likes</span>
-                  <span style={{ color: '#94a3b8', fontSize: '14px' }}>{sidebarTrack.likes}</span>
+                  <span style={{ color: '#888', fontSize: '13px' }}>Likes</span>
+                  <span style={{ color: '#333', fontSize: '14px' }}>{sidebarTrack.likes}</span>
                 </div>
               </div>
               {/* Notes */}
               {sidebarTrack.jam_notes && (
-                <div style={{ padding: '16px', borderBottom: '1px solid #334155', flex: 1, overflow: 'auto' }}>
-                  <div style={{ color: '#64748b', fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px', marginBottom: '8px', textTransform: 'uppercase' }}>Jam Notes</div>
-                  <div style={{ color: '#cbd5e1', fontSize: '13px', lineHeight: '1.6', fontStyle: 'italic' }}>
+                <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb', flex: 1, overflow: 'auto' }}>
+                  <div style={{ color: '#888', fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px', marginBottom: '8px', textTransform: 'uppercase' }}>Jam Notes</div>
+                  <div style={{ color: '#555', fontSize: '13px', lineHeight: '1.6', fontStyle: 'italic' }}>
                     {sidebarTrack.jam_notes}
                   </div>
                 </div>
@@ -1116,7 +1117,7 @@ export default function SongDeepDive({ year }: { year: string }) {
                   <button
                     onClick={shareSidebarTrack}
                     style={{
-                      flex: 1, padding: '10px', background: sidebarShareToast ? '#22c55e' : '#334155',
+                      flex: 1, padding: '10px', background: sidebarShareToast ? '#22c55e' : '#3b82f6',
                       color: 'white', border: 'none', borderRadius: '8px',
                       fontSize: '13px', fontWeight: 600, cursor: 'pointer',
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
@@ -1141,9 +1142,9 @@ export default function SongDeepDive({ year }: { year: string }) {
                   </button>
                 ) : (
                   <div style={{
-                    width: '100%', padding: '12px', background: '#1e293b',
+                    width: '100%', padding: '12px', background: '#f3f4f6',
                     borderRadius: '10px', textAlign: 'center',
-                    fontSize: '13px', color: '#475569',
+                    fontSize: '13px', color: '#6b7280',
                   }}>
                     No audio available
                   </div>
