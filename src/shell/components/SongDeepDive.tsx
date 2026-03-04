@@ -526,6 +526,7 @@ function CardGrid({
 
 export default function SongDeepDive({ year }: { year: string }) {
   const svgRef = useRef<SVGSVGElement>(null)
+  const chartContainerRef = useRef<HTMLDivElement>(null)
   const tooltipRef = useRef<HTMLDivElement>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
   const [songList, setSongList] = useState<SongOption[]>([])
@@ -533,11 +534,13 @@ export default function SongDeepDive({ year }: { year: string }) {
   const [songListLoaded, setSongListLoaded] = useState(false)
   const [data, setData] = useState<SongHistory | null>(null)
   const [filter, setFilter] = useState('')
-  const [modalTrack, setModalTrack] = useState<Track | null>(null)
+  const [sidebarTrack, setSidebarTrack] = useState<Track | null>(null)
+  const [sidebarShareToast, setSidebarShareToast] = useState(false)
   const [nowPlaying, setNowPlaying] = useState<{ url: string; date: string; song: string } | null>(null)
   const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 })
   const [highlightJam, setHighlightJam] = useState<string | null>(() => getParam('jam') || null)
   const [playbarShareToast, setPlaybarShareToast] = useState(false)
+  const [chartWidth, setChartWidth] = useState(800)
 
   const shareNowPlaying = useCallback(() => {
     if (!nowPlaying) return
@@ -547,6 +550,30 @@ export default function SongDeepDive({ year }: { year: string }) {
       setTimeout(() => setPlaybarShareToast(false), 2000)
     })
   }, [nowPlaying])
+
+  const shareSidebarTrack = useCallback(() => {
+    if (!sidebarTrack) return
+    const url = buildShareUrl(sidebarTrack.song_name, sidebarTrack.show_date)
+    copyToClipboard(url).then(() => {
+      setSidebarShareToast(true)
+      setTimeout(() => setSidebarShareToast(false), 2000)
+    })
+  }, [sidebarTrack])
+
+  // Measure chart container width
+  useEffect(() => {
+    if (!chartContainerRef.current) return
+    const measure = () => {
+      if (chartContainerRef.current) {
+        const sidebarWidth = sidebarTrack ? 340 : 0
+        setChartWidth(Math.max(400, chartContainerRef.current.offsetWidth - sidebarWidth - 24))
+      }
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(chartContainerRef.current)
+    return () => observer.disconnect()
+  }, [sidebarTrack])
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     // Auto-switch to card view if a jam is highlighted from URL
@@ -676,16 +703,16 @@ export default function SongDeepDive({ year }: { year: string }) {
 
     const tracks = data.tracks.filter(t => t.duration_ms > 0)
     if (tracks.length === 0) {
-      svg.attr('width', 960).attr('height', 100)
-      svg.append('text').attr('x', 480).attr('y', 50)
+      svg.attr('width', chartWidth).attr('height', 100)
+      svg.append('text').attr('x', chartWidth / 2).attr('y', 50)
         .attr('text-anchor', 'middle').style('fill', '#999').style('font-size', '14px')
         .text('No duration data available for this song')
       return
     }
 
-    const margin = { top: 60, right: 50, bottom: 100, left: 70 }
-    const width = 960
-    const height = 520
+    const margin = { top: 40, right: 30, bottom: 60, left: 50 }
+    const width = chartWidth
+    const height = 400
 
     svg.attr('width', width).attr('height', height)
       .attr('viewBox', `0 0 ${width} ${height}`)
@@ -808,7 +835,7 @@ export default function SongDeepDive({ year }: { year: string }) {
       })
       .on('click', (_event: MouseEvent, t) => {
         if (tooltipRef.current) tooltipRef.current.style.display = 'none'
-        setModalTrack(t)
+        setSidebarTrack(t)
       })
 
     // X axis
@@ -898,7 +925,7 @@ export default function SongDeepDive({ year }: { year: string }) {
         `Total likes: ${totalLikes}`,
       ].join('    '))
 
-  }, [data, viewMode])
+  }, [data, viewMode, chartWidth])
 
   function battingAvg(s: SongOption): number {
     return s.times_played > 0 ? s.jamchart_count / s.times_played : 0
@@ -1019,9 +1046,112 @@ export default function SongDeepDive({ year }: { year: string }) {
         {data === null && selectedSong && <span style={{ color: '#999', fontSize: '0.8rem' }}>Loading...</span>}
       </div>
       {viewMode === 'chart' ? (
-      <div data-tour="deep-dive-chart" style={{ overflowX: 'auto' }}>
-        <svg ref={svgRef} style={{ width: '100%', maxWidth: 960 }} />
-      </div>
+        <div ref={chartContainerRef} data-tour="deep-dive-chart" style={{ display: 'flex', gap: '16px', background: '#0f172a', borderRadius: '12px', padding: '16px', minHeight: 450 }}>
+          {/* Chart area */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <svg ref={svgRef} style={{ width: '100%', background: '#1e293b', borderRadius: '8px' }} />
+            {!sidebarTrack && data && data.tracks.length > 0 && (
+              <div style={{ textAlign: 'center', marginTop: '12px', color: '#64748b', fontSize: '13px' }}>
+                Click any dot on the chart to see jam details
+              </div>
+            )}
+          </div>
+          {/* Sidebar */}
+          {sidebarTrack && (
+            <div style={{
+              width: '320px', flexShrink: 0,
+              background: '#1a1a2e', borderRadius: '12px',
+              border: '2px solid #334155', overflow: 'hidden',
+              display: 'flex', flexDirection: 'column',
+            }}>
+              {/* Header */}
+              <div style={{ padding: '16px', borderBottom: '1px solid #334155' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                  <div>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#e2e8f0' }}>{sidebarTrack.show_date}</div>
+                    <div style={{ color: '#94a3b8', fontSize: '14px', marginTop: '4px' }}>{sidebarTrack.venue}</div>
+                    <div style={{ color: '#64748b', fontSize: '13px' }}>{sidebarTrack.location}</div>
+                  </div>
+                  <button
+                    onClick={() => setSidebarTrack(null)}
+                    style={{
+                      background: '#334155', border: 'none', color: '#94a3b8',
+                      cursor: 'pointer', fontSize: '16px', padding: '4px 8px', borderRadius: '4px',
+                    }}
+                  >&times;</button>
+                </div>
+              </div>
+              {/* Stats */}
+              <div style={{ padding: '16px', borderBottom: '1px solid #334155' }}>
+                {sidebarTrack.is_jamchart && (
+                  <div style={{ color: '#ef4444', fontWeight: 800, fontSize: '14px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '18px' }}>&#9733;</span> JAMCHART
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ color: '#64748b', fontSize: '13px' }}>Duration</span>
+                  <span style={{ color: '#e2e8f0', fontWeight: 700, fontSize: '18px', fontVariantNumeric: 'tabular-nums' }}>{fmtDuration(sidebarTrack.duration_ms)}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <span style={{ color: '#64748b', fontSize: '13px' }}>Set / Position</span>
+                  <span style={{ color: '#94a3b8', fontSize: '14px' }}>{sidebarTrack.set_name} #{sidebarTrack.position}</span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ color: '#64748b', fontSize: '13px' }}>Likes</span>
+                  <span style={{ color: '#94a3b8', fontSize: '14px' }}>{sidebarTrack.likes}</span>
+                </div>
+              </div>
+              {/* Notes */}
+              {sidebarTrack.jam_notes && (
+                <div style={{ padding: '16px', borderBottom: '1px solid #334155', flex: 1, overflow: 'auto' }}>
+                  <div style={{ color: '#64748b', fontSize: '11px', fontWeight: 600, letterSpacing: '0.5px', marginBottom: '8px', textTransform: 'uppercase' }}>Jam Notes</div>
+                  <div style={{ color: '#cbd5e1', fontSize: '13px', lineHeight: '1.6', fontStyle: 'italic' }}>
+                    {sidebarTrack.jam_notes}
+                  </div>
+                </div>
+              )}
+              {/* Actions */}
+              <div style={{ padding: '16px', marginTop: 'auto' }}>
+                <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
+                  <button
+                    onClick={shareSidebarTrack}
+                    style={{
+                      flex: 1, padding: '10px', background: sidebarShareToast ? '#22c55e' : '#334155',
+                      color: 'white', border: 'none', borderRadius: '8px',
+                      fontSize: '13px', fontWeight: 600, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
+                    }}
+                  >
+                    {sidebarShareToast ? '\u2713 Copied!' : '\u21AA Share'}
+                  </button>
+                </div>
+                {sidebarTrack.jam_url ? (
+                  <button
+                    onClick={() => playJam(sidebarTrack.jam_url, sidebarTrack.show_date, sidebarTrack.song_name)}
+                    style={{
+                      width: '100%', padding: '14px', background: '#22c55e', color: 'white',
+                      border: 'none', borderRadius: '10px', cursor: 'pointer',
+                      fontSize: '16px', fontWeight: 800,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+                      boxShadow: '0 4px 14px rgba(34,197,94,0.35)',
+                    }}
+                  >
+                    <span style={{ fontSize: '20px' }}>&#9654;</span>
+                    Play Jam
+                  </button>
+                ) : (
+                  <div style={{
+                    width: '100%', padding: '12px', background: '#1e293b',
+                    borderRadius: '10px', textAlign: 'center',
+                    fontSize: '13px', color: '#475569',
+                  }}>
+                    No audio available
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       ) : (
         <CardGrid
           songs={sortedSongs}
@@ -1041,86 +1171,6 @@ export default function SongDeepDive({ year }: { year: string }) {
         lineHeight: '1.5', pointerEvents: 'none', zIndex: 1000, maxWidth: 300,
         boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
       }} />
-      {/* Click modal — track details + play button */}
-      {modalTrack && (
-        <div
-          onClick={() => setModalTrack(null)}
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
-            zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}
-        >
-          <div
-            onClick={e => e.stopPropagation()}
-            style={{
-              background: '#1a1a2e', color: 'white', borderRadius: '12px',
-              padding: '24px', minWidth: 300, maxWidth: 380,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
-            }}
-          >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '12px' }}>
-              <div>
-                <div style={{ fontSize: '18px', fontWeight: 700 }}>{modalTrack.show_date}</div>
-                <div style={{ color: '#94a3b8', fontSize: '13px', marginTop: '2px' }}>{modalTrack.venue}</div>
-                <div style={{ color: '#64748b', fontSize: '12px' }}>{modalTrack.location}</div>
-              </div>
-              <button
-                onClick={() => setModalTrack(null)}
-                style={{
-                  background: 'none', border: 'none', color: '#64748b',
-                  cursor: 'pointer', fontSize: '20px', padding: '0 0 0 12px', lineHeight: 1,
-                }}
-              >&times;</button>
-            </div>
-            {modalTrack.is_jamchart ? (
-              <div style={{ color: '#ef4444', fontWeight: 700, fontSize: '13px', marginBottom: '8px' }}>
-                &#9733; JAMCHART
-              </div>
-            ) : null}
-            <div style={{ display: 'flex', gap: '16px', fontSize: '13px', color: '#cbd5e1', marginBottom: '4px' }}>
-              <span>Duration: <strong style={{ color: 'white' }}>{fmtDuration(modalTrack.duration_ms)}</strong></span>
-              <span>Set {modalTrack.set_name}, #{modalTrack.position}</span>
-            </div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '12px' }}>
-              Likes: {modalTrack.likes}
-            </div>
-            {modalTrack.jam_notes && (
-              <div style={{
-                borderTop: '1px solid #334155', paddingTop: '8px', marginBottom: '12px',
-                fontSize: '12px', color: '#94a3b8', lineHeight: '1.5',
-              }}>
-                {modalTrack.jam_notes}
-              </div>
-            )}
-            {modalTrack.jam_url ? (
-              <button
-                onClick={() => {
-                  playJam(modalTrack.jam_url, modalTrack.show_date, modalTrack.song_name)
-                  setModalTrack(null)
-                }}
-                style={{
-                  width: '100%', padding: '14px', background: '#22c55e', color: 'white',
-                  border: '2px solid #16a34a', borderRadius: '10px', cursor: 'pointer',
-                  fontSize: '18px', fontWeight: 800, letterSpacing: '0.5px',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-                  boxShadow: '0 4px 14px rgba(34,197,94,0.35)',
-                }}
-              >
-                <span style={{ fontSize: '22px' }}>&#9654;</span>
-                Play Jam
-              </button>
-            ) : (
-              <div style={{
-                width: '100%', padding: '12px', background: '#1e293b',
-                borderRadius: '10px', textAlign: 'center',
-                fontSize: '13px', color: '#475569',
-              }}>
-                No jam clip available
-              </div>
-            )}
-          </div>
-        </div>
-      )}
       <audio
         ref={audioRef}
         onEnded={stopPlayback}
