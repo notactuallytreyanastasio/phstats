@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { TrackRow, computeVenueStats, computeJamEvolution, computeSongPairings } from './track-queries'
+import type { TrackRow } from './track-queries'
+import { computeVenueStats, computeJamEvolution, computeSongPairings } from './track-queries'
 
 function makeTrack(overrides: Partial<TrackRow> = {}): TrackRow {
   return {

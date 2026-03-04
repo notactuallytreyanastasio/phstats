@@ -40,6 +40,28 @@ function fmtDuration(ms: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
+function buildShareUrl(song: string, jamDate?: string): string {
+  const params = new URLSearchParams(window.location.search)
+  params.set('song', song)
+  if (jamDate) params.set('jam', jamDate)
+  return window.location.origin + window.location.pathname + '?' + params.toString()
+}
+
+function copyToClipboard(text: string): Promise<void> {
+  if (navigator.clipboard) {
+    return navigator.clipboard.writeText(text)
+  }
+  const ta = document.createElement('textarea')
+  ta.value = text
+  ta.style.position = 'fixed'
+  ta.style.left = '-9999px'
+  document.body.appendChild(ta)
+  ta.select()
+  document.execCommand('copy')
+  document.body.removeChild(ta)
+  return Promise.resolve()
+}
+
 function fmtAvg(s: SongOption): string {
   if (s.times_played === 0) return '.000'
   const avg = s.jamchart_count / s.times_played
@@ -84,6 +106,27 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => getBookmarksSync())
   const bookmarkedSet = useMemo(() => new Set(bookmarks.map(b => `${b.song}|${b.date}`)), [bookmarks])
   const [showBookmarks, setShowBookmarks] = useState(false)
+
+  // Share state
+  const [shareToast, setShareToast] = useState<string | null>(null)
+  const [playbarShareToast, setPlaybarShareToast] = useState(false)
+
+  const shareJam = useCallback((song: string, date: string) => {
+    const url = buildShareUrl(song, date)
+    copyToClipboard(url).then(() => {
+      setShareToast(date)
+      setTimeout(() => setShareToast(null), 2000)
+    })
+  }, [])
+
+  const shareNowPlaying = useCallback(() => {
+    if (!nowPlaying) return
+    const url = buildShareUrl(nowPlaying.song, nowPlaying.date)
+    copyToClipboard(url).then(() => {
+      setPlaybarShareToast(true)
+      setTimeout(() => setPlaybarShareToast(false), 2000)
+    })
+  }, [nowPlaying])
 
   useEffect(() => {
     getBookmarks().then(setBookmarks).catch(() => {})
@@ -880,6 +923,17 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
                       </div>
                       <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
                         <button
+                          onClick={() => shareJam(t.song_name, t.show_date)}
+                          title="Share this jam"
+                          style={{
+                            background: 'none', border: 'none',
+                            color: shareToast === t.show_date ? '#22c55e' : '#475569',
+                            cursor: 'pointer', fontSize: '16px', padding: '2px',
+                          }}
+                        >
+                          {shareToast === t.show_date ? '\u2713' : '\u21AA'}
+                        </button>
+                        <button
                           onClick={() => toggleBookmark(t)}
                           title={bookmarkedSet.has(`${t.song_name}|${t.show_date}`) ? 'Remove bookmark' : 'Bookmark'}
                           style={{
@@ -982,6 +1036,19 @@ export default function SongDeepDiveMobile({ year, years, onYearChange }: { year
                   {fmtSec(playbackTime.current)} / {fmtSec(playbackTime.duration)}
                 </span>
               </div>
+              <button
+                onClick={shareNowPlaying}
+                title="Share this jam"
+                style={{
+                  background: playbarShareToast ? '#22c55e' : '#334155',
+                  color: 'white', border: 'none', borderRadius: '6px',
+                  padding: '6px 10px', fontSize: '12px', fontWeight: 600,
+                  cursor: 'pointer', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', gap: '4px',
+                }}
+              >
+                {playbarShareToast ? '\u2713' : '\u21AA'}
+              </button>
             </div>
           </div>
         )

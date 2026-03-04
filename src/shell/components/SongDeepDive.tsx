@@ -3,7 +3,7 @@ import * as d3 from 'd3'
 import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
 import { tourFromDate, weekdayFromDate } from '../../core/phangraphs/date-utils'
-import { getBookmarks, getBookmarksSync, addBookmark, removeBookmark, isBookmarked } from '../api/bookmarks'
+import { getBookmarks, getBookmarksSync, addBookmark, removeBookmark } from '../api/bookmarks'
 import type { Bookmark } from '../api/bookmarks'
 
 type TourFilter = 'all' | 'Winter' | 'Spring' | 'Summer' | 'Fall' | 'Holiday'
@@ -50,7 +50,7 @@ function fmtDuration(ms: number): string {
 type ViewMode = 'chart' | 'card' | 'bookmarks'
 type ListFilter = 'all' | 'jamcharts'
 
-const CARD_HEIGHT = 520
+const CARD_HEIGHT = 420
 
 function fmtAvgVal(s: SongOption): string {
   if (s.times_played === 0) return '.000'
@@ -65,6 +65,30 @@ function fmtSet(s: string) {
   if (s === 'ENCORE') return 'Enc'
   if (s === 'ENCORE 2') return 'E2'
   return s
+}
+
+function buildShareUrl(song: string, jamDate?: string): string {
+  const params = new URLSearchParams(window.location.search)
+  params.set('song', song)
+  params.set('view', 'card')
+  if (jamDate) params.set('jam', jamDate)
+  return window.location.origin + window.location.pathname + '?' + params.toString()
+}
+
+function copyToClipboard(text: string): Promise<void> {
+  if (navigator.clipboard) {
+    return navigator.clipboard.writeText(text)
+  }
+  // Fallback for older browsers
+  const ta = document.createElement('textarea')
+  ta.value = text
+  ta.style.position = 'fixed'
+  ta.style.left = '-9999px'
+  document.body.appendChild(ta)
+  ta.select()
+  document.execCommand('copy')
+  document.body.removeChild(ta)
+  return Promise.resolve()
 }
 
 function SingleCard({
@@ -87,6 +111,15 @@ function SingleCard({
 }) {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null)
   const highlightRef = useRef<HTMLDivElement>(null)
+  const [shareToast, setShareToast] = useState<string | null>(null)
+
+  const shareJam = (song: string, date: string) => {
+    const url = buildShareUrl(song, date)
+    copyToClipboard(url).then(() => {
+      setShareToast(date)
+      setTimeout(() => setShareToast(null), 2000)
+    })
+  }
 
   // Scroll to highlighted jam when card flips open
   useEffect(() => {
@@ -353,7 +386,19 @@ function SingleCard({
                       </div>
                     )}
                   </div>
-                  <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '4px', flexShrink: 0, alignItems: 'center', position: 'relative' }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); shareJam(t.song_name, t.show_date) }}
+                      title="Share this jam"
+                      style={{
+                        background: 'none', border: 'none',
+                        color: shareToast === t.show_date ? '#22c55e' : '#475569',
+                        cursor: 'pointer', fontSize: '14px', padding: '2px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >
+                      {shareToast === t.show_date ? '\u2713' : '\u21AA'}
+                    </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onToggleBookmark(t) }}
                       title={bookmarkedSet.has(`${t.song_name}|${t.show_date}`) ? 'Remove bookmark' : 'Bookmark this jam'}
@@ -623,6 +668,16 @@ export default function SongDeepDive({ year }: { year: string }) {
   const [nowPlaying, setNowPlaying] = useState<{ url: string; date: string; song: string } | null>(null)
   const [playbackTime, setPlaybackTime] = useState({ current: 0, duration: 0 })
   const [highlightJam, setHighlightJam] = useState<string | null>(() => getParam('jam') || null)
+  const [playbarShareToast, setPlaybarShareToast] = useState(false)
+
+  const shareNowPlaying = useCallback(() => {
+    if (!nowPlaying) return
+    const url = buildShareUrl(nowPlaying.song, nowPlaying.date)
+    copyToClipboard(url).then(() => {
+      setPlaybarShareToast(true)
+      setTimeout(() => setPlaybarShareToast(false), 2000)
+    })
+  }, [nowPlaying])
 
   // Bookmark state
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => getBookmarksSync())
@@ -1330,7 +1385,22 @@ export default function SongDeepDive({ year }: { year: string }) {
                   {fmtSec(playbackTime.current)} / {fmtSec(playbackTime.duration)}
                 </span>
               </div>
-              <span style={{ color: '#475569', fontSize: '12px', marginLeft: 'auto' }}>
+              <button
+                onClick={shareNowPlaying}
+                title="Share this jam"
+                style={{
+                  marginLeft: 'auto',
+                  background: playbarShareToast ? '#22c55e' : '#334155',
+                  color: 'white', border: 'none', borderRadius: '6px',
+                  padding: '8px 14px', fontSize: '13px', fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  transition: 'background 0.2s',
+                }}
+              >
+                {playbarShareToast ? '\u2713 Copied!' : '\u21AA Share'}
+              </button>
+              <span style={{ color: '#475569', fontSize: '12px' }}>
                 via PhishJustJams
               </span>
             </div>
