@@ -1105,7 +1105,7 @@ export default function SongDeepDive({ year }: { year: string }) {
             </div>
           )}
         </div>
-        <span data-tour="filters" style={{ display: 'contents' }}>
+        <div data-tour="filters" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <label style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             Min played:
             <input
@@ -1162,7 +1162,7 @@ export default function SongDeepDive({ year }: { year: string }) {
               <option value="Thursday">Thu</option>
             </select>
           </label>
-        </span>
+        </div>
         {viewMode !== 'browse' && (
           <select
             value={selectedSong}
