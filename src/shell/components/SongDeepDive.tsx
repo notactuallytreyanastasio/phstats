@@ -420,16 +420,15 @@ function SongBrowseGrid({
                         <div
                           key={`${t.show_date}-${t.position}`}
                           data-tour={i === 0 && idx === 0 ? 'jam-item' : undefined}
-                          onClick={e => { e.stopPropagation(); if (t.jam_url) playJam(t.jam_url, t.show_date, s.song_name) }}
                           style={{
-                            padding: '8px 10px', marginBottom: '4px',
+                            padding: '6px 8px', marginBottom: '4px',
                             background: isPlaying ? '#d4edda' : isJc ? '#fff5f5' : '#fff',
                             border: `1px solid ${isJc ? COLORS.headerBgJc : '#ddd'}`,
-                            borderRadius: '4px', cursor: t.jam_url ? 'pointer' : 'default',
+                            borderRadius: '4px',
                             borderLeft: isJc ? `3px solid ${COLORS.headerBgJc}` : undefined,
                           }}
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
                             <span style={{ fontWeight: 700, color: COLORS.headerBg }}>
                               {isJc && <span style={{ color: COLORS.headerBgJc }}>★ </span>}
                               {t.show_date}
@@ -438,7 +437,39 @@ function SongBrowseGrid({
                               {fmtDuration(t.duration_ms)}
                             </span>
                           </div>
-                          <div style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>{t.venue}</div>
+                          <div style={{ fontSize: '9px', color: '#888', marginTop: '1px', marginBottom: '4px' }}>{t.venue}</div>
+                          <div style={{ display: 'flex', gap: '4px' }}>
+                            {t.jam_url ? (
+                              <>
+                                <button
+                                  onClick={e => { e.stopPropagation(); playJam(t.jam_url, t.show_date, s.song_name) }}
+                                  style={{
+                                    flex: 1, padding: '4px 6px', fontSize: '10px', fontWeight: 700,
+                                    background: isPlaying ? '#16a34a' : COLORS.headerBg, color: '#fff',
+                                    border: 'none', borderRadius: '3px', cursor: 'pointer',
+                                  }}
+                                >
+                                  {isPlaying ? '▶ Playing' : '▶ Play'}
+                                </button>
+                                <button
+                                  onClick={e => {
+                                    e.stopPropagation()
+                                    const url = buildShareUrl(s.song_name, t.show_date, 'card')
+                                    copyToClipboard(url)
+                                  }}
+                                  style={{
+                                    padding: '4px 8px', fontSize: '10px', fontWeight: 700,
+                                    background: COLORS.gold, color: '#fff',
+                                    border: 'none', borderRadius: '3px', cursor: 'pointer',
+                                  }}
+                                >
+                                  Share
+                                </button>
+                              </>
+                            ) : (
+                              <div style={{ fontSize: '9px', color: '#999', fontStyle: 'italic' }}>No audio</div>
+                            )}
+                          </div>
                         </div>
                       )
                     })
