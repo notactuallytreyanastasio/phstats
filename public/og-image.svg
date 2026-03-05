@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <!-- Flame gradient -->
+    <linearGradient id="flame" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff4500"/>
+      <stop offset="50%" style="stop-color:#ff8c00"/>
+      <stop offset="100%" style="stop-color:#ffd700"/>
+    </linearGradient>
+    <!-- Moon gradient -->
+    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="70%" style="stop-color:#f5f0e1"/>
+      <stop offset="100%" style="stop-color:#c9a227"/>
+    </radialGradient>
+    <!-- Spaghetti color -->
+    <linearGradient id="pasta" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f4d03f"/>
+      <stop offset="100%" style="stop-color:#e6b800"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background - night sky -->
+  <rect width="1200" height="630" fill="#1a1a2e"/>
+
+  <!-- Stars -->
+  <g fill="#fff" opacity="0.6">
+    <circle cx="100" cy="80" r="2"/>
+    <circle cx="200" cy="150" r="1.5"/>
+    <circle cx="350" cy="60" r="2"/>
+    <circle cx="500" cy="120" r="1"/>
+    <circle cx="650" cy="50" r="2"/>
+    <circle cx="800" cy="100" r="1.5"/>
+    <circle cx="950" cy="70" r="2"/>
+    <circle cx="1050" cy="140" r="1"/>
+    <circle cx="1100" cy="60" r="2"/>
+    <circle cx="150" cy="200" r="1"/>
+    <circle cx="1000" cy="180" r="1.5"/>
+  </g>
+
+  <!-- Moon with Phish incorporated -->
+  <g transform="translate(600, 200)">
+    <!-- Moon body -->
+    <circle cx="0" cy="0" r="150" fill="url(#moonGlow)" stroke="#c9a227" stroke-width="3"/>
+    <!-- Moon craters -->
+    <circle cx="-50" cy="-30" r="25" fill="#d4c4a1" opacity="0.5"/>
+    <circle cx="60" cy="40" r="35" fill="#d4c4a1" opacity="0.4"/>
+    <circle cx="-20" cy="60" r="20" fill="#d4c4a1" opacity="0.3"/>
+    <circle cx="40" cy="-60" r="15" fill="#d4c4a1" opacity="0.4"/>
+
+    <!-- Phish shape inside moon -->
+    <g transform="translate(-60, -20) scale(0.8)">
+      <!-- Fish body -->
+      <ellipse cx="80" cy="30" rx="70" ry="35" fill="#b91c1c"/>
+      <!-- Fish tail -->
+      <path d="M 10 30 Q -20 0 10 -20 Q 30 10 10 30 Q 30 50 10 80 Q -20 60 10 30" fill="#b91c1c"/>
+      <!-- Fish eye -->
+      <circle cx="120" cy="20" r="12" fill="#fff"/>
+      <circle cx="123" cy="18" r="6" fill="#1a1a1a"/>
+      <!-- Fish mouth -->
+      <path d="M 148 35 Q 155 30 148 25" stroke="#1a1a1a" stroke-width="3" fill="none"/>
+      <!-- Fish fins -->
+      <path d="M 80 -5 Q 90 -30 100 -5" fill="#c9a227"/>
+      <path d="M 70 65 Q 60 85 90 65" fill="#c9a227"/>
+    </g>
+  </g>
+
+  <!-- Ground -->
+  <path d="M 0 520 Q 300 500 600 520 Q 900 540 1200 510 L 1200 630 L 0 630 Z" fill="#2d2d2d"/>
+
+  <!-- Fire glow -->
+  <ellipse cx="500" cy="530" rx="150" ry="30" fill="#ff4500" opacity="0.3"/>
+
+  <!-- Spaghetti pile -->
+  <g transform="translate(500, 480)">
+    <!-- Spaghetti strands -->
+    <path d="M -80 50 Q -60 20 -40 50 Q -20 80 0 50 Q 20 20 40 50 Q 60 80 80 50" stroke="url(#pasta)" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M -70 40 Q -50 70 -30 40 Q -10 10 10 40 Q 30 70 50 40 Q 70 10 90 40" stroke="url(#pasta)" stroke-width="7" fill="none" stroke-linecap="round"/>
+    <path d="M -90 55 Q -70 25 -50 55 Q -30 85 -10 55 Q 10 25 30 55 Q 50 85 70 55" stroke="url(#pasta)" stroke-width="6" fill="none" stroke-linecap="round"/>
+    <path d="M -60 45 Q -40 75 -20 45 Q 0 15 20 45 Q 40 75 60 45" stroke="url(#pasta)" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M -75 60 Q -55 30 -35 60 Q -15 90 5 60 Q 25 30 45 60 Q 65 90 85 60" stroke="url(#pasta)" stroke-width="5" fill="none" stroke-linecap="round"/>
+  </g>
+
+  <!-- Flames -->
+  <g transform="translate(500, 430)">
+    <!-- Main flames -->
+    <path d="M -40 50 Q -50 20 -30 -10 Q -20 -40 -10 -20 Q 0 0 10 -30 Q 20 -60 30 -20 Q 40 10 20 50 Z" fill="url(#flame)"/>
+    <path d="M 20 50 Q 10 30 30 0 Q 40 -30 50 -10 Q 60 20 70 -5 Q 80 -30 90 10 Q 100 40 80 50 Z" fill="url(#flame)"/>
+    <path d="M -80 50 Q -90 30 -70 5 Q -60 -20 -50 0 Q -40 20 -50 50 Z" fill="url(#flame)" opacity="0.9"/>
+    <!-- Smaller flames -->
+    <path d="M 0 50 Q -10 35 5 20 Q 15 5 25 25 Q 35 45 20 50 Z" fill="#ffd700" opacity="0.8"/>
+    <path d="M 50 50 Q 45 40 55 25 Q 65 15 70 35 Q 75 50 60 50 Z" fill="#ffd700" opacity="0.8"/>
+  </g>
+
+  <!-- Sloth -->
+  <g transform="translate(780, 420)">
+    <!-- Body -->
+    <ellipse cx="0" cy="60" rx="50" ry="45" fill="#8b7355"/>
+    <!-- Head -->
+    <circle cx="0" cy="0" r="45" fill="#a08060"/>
+    <!-- Face mask -->
+    <ellipse cx="0" cy="5" rx="35" ry="30" fill="#d4b896"/>
+    <!-- Eyes -->
+    <ellipse cx="-15" cy="-5" rx="12" ry="8" fill="#fff"/>
+    <ellipse cx="15" cy="-5" rx="12" ry="8" fill="#fff"/>
+    <!-- Sleepy eyelids -->
+    <ellipse cx="-15" cy="-8" rx="13" ry="6" fill="#a08060"/>
+    <ellipse cx="15" cy="-8" rx="13" ry="6" fill="#a08060"/>
+    <!-- Pupils (looking at fire) -->
+    <circle cx="-18" cy="-3" r="4" fill="#1a1a1a"/>
+    <circle cx="12" cy="-3" r="4" fill="#1a1a1a"/>
+    <!-- Nose -->
+    <ellipse cx="0" cy="10" rx="10" ry="7" fill="#4a3728"/>
+    <!-- Smile -->
+    <path d="M -15 22 Q 0 32 15 22" stroke="#4a3728" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- Eye markings -->
+    <path d="M -30 -15 Q -15 -25 0 -20" stroke="#5a4a3a" stroke-width="8" fill="none" opacity="0.6"/>
+    <path d="M 30 -15 Q 15 -25 0 -20" stroke="#5a4a3a" stroke-width="8" fill="none" opacity="0.6"/>
+    <!-- Arms -->
+    <path d="M -45 40 Q -80 30 -90 60 Q -85 80 -70 75" stroke="#8b7355" stroke-width="20" fill="none" stroke-linecap="round"/>
+    <path d="M 45 40 Q 80 50 85 80" stroke="#8b7355" stroke-width="20" fill="none" stroke-linecap="round"/>
+    <!-- Claws on left hand -->
+    <g transform="translate(-75, 70)">
+      <line x1="0" y1="0" x2="-10" y2="10" stroke="#3a2a1a" stroke-width="4" stroke-linecap="round"/>
+      <line x1="5" y1="5" x2="0" y2="18" stroke="#3a2a1a" stroke-width="4" stroke-linecap="round"/>
+      <line x1="10" y1="3" x2="12" y2="15" stroke="#3a2a1a" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <!-- Feet -->
+    <ellipse cx="-25" cy="105" rx="20" ry="12" fill="#6b5b4a"/>
+    <ellipse cx="25" cy="105" rx="20" ry="12" fill="#6b5b4a"/>
+  </g>
+
+  <!-- Title text -->
+  <text x="600" y="590" font-family="system-ui, sans-serif" font-size="36" font-weight="800" fill="#c9a227" text-anchor="middle">
+    PHSTATS — Phish 3.0 Jamchart Analysis
+  </text>
+</svg>
