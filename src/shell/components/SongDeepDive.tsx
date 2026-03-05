@@ -340,18 +340,23 @@ function SongBrowseGrid({
 
                 {/* Song name */}
                 <div style={{
-                  fontSize: '16px', fontWeight: 800, color: COLORS.headerBg,
-                  marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.5px',
+                  fontSize: '22px', fontWeight: 800, color: COLORS.headerBg,
+                  marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '1px',
+                  lineHeight: 1.2,
                 }}>
                   {s.song_name}
                 </div>
 
                 {/* Stats */}
-                <div style={{ fontSize: '13px', color: '#6b5b3d', marginBottom: '16px' }}>
-                  <span style={{ color: COLORS.headerBgJc, fontWeight: 700 }}>{s.jamchart_count}</span> jamcharts / {s.times_played} played
+                <div style={{ fontSize: '18px', color: '#5a4a32', marginBottom: '20px' }}>
+                  <span style={{ color: COLORS.headerBgJc, fontWeight: 800, fontSize: '22px' }}>{s.jamchart_count}</span>
+                  <span style={{ color: '#7a6a52' }}> jamcharts</span>
+                  <span style={{ color: '#9a8a72' }}> / </span>
+                  <span style={{ fontWeight: 700 }}>{s.times_played}</span>
+                  <span style={{ color: '#7a6a52' }}> played</span>
                 </div>
 
-                <div style={{ fontSize: '11px', color: COLORS.gold, fontWeight: 600, textTransform: 'uppercase' }}>
+                <div style={{ fontSize: '12px', color: COLORS.gold, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '1px' }}>
                   Click to flip
                 </div>
               </div>
