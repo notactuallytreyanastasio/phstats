@@ -272,6 +272,7 @@ function SongBrowseGrid({
 }) {
   const [flippedCard, setFlippedCard] = useState<string | null>(null)
   const [cardData, setCardData] = useState<Record<string, SongHistory>>({})
+  const [sharedJam, setSharedJam] = useState<string | null>(null)
 
   // Flip first card when tour reaches step 3 (card back step)
   useEffect(() => {
@@ -455,15 +456,18 @@ function SongBrowseGrid({
                                   onClick={e => {
                                     e.stopPropagation()
                                     const url = buildShareUrl(s.song_name, t.show_date, 'card')
-                                    copyToClipboard(url)
+                                    copyToClipboard(url).then(() => {
+                                      setSharedJam(t.show_date)
+                                      setTimeout(() => setSharedJam(null), 2000)
+                                    })
                                   }}
                                   style={{
                                     padding: '4px 8px', fontSize: '10px', fontWeight: 700,
-                                    background: COLORS.gold, color: '#fff',
+                                    background: sharedJam === t.show_date ? '#22c55e' : COLORS.gold, color: '#fff',
                                     border: 'none', borderRadius: '3px', cursor: 'pointer',
                                   }}
                                 >
-                                  Share
+                                  {sharedJam === t.show_date ? '✓ Copied!' : 'Share'}
                                 </button>
                               </>
                             ) : (
