@@ -7,6 +7,12 @@ import { getParam, setParams } from '../url-params'
 import { tourFromDate, weekdayFromDate } from '../../core/phangraphs/date-utils'
 
 const TOUR_KEY = 'phstats-tour-seen-v2'
+// Capture if user arrived with query params (before we push any)
+const hadInitialParams = (() => {
+  const params = new URLSearchParams(window.location.search)
+  // Only count as "shared link" if there's a song or jam param
+  return params.has('song') || params.has('jam')
+})()
 
 type TourFilter = 'all' | 'Winter' | 'Spring' | 'Summer' | 'Fall' | 'Holiday'
 type WeekdayFilter = 'all' | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday'
@@ -545,7 +551,7 @@ export default function SongDeepDive({ year }: { year: string }) {
   useEffect(() => {
     if (!songListLoaded || songList.length === 0) return
     if (localStorage.getItem(TOUR_KEY)) return
-    if (window.location.search) return // Don't show tour if coming from a shared link
+    if (hadInitialParams) return // Don't show tour if coming from a shared link
     const t = setTimeout(() => setRunTour(true), 800)
     return () => clearTimeout(t)
   }, [songListLoaded, songList.length])
