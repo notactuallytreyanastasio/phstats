@@ -77,7 +77,7 @@ function App() {
                 PhanGraphs
               </a>
             </h1>
-            <label style={{ fontSize: '0.85rem', color: '#666' }}>
+            <label data-tour="year-picker" style={{ fontSize: '0.85rem', color: '#666' }}>
               Year:
               <select
                 value={jamYear}

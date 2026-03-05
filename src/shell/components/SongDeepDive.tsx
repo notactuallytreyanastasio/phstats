@@ -1,8 +1,12 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
+import Joyride, { STATUS } from 'react-joyride'
+import type { CallBackProps, Step } from 'react-joyride'
 import * as d3 from 'd3'
 import * as dataSource from '../api/data-source'
 import { getParam, setParams } from '../url-params'
 import { tourFromDate, weekdayFromDate } from '../../core/phangraphs/date-utils'
+
+const TOUR_KEY = 'phstats-tour-seen-v2'
 
 type TourFilter = 'all' | 'Winter' | 'Spring' | 'Summer' | 'Fall' | 'Holiday'
 type WeekdayFilter = 'all' | 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday'
@@ -294,7 +298,7 @@ function SongBrowseGrid({
         const history = cardData[s.song_name]
 
         return (
-          <div key={s.song_name} style={{ perspective: '1000px', height: CARD_HEIGHT }}>
+          <div key={s.song_name} data-tour={i === 0 ? 'browse-card' : undefined} style={{ perspective: '1000px', height: CARD_HEIGHT }}>
             <div style={{
               position: 'relative', width: '100%', height: '100%',
               transformStyle: 'preserve-3d',
@@ -535,6 +539,51 @@ export default function SongDeepDive({ year }: { year: string }) {
     const m = getParam('min')
     return m ? parseInt(m, 10) || 5 : 5
   })
+  const [runTour, setRunTour] = useState(false)
+
+  // Start tour for first-time visitors (after songs load)
+  useEffect(() => {
+    if (!songListLoaded || songList.length === 0) return
+    if (localStorage.getItem(TOUR_KEY)) return
+    if (window.location.search) return // Don't show tour if coming from a shared link
+    const t = setTimeout(() => setRunTour(true), 800)
+    return () => clearTimeout(t)
+  }, [songListLoaded, songList.length])
+
+  const tourSteps: Step[] = [
+    {
+      target: '[data-tour="year-picker"]',
+      title: 'Random Year Selection',
+      content: 'Each visit starts with a random year from Phish 3.0 (2009–present). Use this dropdown to explore different years or view all time stats.',
+      placement: 'bottom',
+      disableBeacon: true,
+    },
+    {
+      target: '[data-tour="song-search"]',
+      title: 'Search for Songs',
+      content: 'Type to search for any song. Results show batting average — the ratio of jamchart entries to times played.',
+      placement: 'bottom',
+    },
+    {
+      target: '[data-tour="browse-card"]',
+      title: 'Flip the Cards',
+      content: 'Click any card to flip it and see all the jams. Click again to dive into the full song analysis with charts and detailed jam cards.',
+      placement: 'top',
+    },
+    {
+      target: '[data-tour="filters"]',
+      title: 'Filter Your View',
+      content: 'Sort by batting average, jamchart count, or times played. Filter by minimum plays, tour season, or day of week.',
+      placement: 'bottom',
+    },
+  ]
+
+  function handleTourCallback(data: CallBackProps) {
+    if (data.status === STATUS.FINISHED || data.status === STATUS.SKIPPED) {
+      setRunTour(false)
+      localStorage.setItem(TOUR_KEY, 'true')
+    }
+  }
 
   const playJam = useCallback((url: string, date: string, song: string) => {
     if (nowPlaying?.url === url) {
@@ -892,6 +941,30 @@ export default function SongDeepDive({ year }: { year: string }) {
 
   return (
     <div style={{ position: 'relative' }}>
+      <Joyride
+        steps={tourSteps}
+        run={runTour}
+        continuous
+        showSkipButton
+        showProgress
+        scrollToFirstStep
+        callback={handleTourCallback}
+        styles={{
+          options: {
+            primaryColor: COLORS.gold,
+            zIndex: 10000,
+          },
+          tooltip: {
+            borderRadius: 8,
+          },
+          buttonNext: {
+            backgroundColor: COLORS.gold,
+          },
+          buttonBack: {
+            color: COLORS.headerBg,
+          },
+        }}
+      />
       {/* Header */}
       <div style={{ marginBottom: '1rem' }}>
         {viewMode === 'browse' ? (
@@ -957,7 +1030,7 @@ export default function SongDeepDive({ year }: { year: string }) {
             {viewMode === 'chart' ? 'Card View' : 'Chart View'}
           </button>
         )}
-        <div style={{ position: 'relative' }}>
+        <div data-tour="song-search" style={{ position: 'relative' }}>
           <input
             type="text"
             placeholder="Search songs..."
@@ -995,62 +1068,64 @@ export default function SongDeepDive({ year }: { year: string }) {
             </div>
           )}
         </div>
-        <label style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-          Min played:
-          <input
-            type="range"
-            min={1}
-            max={Math.max(20, Math.round((songList[0]?.times_played ?? 20) / 2))}
-            value={minPlayed}
-            onChange={e => setMinPlayed(Number(e.target.value))}
-            style={{ width: 80 }}
-          />
-          <span style={{ minWidth: 20, textAlign: 'center' }}>{minPlayed}</span>
-        </label>
-        <label style={{ fontSize: '0.85rem' }}>
-          Sort:
-          <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value as 'avg' | 'jc' | 'played')}
-            style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: `1px solid ${COLORS.gold}` }}
-          >
-            <option value="avg">Batting Avg</option>
-            <option value="jc">Jamchart Count</option>
-            <option value="played">Times Played</option>
-          </select>
-        </label>
-        <label style={{ fontSize: '0.85rem' }}>
-          Tour:
-          <select
-            value={tour}
-            onChange={e => setTour(e.target.value as TourFilter)}
-            style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: `1px solid ${COLORS.gold}` }}
-          >
-            <option value="all">All</option>
-            <option value="Summer">Summer</option>
-            <option value="Fall">Fall</option>
-            <option value="Winter">Winter</option>
-            <option value="Spring">Spring</option>
-            <option value="Holiday">Holiday</option>
-          </select>
-        </label>
-        <label style={{ fontSize: '0.85rem' }}>
-          Day:
-          <select
-            value={weekday}
-            onChange={e => setWeekday(e.target.value as WeekdayFilter)}
-            style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: `1px solid ${COLORS.gold}` }}
-          >
-            <option value="all">All</option>
-            <option value="Friday">Fri</option>
-            <option value="Saturday">Sat</option>
-            <option value="Sunday">Sun</option>
-            <option value="Monday">Mon</option>
-            <option value="Tuesday">Tue</option>
-            <option value="Wednesday">Wed</option>
-            <option value="Thursday">Thu</option>
-          </select>
-        </label>
+        <span data-tour="filters" style={{ display: 'contents' }}>
+          <label style={{ fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            Min played:
+            <input
+              type="range"
+              min={1}
+              max={Math.max(20, Math.round((songList[0]?.times_played ?? 20) / 2))}
+              value={minPlayed}
+              onChange={e => setMinPlayed(Number(e.target.value))}
+              style={{ width: 80 }}
+            />
+            <span style={{ minWidth: 20, textAlign: 'center' }}>{minPlayed}</span>
+          </label>
+          <label style={{ fontSize: '0.85rem' }}>
+            Sort:
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as 'avg' | 'jc' | 'played')}
+              style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: `1px solid ${COLORS.gold}` }}
+            >
+              <option value="avg">Batting Avg</option>
+              <option value="jc">Jamchart Count</option>
+              <option value="played">Times Played</option>
+            </select>
+          </label>
+          <label style={{ fontSize: '0.85rem' }}>
+            Tour:
+            <select
+              value={tour}
+              onChange={e => setTour(e.target.value as TourFilter)}
+              style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: `1px solid ${COLORS.gold}` }}
+            >
+              <option value="all">All</option>
+              <option value="Summer">Summer</option>
+              <option value="Fall">Fall</option>
+              <option value="Winter">Winter</option>
+              <option value="Spring">Spring</option>
+              <option value="Holiday">Holiday</option>
+            </select>
+          </label>
+          <label style={{ fontSize: '0.85rem' }}>
+            Day:
+            <select
+              value={weekday}
+              onChange={e => setWeekday(e.target.value as WeekdayFilter)}
+              style={{ marginLeft: '0.5rem', padding: '0.4rem', fontSize: '0.85rem', borderRadius: '6px', border: `1px solid ${COLORS.gold}` }}
+            >
+              <option value="all">All</option>
+              <option value="Friday">Fri</option>
+              <option value="Saturday">Sat</option>
+              <option value="Sunday">Sun</option>
+              <option value="Monday">Mon</option>
+              <option value="Tuesday">Tue</option>
+              <option value="Wednesday">Wed</option>
+              <option value="Thursday">Thu</option>
+            </select>
+          </label>
+        </span>
         {viewMode !== 'browse' && (
           <select
             value={selectedSong}
