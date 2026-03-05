@@ -260,6 +260,7 @@ function SongBrowseGrid({
   fmtAvg,
   playJam,
   nowPlaying,
+  tourStep,
 }: {
   songs: SongOption[]
   year: string
@@ -267,9 +268,19 @@ function SongBrowseGrid({
   fmtAvg: (s: SongOption) => string
   playJam: (url: string, date: string, song: string) => void
   nowPlaying: { url: string; date: string; song: string } | null
+  tourStep?: number
 }) {
   const [flippedCard, setFlippedCard] = useState<string | null>(null)
   const [cardData, setCardData] = useState<Record<string, SongHistory>>({})
+
+  // Flip first card when tour reaches step 3 (card back step)
+  useEffect(() => {
+    if (tourStep === 3 && songs.length > 0 && flippedCard !== songs[0].song_name) {
+      setFlippedCard(songs[0].song_name)
+    } else if (tourStep !== undefined && tourStep < 3 && flippedCard) {
+      setFlippedCard(null)
+    }
+  }, [tourStep, songs, flippedCard])
 
   // Fetch data when a card is flipped
   useEffect(() => {
@@ -402,12 +413,13 @@ function SongBrowseGrid({
                   ) : history.tracks.length === 0 ? (
                     <div style={{ textAlign: 'center', padding: '20px', color: '#6b5b3d' }}>No jams found</div>
                   ) : (
-                    history.tracks.slice(0, 15).map(t => {
+                    history.tracks.slice(0, 15).map((t, idx) => {
                       const isJc = !!t.is_jamchart
                       const isPlaying = nowPlaying?.url === t.jam_url
                       return (
                         <div
                           key={`${t.show_date}-${t.position}`}
+                          data-tour={i === 0 && idx === 0 ? 'jam-item' : undefined}
                           onClick={e => { e.stopPropagation(); if (t.jam_url) playJam(t.jam_url, t.show_date, s.song_name) }}
                           style={{
                             padding: '8px 10px', marginBottom: '4px',
@@ -434,7 +446,9 @@ function SongBrowseGrid({
                 </div>
 
                 {/* Footer */}
-                <div style={{
+                <div
+                  data-tour={i === 0 ? 'card-footer' : undefined}
+                  style={{
                   padding: '10px', borderTop: `2px solid ${COLORS.gold}`,
                   display: 'flex', gap: '8px',
                 }}>
@@ -546,6 +560,7 @@ export default function SongDeepDive({ year }: { year: string }) {
     return m ? parseInt(m, 10) || 5 : 5
   })
   const [runTour, setRunTour] = useState(false)
+  const [tourStep, setTourStep] = useState(0)
 
   // Start tour for first-time visitors (after songs load)
   useEffect(() => {
@@ -572,21 +587,37 @@ export default function SongDeepDive({ year }: { year: string }) {
     },
     {
       target: '[data-tour="browse-card"]',
-      title: 'Flip the Cards',
-      content: 'Click any card to flip it and see all the jams. Click again to dive into the full song analysis with charts and detailed jam cards.',
+      title: 'Click to Flip',
+      content: 'Each card shows a song\'s batting average. Click to flip it over and see the jam list!',
+      placement: 'right',
+    },
+    {
+      target: '[data-tour="jam-item"]',
+      title: 'Play Any Jam',
+      content: 'Click any jam to play it. Jamchart entries are highlighted with a red border and star. The duration shows how long the jam is.',
+      placement: 'right',
+    },
+    {
+      target: '[data-tour="card-footer"]',
+      title: 'Dive Deeper',
+      content: 'Click "View All Jams" for the full analysis with charts, or flip back to browse more songs.',
       placement: 'top',
     },
     {
       target: '[data-tour="filters"]',
       title: 'Filter Your View',
       content: 'Sort by batting average, jamchart count, or times played. Filter by minimum plays, tour season, or day of week.',
-      placement: 'bottom',
+      placement: 'bottom-start',
     },
   ]
 
   function handleTourCallback(data: CallBackProps) {
+    if (data.action === 'next' || data.action === 'prev') {
+      setTourStep(data.index)
+    }
     if (data.status === STATUS.FINISHED || data.status === STATUS.SKIPPED) {
       setRunTour(false)
+      setTourStep(0)
       localStorage.setItem(TOUR_KEY, 'true')
     }
   }
@@ -1150,7 +1181,7 @@ export default function SongDeepDive({ year }: { year: string }) {
 
       {/* Main content */}
       {viewMode === 'browse' ? (
-        <SongBrowseGrid songs={sortedSongs} year={year} onSelectSong={handleSelectSong} fmtAvg={fmtAvg} playJam={playJam} nowPlaying={nowPlaying} />
+        <SongBrowseGrid songs={sortedSongs} year={year} onSelectSong={handleSelectSong} fmtAvg={fmtAvg} playJam={playJam} nowPlaying={nowPlaying} tourStep={runTour ? tourStep : undefined} />
       ) : viewMode === 'chart' ? (
         <div ref={chartContainerRef} data-tour="deep-dive-chart" style={{ display: 'flex', gap: '16px', minHeight: 420 }}>
           {/* Chart area */}
